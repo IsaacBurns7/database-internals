@@ -1,0 +1,57 @@
+/usr/bin/ld: /tmp/ccZahn2c.o: in function `operator<<(std::ostream&, Row const&)':
+store.cpp:(.text+0x20): undefined reference to `std::ostream::operator<<(int)'
+/usr/bin/ld: store.cpp:(.text+0x34): undefined reference to `std::basic_ostream<char, std::char_traits<char> >& std::operator<< <std::char_traits<char> >(std::basic_ostream<char, std::char_traits<char> >&, char const*)'
+/usr/bin/ld: store.cpp:(.text+0x4c): undefined reference to `std::basic_ostream<char, std::char_traits<char> >& std::operator<< <char, std::char_traits<char>, std::allocator<char> >(std::basic_ostream<char, std::char_traits<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)'
+/usr/bin/ld: store.cpp:(.text+0x60): undefined reference to `std::basic_ostream<char, std::char_traits<char> >& std::operator<< <std::char_traits<char> >(std::basic_ostream<char, std::char_traits<char> >&, char const*)'
+/usr/bin/ld: store.cpp:(.text+0x74): undefined reference to `std::ostream::operator<<(float)'
+/usr/bin/ld: store.cpp:(.text+0x7c): undefined reference to `std::basic_ostream<char, std::char_traits<char> >& std::operator<< <std::char_traits<char> >(std::basic_ostream<char, std::char_traits<char> >&, char)'
+/usr/bin/ld: /tmp/ccZahn2c.o: in function `main':
+store.cpp:(.text+0xf4): undefined reference to `std::cout'
+/usr/bin/ld: store.cpp:(.text+0xf8): undefined reference to `std::cout'
+/usr/bin/ld: /tmp/ccZahn2c.o: in function `std::vector<Row, std::allocator<Row> >::_S_check_init_len(unsigned long, std::allocator<Row> const&)':
+store.cpp:(.text._ZNSt6vectorI3RowSaIS0_EE17_S_check_init_lenEmRKS1_[_ZNSt6vectorI3RowSaIS0_EE17_S_check_init_lenEmRKS1_]+0xa8): undefined reference to `std::__throw_length_error(char const*)'
+/usr/bin/ld: /tmp/ccZahn2c.o: in function `std::__new_allocator<Row>::deallocate(Row*, unsigned long)':
+store.cpp:(.text._ZNSt15__new_allocatorI3RowE10deallocateEPS0_m[_ZNSt15__new_allocatorI3RowE10deallocateEPS0_m]+0x30): undefined reference to `operator delete(void*, unsigned long)'
+/usr/bin/ld: /tmp/ccZahn2c.o: in function `Row::~Row()':
+store.cpp:(.text._ZN3RowD2Ev[_ZN3RowD5Ev]+0x14): undefined reference to `std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::~basic_string()'
+/usr/bin/ld: /tmp/ccZahn2c.o: in function `std::__new_allocator<Row>::allocate(unsigned long, void const*)':
+store.cpp:(.text._ZNSt15__new_allocatorI3RowE8allocateEmPKv[_ZNSt15__new_allocatorI3RowE8allocateEmPKv]+0x64): undefined reference to `std::__throw_bad_array_new_length()'
+/usr/bin/ld: store.cpp:(.text._ZNSt15__new_allocatorI3RowE8allocateEmPKv[_ZNSt15__new_allocatorI3RowE8allocateEmPKv]+0x68): undefined reference to `std::__throw_bad_alloc()'
+/usr/bin/ld: store.cpp:(.text._ZNSt15__new_allocatorI3RowE8allocateEmPKv[_ZNSt15__new_allocatorI3RowE8allocateEmPKv]+0x80): undefined reference to `operator new(unsigned long)'
+/usr/bin/ld: /tmp/ccZahn2c.o: in function `Row::Row()':
+store.cpp:(.text._ZN3RowC2Ev[_ZN3RowC5Ev]+0x14): undefined reference to `std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string()'
+/usr/bin/ld: /tmp/ccZahn2c.o:(.data.rel.local.DW.ref.__gxx_personality_v0[DW.ref.__gxx_personality_v0]+0x0): undefined reference to `__gxx_personality_v0'
+collect2: error: ld returned 1 exit status
+=====\nFILE THAT GENERATED ERROR: store.cpp, BELOW\n=====\n
+#include <format>
+#include <iostream>
+#include <string>
+#include <vector>
+
+using std::cout;
+using std::string;
+using std::vector;
+
+struct Row { 
+    int id; 
+    string name; 
+    float income;
+};
+
+std::ostream& operator<<(std::ostream& os, const Row& r){
+	os << r.id << ", " << r.name << ", " << r.income << '\n';
+	return os;
+}
+
+template <typename RowSchema> 
+vector<RowSchema> createDefaultTableEntries(int n){
+    vector<RowSchema> ans(n); 
+    return ans; 
+}
+
+int main(){
+    // Note that we need to specify the type of RowSchema here
+    vector<Row> tableRowStore = createDefaultTableEntries<Row>(10); 
+    for(const auto& row : tableRowStore) cout << row;
+    return 0;
+}
