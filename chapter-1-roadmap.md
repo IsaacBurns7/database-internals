@@ -1,11 +1,11 @@
 Since this is only the first chapter, a little less implementation. 
 Still wanna try out: 
 store
-    Row-store 
-    column-store 
-    wide-column-store 
+    Row-store done 
+    column-store done 
+    wide-column-store not doing 
 data files
-    index organized tables
+    index organized tables 
     heap organized tables
     hash organized tables
 priamry vs secondary index
