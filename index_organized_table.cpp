@@ -13,8 +13,10 @@ using std::map;
 
 struct Employee {
     int id;
+    string name;
     string department;
     float salary;
+    int age;
 };
 
 struct Row {
@@ -26,12 +28,24 @@ struct Row {
 template <typename Index_t, typename RecordStruct> 
 struct IndexOrganizedTable { 
 	int rows; 
-	map<Index_t, RecordStruct> data; 
+	map<Index_t, RecordStruct> data;
+	
+	// secondary indexes: field index -> (field value -> vector of primary keys)
+    // store as map<string, map<string, vector<Index_t>>> keyed by field name
+    // but since we dont have field names, key by field position instead
+	unordered_map<int, map<string, vector<Index_t>>> secondary_indexes;
+ 
 	IndexOrganizedTable(): rows(0){}
 
-	void insert(Index_t key, RecordStruct val){
+	void insert(RecordStruct val){
+	    Index_t key = boost::pfr::get<0>(val);
 		data[key] = val;
 		rows++;
+		//update secondary indexes
+		for(auto& [field_pos, idx]: secondary_indexes){
+			string field_val = get_field_as_string(val, field_pos);
+			idx[field_val].push_back(key);
+		}
 	}	
 	void exists(Index_t key) const { return data.count(key) > 0; }
 	void remove(Index_t key) { rows -= data.erase(key); }
@@ -60,6 +74,62 @@ struct IndexOrganizedTable {
     auto& get(const Index_t& index) { return boost::pfr::get<N>(data[index]); }
     template<int N, typename V>
     void set(const Index_t& index, V&& val) { boost::pfr::get<N>(data[index]) = std::forward<V>(val); }
+	
+	template<int N>
+	void build_secondary_index(){
+		map<string, vector<Index_t>> idx;
+		for(const auto& [key, val]:data){
+			string field_val = get_field_as_string(val, N);
+			idx[field_val].push_back(key);	
+		}	
+		secondary_indexes[N] = idx;; 
+	}
+	
+	// range scan on secondary index for field N
+    template<int N, typename Func>
+    void secondary_scan(const string& from, const string& to, Func func) const {
+        auto sit = secondary_indexes.find(N);
+        if (sit == secondary_indexes.end()) {
+            cout << "no secondary index on field " << N << ", build it first\n";
+            return;
+        }
+        const auto& idx = sit->second;
+        auto begin = idx.lower_bound(from);
+        auto end   = idx.upper_bound(to);
+        for (auto it = begin; it != end; it++)
+            for (Index_t key : it->second)
+                func(data.at(key));
+    }
+
+    // accumulating secondary scan
+    template<int N, typename Result, typename Func>
+    Result secondary_scan(const string& from, const string& to, Result init, Func func) const {
+        auto sit = secondary_indexes.find(N);
+        if (sit == secondary_indexes.end()) {
+            cout << "no secondary index on field " << N << ", build it first\n";
+            return init;
+        }
+        const auto& idx = sit->second;
+        auto begin = idx.lower_bound(from);
+        auto end   = idx.upper_bound(to);
+        for (auto it = begin; it != end; it++)
+            for (Index_t key : it->second)
+                init = func(init, data.at(key));
+        return init;
+    }
+private:
+    // helper: get field N of a struct as a string for secondary index storage
+    string get_field_as_string(const RecordStruct& val, int n) const {
+        string result;
+        boost::pfr::for_each_field(val, [&](const auto& field, auto idx) {
+            if (idx == n) {
+                std::ostringstream oss;
+                oss << field;
+                result = oss.str();
+            }
+        });
+        return result;
+    }
 };
 
 template<typename Index_t, typename RecordStruct>
@@ -74,11 +144,10 @@ std::ostream& operator<<(std::ostream& os, const IndexOrganizedTable<Index_t, Re
 }
 
 int main(){
-	// --- int key ---
     IndexOrganizedTable<int, Row> table;
-    table.insert(1, {1, "alice", 50.0f});
-    table.insert(2, {2, "bob",   60.5f});
-    table.insert(3, {3, "carol", 72.1f});
+    table.insert({1, "alice", 50.0f});
+    table.insert({2, "bob",   60.5f});
+    table.insert({3, "carol", 72.1f});
 	
 	float total_income = table.scan(1, 3, 0.0f, [](float acc, const Row& e){
 		return acc + e.income; 	
@@ -93,20 +162,28 @@ int main(){
     // --- get a field ---
     cout << "--- bob's name: " << table.get<1>(2) << " ---\n\n";
 
-    // --- string key ---
-    IndexOrganizedTable<string, Employee> employees;
-    employees.insert("eng1",  {1, "engineering", 95000.0f});
-    employees.insert("des1",  {2, "design",       88000.0f});
-    employees.insert("mkt1",  {3, "marketing",    76000.0f});
-	
-	float salary_costs;
-	employees.scan("eng1", "mkt1", [&salary_costs](const Employee& e){
-		salary_costs += e.salary; 	
-	});	
-	cout << "--- Range scan says total salary is: " << salary_costs << "\n"; 
 
-    cout << "--- Employees by string key ---\n" << employees << '\n';
+	IndexOrganizedTable<int, Employee> employees;
+    employees.insert({1, "alice", "engineering", 95000.0f, 34});
+    employees.insert({2, "bob",   "design",       88000.0f, 28});
+    employees.insert({3, "carol", "engineering",  76000.0f, 41});
+    employees.insert({4, "dave",  "marketing",    72000.0f, 25});
+    employees.insert({5, "eve",   "design",        91000.0f, 30});
 
-    // --- lookup by key ---
-    cout << "--- eng1 department: " << employees.get<1>("eng1") << " ---\n";
+    // build secondary index on field 2 (department)
+    employees.build_secondary_index<2>();
+
+    cout << "--- all employees ---\n" << employees << '\n';
+
+    // scan department "design" to "engineering"
+    cout << "--- design to engineering ---\n";
+    employees.secondary_scan<2>("design", "engineering", [](const Employee& e) {
+        cout << e.name << ", " << e.department << ", " << e.salary << '\n';
+    });
+
+    // accumulate salaries in engineering
+    float total = employees.secondary_scan<2>("engineering", "engineering", 0.0f,
+        [](float acc, const Employee& e) { return acc + e.salary; }
+    );
+    cout << "\nengineering salary total: " << total << '\n';
 }
