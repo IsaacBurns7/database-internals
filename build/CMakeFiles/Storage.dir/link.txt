@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/Storage.dir/main.cpp.o CMakeFiles/Storage.dir/storage/page.cpp.o CMakeFiles/Storage.dir/storage/disk_manager.cpp.o CMakeFiles/Storage.dir/storage/slotted_page.cpp.o -o Storage 
