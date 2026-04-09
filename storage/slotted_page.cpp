@@ -1,8 +1,4 @@
-#pragma once
-#include "common/types.h"
-#include <cstdint>
-#include <optional>
-#include <span>  // C++20; use std::pair<char*,uint16_t> if on C++17
+#include "slotted_page.h"
 
 /*
  * SlottedPage — interprets a raw PAGE_SIZE byte buffer as a slotted page.
@@ -55,15 +51,17 @@
  *   - Overflow pages: records larger than PAGE_SIZE/2 need a separate
  *     overflow chain. Defer this until B+Tree forces the issue.
  */
-class SlottedPage {
-public:
-    /*
+
+/* INTERNAL DATA: char* data_ pointing to the start of the page (also start of page header) */ 
+/*
      * Wraps the PAGE_SIZE buffer pointed to by `data`.
      * Does NOT zero-initialise. Caller must call init() on a fresh page
      * or simply wrap an existing, already-formatted page.
      * `data` must remain valid for the lifetime of this SlottedPage.
      */
-    explicit SlottedPage(char* data);
+SlottedPage::SlottedPage(char* data){
+	data_ = data; 
+}
 
     /*
      * Writes the initial PageHeader into data[] with the given page_type.
@@ -71,7 +69,26 @@ public:
      * Must be called exactly once on a freshly allocated page before any
      * insertRecord() call. Calling this on an existing page destroys its data.
      */
-    void init(PageType page_type);
+void SlottedPage::init(page_id_t assigned_id, PageType type) {
+	// 1. Create the header with 'zeroed' or 'initial' metadata
+	PageHeader header;
+	header.page_id = assigned_id;
+	header.page_type = type;
+	header.slot_count = 0;
+	header.lsn = 0;        // Initial state
+	header.check_sum = 0;  // Will be computed on Disk Write
+	
+	// 2. Set the pointers for the "Tectonic Plate" design
+	// Records grow UP from the end of the page
+	header.free_space_ptr = PAGE_SIZE; 
+	
+	// 3. Write the header struct into the start of your raw data buffer
+	// (Assuming data is a char[] or uint8_t[] member of your Page class)
+	std::memcpy(data_, &header, sizeof(PageHeader));
+	
+	// 4. Optional: Zero out the rest of the page to prevent "dirty" data
+	std::memset(data_ + sizeof(PageHeader), 0, PAGE_SIZE - sizeof(PageHeader));
+}
 
     /*
      * Copies `length` bytes from `record` into the record heap, growing it
@@ -87,7 +104,25 @@ public:
      * Does NOT call compactify() automatically — caller decides when to compact.
      * After a successful insert, caller must mark the Page dirty.
      */
-    std::optional<slot_id_t> insertRecord(const char* record, uint16_t length);
+std::optional<slot_id_t> SlottedPage::insertRecord(const char* record, uint16_t length){
+	if(length == 0){
+		return std::nullopt; 
+	}
+	//check there is enough space
+	PageHeader* header = GetHeader();
+	uint16_t first_free_slot_offset = sizeof(PageHeader) + sizeof(Slot) * header->slot_count;
+	uint16_t space_left = PAGE_SIZE - first_free_slot_offset; 
+	for(uint16_t i = 0;i < header->slot_count;i++){
+		uint16_t slot_offset = sizeof(PageHeader) + sizeof(Slot) * i;
+		Slot* slot = reinterpret_cast<Slot*>(data_ + slot_offset);
+	}
+	//add record
+	std::memcpy(data_ + header->free_space_ptr, record, length);
+	header->free_space_ptr -= length; 
+	//add slot 
+		
+	//return slot id 
+}
 
     /*
      * Marks slot `slot_id` as deleted by setting Slot.length = 0 (tombstone).
@@ -96,7 +131,7 @@ public:
      * Returns false if slot_id is out of range or already deleted.
      * After a successful delete, caller must mark the Page dirty.
      */
-    bool deleteRecord(slot_id_t slot_id);
+    // bool deleteRecord(slot_id_t slot_id);
 
     /*
      * Returns a span (pointer + length) into data[] for the record at `slot_id`.
@@ -105,7 +140,7 @@ public:
      * must copy it out.
      * Returns an empty span if slot_id is out of range or deleted.
      */
-    std::span<const char> getRecord(slot_id_t slot_id) const;
+    // std::span<const char> getRecord(slot_id_t slot_id) const;
 
     /*
      * Overwrites the record at `slot_id` with `length` bytes from `record`.
@@ -114,7 +149,7 @@ public:
      * Returns false if slot_id is invalid, deleted, or lengths differ.
      * After success, caller must mark the Page dirty.
      */
-    bool updateRecord(slot_id_t slot_id, const char* record, uint16_t length);
+    // bool updateRecord(slot_id_t slot_id, const char* record, uint16_t length);
 
     /*
      * Defragments the record heap in-place. Scans all live slots, packs their
@@ -125,7 +160,7 @@ public:
      * (including fragmented gaps) >= needed.
      * After calling this, any previously obtained getRecord() spans are stale.
      */
-    void compactify();
+    // void compactify();
 
     /*
      * Returns the number of bytes in the contiguous free gap between the
@@ -133,29 +168,26 @@ public:
      * available for a new insert WITHOUT compaction.
      * Equation: free_space_ptr - (sizeof(Header) + slot_count * sizeof(Slot))
      */
-    uint16_t getFreeSpace() const;
+    // uint16_t getFreeSpace() const;
 
     /*
      * Returns total reclaimable free bytes: contiguous free space plus the
      * sum of lengths of all deleted (tombstoned) slots. If this is >= the
      * needed size but getFreeSpace() is not, compactify() will help.
      */
-    uint16_t getTotalFreeSpace() const;
+    // uint16_t getTotalFreeSpace() const;
 
     /*
      * Returns the number of slot entries (live + deleted). The last valid
      * slot_id is getSlotCount() - 1. Does NOT count only live records.
      */
-    uint16_t getSlotCount() const;
+    // uint16_t getSlotCount() const;
 
     /*
      * Returns the PageType stored in the header. Used by upper layers
      * to distinguish leaf pages, internal pages, overflow pages, etc.
      */
-    PageType getPageType() const;
-
-private:
-    char* data_;  // points into Page::data_[] — not owned here
+    // PageType getPageType() const;
 
     /*
      * Returns a mutable pointer to the header at offset 0.
@@ -173,4 +205,3 @@ private:
      */
     // Slot* slotAt(slot_id_t slot_id);
     // const Slot* slotAt(slot_id_t slot_id) const;
-};

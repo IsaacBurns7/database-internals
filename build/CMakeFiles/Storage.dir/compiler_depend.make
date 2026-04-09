@@ -328,7 +328,9 @@ CMakeFiles/Storage.dir/storage/page.cpp.o: /home/isaac/database-internals/storag
   /usr/lib/gcc/aarch64-linux-gnu/13/include/stdint.h
 
 CMakeFiles/Storage.dir/storage/slotted_page.cpp.o: /home/isaac/database-internals/storage/slotted_page.cpp \
+  /home/isaac/database-internals/common/config.h \
   /home/isaac/database-internals/common/types.h \
+  /home/isaac/database-internals/storage/slotted_page.h \
   /usr/include/aarch64-linux-gnu/bits/libc-header-start.h \
   /usr/include/aarch64-linux-gnu/bits/long-double.h \
   /usr/include/aarch64-linux-gnu/bits/stdint-intn.h \
@@ -337,6 +339,8 @@ CMakeFiles/Storage.dir/storage/slotted_page.cpp.o: /home/isaac/database-internal
   /usr/include/aarch64-linux-gnu/bits/time64.h \
   /usr/include/aarch64-linux-gnu/bits/timesize.h \
   /usr/include/aarch64-linux-gnu/bits/types.h \
+  /usr/include/aarch64-linux-gnu/bits/types/__locale_t.h \
+  /usr/include/aarch64-linux-gnu/bits/types/locale_t.h \
   /usr/include/aarch64-linux-gnu/bits/typesizes.h \
   /usr/include/aarch64-linux-gnu/bits/wchar.h \
   /usr/include/aarch64-linux-gnu/bits/wordsize.h \
@@ -361,6 +365,7 @@ CMakeFiles/Storage.dir/storage/slotted_page.cpp.o: /home/isaac/database-internal
   /usr/include/c++/13/bits/stl_iterator_base_types.h \
   /usr/include/c++/13/bits/utility.h \
   /usr/include/c++/13/cstdint \
+  /usr/include/c++/13/cstring \
   /usr/include/c++/13/debug/assertions.h \
   /usr/include/c++/13/exception \
   /usr/include/c++/13/initializer_list \
@@ -375,13 +380,19 @@ CMakeFiles/Storage.dir/storage/slotted_page.cpp.o: /home/isaac/database-internal
   /usr/include/features.h \
   /usr/include/stdc-predef.h \
   /usr/include/stdint.h \
+  /usr/include/string.h \
+  /usr/include/strings.h \
   /usr/lib/gcc/aarch64-linux-gnu/13/include/stddef.h \
   /usr/lib/gcc/aarch64-linux-gnu/13/include/stdint.h
 
 
+/usr/include/string.h:
+
 /usr/include/c++/13/span:
 
 /usr/include/c++/13/optional:
+
+/usr/include/c++/13/cstring:
 
 /home/isaac/database-internals/storage/slotted_page.cpp:
 
@@ -556,6 +567,8 @@ CMakeFiles/Storage.dir/storage/slotted_page.cpp.o: /home/isaac/database-internal
 /usr/include/aarch64-linux-gnu/bits/pthread_stack_min-dynamic.h:
 
 /usr/include/c++/13/pstl/pstl_config.h:
+
+/home/isaac/database-internals/storage/slotted_page.h:
 
 /usr/include/aarch64-linux-gnu/bits/uintn-identity.h:
 
@@ -816,6 +829,8 @@ CMakeFiles/Storage.dir/storage/slotted_page.cpp.o: /home/isaac/database-internal
 /home/isaac/database-internals/common/types.h:
 
 /usr/include/c++/13/bits/uses_allocator.h:
+
+/usr/include/strings.h:
 
 /usr/include/c++/13/iomanip:
 
