@@ -4,6 +4,7 @@
 #include "common/types.h"
 #include "common/config.h"
 #include <cstdint>
+#include <iostream>
 
 /*
  * Page — in-memory container for one PAGE_SIZE-byte disk block.

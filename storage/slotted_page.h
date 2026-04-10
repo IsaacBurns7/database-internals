@@ -5,6 +5,12 @@
 #include <optional>
 #include <span>  // C++20; use std::pair<char*,uint16_t> if on C++17
 #include <cstring>
+#include <iostream>
+#include <cassert>
+#include <vector>
+#include <algorithm>
+
+using std::cout;
 
 /*
  * SlottedPage — interprets a raw PAGE_SIZE byte buffer as a slotted page.
@@ -69,8 +75,8 @@ struct alignas(4) PageHeader {
     page_id_t page_id;      // 4 bytes - Offset 0
     lsn_t lsn;              // 4 bytes - Offset 4
     uint32_t check_sum;     // 4 bytes - Offset 8
-    uint16_t slot_count;    // 2 bytes - Offset 12
-    uint16_t free_space_ptr;// 2 bytes - Offset 14, first free space for the next record 
+    uint16_t max_slot_id;    // 2 bytes - Offset 12
+	uint16_t free_space_ptr;// 2 bytes - Offset 14, first free space for the next record 
     PageType page_type;     // 1 byte  - Offset 16
     uint8_t padding[3];     // 3 bytes - Explicitly pad to 20 bytes (4-byte alignment)
 };
@@ -184,23 +190,35 @@ private:
     char* data_;  // points into Page::data_[] — not owned here
 	
 	// Internal helper to get a pointer to the header bytes
-    inline PageHeader* GetHeader() {
+    inline const PageHeader* GetHeader() const {
+    	return reinterpret_cast<PageHeader*>(data_);
+    }
+	inline PageHeader* GetHeader() {
         return reinterpret_cast<PageHeader*>(data_);
     }
-    /*
-     * Returns a mutable pointer to the header at offset 0.
-     * You will define PageHeader as a packed struct in the .cpp or a
-     * separate header. Its size is fixed at compile time and must be
-     * documented in config.h (SLOTTED_PAGE_HEADER_SIZE).
-     */
-    // PageHeader* header();
-    // const PageHeader* header() const;
-
-    /*
-     * Returns a pointer to the slot array entry at index `slot_id`.
-     * Slot array starts immediately after the header.
-     * Does no bounds checking — use getSlotCount() before calling.
-     */
-    // Slot* slotAt(slot_id_t slot_id);
-    // const Slot* slotAt(slot_id_t slot_id) const;
+	//THE BELOW POINTER HAS TO BE CONST BECAUSE HOW ELSE TO GUARANTEE THAT PAGE IS NOT BEING MODIFIED?
+	inline std::optional<const Slot*> GetSlot(slot_id_t slot_id) const {
+		const PageHeader* header = GetHeader(); 
+		if(slot_id >= header->max_slot_id) return std::nullopt; 
+		uint16_t slot_offset = sizeof(PageHeader) + sizeof(Slot) * slot_id; 
+		Slot* slot = reinterpret_cast<Slot*>(data_ + slot_offset);
+		return slot; 
+	}
+	inline std::optional<Slot*> GetSlot(slot_id_t slot_id) {
+		PageHeader* header = GetHeader(); 
+		if(slot_id >= header->max_slot_id) return std::nullopt; 
+		uint16_t slot_offset = sizeof(PageHeader) + sizeof(Slot) * slot_id; 
+		Slot* slot = reinterpret_cast<Slot*>(data_ + slot_offset);
+		return slot; 
+	}
+	bool canInsertContigious(uint16_t length, bool needs_new_slot) const; 
+	uint16_t find_first_free_slot_id() const{
+		const PageHeader* header = GetHeader(); 
+		for(uint16_t i = 0;i < header->max_slot_id; i++){
+			const Slot* slot = GetSlot(i).value_or(nullptr); 
+			assert(slot != nullptr); 
+			if(slot->offset == 0) return i; 
+		}
+		return header->max_slot_id;
+	}
 };

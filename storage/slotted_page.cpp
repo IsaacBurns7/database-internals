@@ -1,5 +1,7 @@
 #include "slotted_page.h"
 
+using std::cout;
+
 /*
  * SlottedPage — interprets a raw PAGE_SIZE byte buffer as a slotted page.
  *
@@ -74,7 +76,7 @@ void SlottedPage::init(page_id_t assigned_id, PageType type) {
 	PageHeader header;
 	header.page_id = assigned_id;
 	header.page_type = type;
-	header.slot_count = 0;
+	header.max_slot_id = 0;
 	header.lsn = 0;        // Initial state
 	header.check_sum = 0;  // Will be computed on Disk Write
 	
@@ -105,23 +107,32 @@ void SlottedPage::init(page_id_t assigned_id, PageType type) {
      * After a successful insert, caller must mark the Page dirty.
      */
 std::optional<slot_id_t> SlottedPage::insertRecord(const char* record, uint16_t length){
-	if(length == 0){
-		return std::nullopt; 
-	}
+	if(length == 0) return std::nullopt; 
 	//check there is enough space
 	PageHeader* header = GetHeader();
-	uint16_t first_free_slot_offset = sizeof(PageHeader) + sizeof(Slot) * header->slot_count;
-	uint16_t space_left = PAGE_SIZE - first_free_slot_offset; 
-	for(uint16_t i = 0;i < header->slot_count;i++){
-		uint16_t slot_offset = sizeof(PageHeader) + sizeof(Slot) * i;
-		Slot* slot = reinterpret_cast<Slot*>(data_ + slot_offset);
+	uint16_t first_free_slot_id = find_first_free_slot_id();
+	bool needs_new_slot = (first_free_slot_id == header->max_slot_id);
+	uint16_t space_needed = length + (needs_new_slot ? sizeof(Slot) : 0);
+	if(space_needed > getTotalFreeSpace()) return std::nullopt; 
+
+	//if need to compact, compact 
+	if(!canInsertContigious(length, needs_new_slot)){
+		compactify();
 	}
-	//add record
-	std::memcpy(data_ + header->free_space_ptr, record, length);
+	
+	//insert record 
 	header->free_space_ptr -= length; 
-	//add slot 
-		
-	//return slot id 
+	uint16_t new_offset = header->free_space_ptr; 
+	std::memcpy(data_ + new_offset, record, length); 
+
+	//modify slot in-place
+	Slot* slot_ptr = GetSlot(first_free_slot_id).value_or(nullptr); //ensure we are guaranteed this is within bounds... perhaps add an assert? 
+	assert(slot_ptr != nullptr); //YOU FUCKED UP!
+	slot_ptr->offset = new_offset; 
+	slot_ptr->size = length; 
+
+	if(needs_new_slot) header->max_slot_id++;
+	return first_free_slot_id; 
 }
 
     /*
@@ -131,7 +142,21 @@ std::optional<slot_id_t> SlottedPage::insertRecord(const char* record, uint16_t 
      * Returns false if slot_id is out of range or already deleted.
      * After a successful delete, caller must mark the Page dirty.
      */
-    // bool deleteRecord(slot_id_t slot_id);
+ bool SlottedPage::deleteRecord(slot_id_t slot_id){
+	PageHeader* header = GetHeader(); 
+	//assumes slot_id is always its index 
+	if(header->slot_count - 1 > slot_id){
+		cout << "Slot id out of range" << '\n';
+		return false; 
+	}
+	//HAVE TO MODIFY
+	broken_below();
+	uint16_t slot_offset = sizeof(PageHeader) + sizeof(Slot) * slot_id; 
+	Slot* slot = reinterpret_cast<Slot*>(data_ + slot_offset); 
+	slot->offset = 0;
+	std::memcpy(data_ + slot_offset, slot, sizeof(Slot)); 
+	return true; 
+ }
 
     /*
      * Returns a span (pointer + length) into data[] for the record at `slot_id`.
@@ -140,7 +165,14 @@ std::optional<slot_id_t> SlottedPage::insertRecord(const char* record, uint16_t 
      * must copy it out.
      * Returns an empty span if slot_id is out of range or deleted.
      */
-    // std::span<const char> getRecord(slot_id_t slot_id) const;
+/*
+ * two options: if GetSlot() returns nullopt, propagate, OR just return an empty span. I'm lazy so I go with empty span, but 
+ */
+std::span<const char> SlottedPage::getRecord(slot_id_t slot_id) const{
+	auto slot = GetSlot(slot_id).value_or(nullptr); 
+	if(!slot) return {}; //empty span 
+	return { data_ + slot->offset, slot->size }; 
+}
 
     /*
      * Overwrites the record at `slot_id` with `length` bytes from `record`.
@@ -149,7 +181,14 @@ std::optional<slot_id_t> SlottedPage::insertRecord(const char* record, uint16_t 
      * Returns false if slot_id is invalid, deleted, or lengths differ.
      * After success, caller must mark the Page dirty.
      */
-    // bool updateRecord(slot_id_t slot_id, const char* record, uint16_t length);
+bool SlottedPage::updateRecord(slot_id_t slot_id, const char* record, uint16_t length){
+	Slot* slot = GetSlot(slot_id).value_or(nullptr);
+	if(!slot) return false; 
+	//slot sizes must match (im lazy) 
+	if(slot->size != length) return false; 
+	memcpy(data_ + slot->offset, record, length); 
+	return true; 
+}	
 
     /*
      * Defragments the record heap in-place. Scans all live slots, packs their
@@ -160,7 +199,46 @@ std::optional<slot_id_t> SlottedPage::insertRecord(const char* record, uint16_t 
      * (including fragmented gaps) >= needed.
      * After calling this, any previously obtained getRecord() spans are stale.
      */
-    // void compactify();
+void SlottedPage::compactify(){
+	//sort by offset descending
+	PageHeader* header = GetHeader();
+	std::vector<Slot*> live_slots;
+	for(uint16_t i = 0;i < header->max_slot_id;i++){
+		Slot* slot = GetSlot(i).value_or(nullptr);  
+		if(slot && slot->offset != 0){
+			live_slots.push_back(slot);
+		}
+	}
+	std::sort(live_slots.begin(), live_slots.end(), 
+		[](Slot* a, Slot* b){
+			return a->offset > b->offset; 	
+		}
+	);
+
+	//compactify records 
+	uint16_t current_free_ptr = PAGE_SIZE;
+	for(Slot* slot : live_slots){
+		current_free_ptr -= slot->size; 
+		if(slot->offset != current_free_ptr){
+			memmove(data_ + current_free_ptr, data_ + slot->offset, slot->size);
+			slot->offset = current_free_ptr; 
+		}
+	}
+	header->free_space_ptr = current_free_ptr; 
+	
+	//slot array trimming - we cant directly compactify slots because that would require changing all the references in our B+ Tree which would be inordinately expensive.
+	uint16_t new_max_slot_id = header->max_slot_id; 
+	for(int i = header->max_slot_id-1;i >= 0;i--){
+		Slot* slot = GetSlot(i).value_or(nullptr); 
+		if(slot && slot->offset != 0){
+			new_max_slot_id = i+1; 
+			break;
+		}
+		//all slots are dead.
+		if(i == 0) new_max_slot_id == 0;
+	}
+	header->max_slot_id = new_max_slot_id; 
+}
 
     /*
      * Returns the number of bytes in the contiguous free gap between the
@@ -168,14 +246,36 @@ std::optional<slot_id_t> SlottedPage::insertRecord(const char* record, uint16_t 
      * available for a new insert WITHOUT compaction.
      * Equation: free_space_ptr - (sizeof(Header) + slot_count * sizeof(Slot))
      */
-    // uint16_t getFreeSpace() const;
+uint16_t SlottedPage::getFreeSpace() const {
+	const PageHeader* header = GetHeader();
+	int32_t space = header->free_space_ptr - (sizeof(PageHeader) + sizeof(Slot) * header->max_slot_id); 
+	return space;
+}
 
     /*
      * Returns total reclaimable free bytes: contiguous free space plus the
      * sum of lengths of all deleted (tombstoned) slots. If this is >= the
      * needed size but getFreeSpace() is not, compactify() will help.
      */
-    // uint16_t getTotalFreeSpace() const;
+uint16_t SlottedPage::getTotalFreeSpace() const {
+	const PageHeader* header = GetHeader();
+	//start with gap in the middle 
+	int32_t space = header->free_space_ptr - (sizeof(PageHeader) + sizeof(Slot) * header->max_slot_id); 
+	//add back space from dead slots - tombstones 
+	for(uint16_t i = 0;i < header->max_slot_id;i++){
+		auto slot = GetSlot(i);
+		if(!slot && (*slot)->offset == 0){
+			space += (*slot)->size;
+		}
+	}
+	return (space < 0) ? 0 : static_cast<uint16_t>(space);
+};
+
+bool SlottedPage::canInsertContigious(uint16_t length, bool needs_new_slot) const {
+	uint16_t slot_growth = needs_new_slot ? sizeof(Slot) : 0;
+	uint16_t current_gap = getFreeSpace(); 
+	return current_gap >= (length + slot_growth);
+}
 
     /*
      * Returns the number of slot entries (live + deleted). The last valid
