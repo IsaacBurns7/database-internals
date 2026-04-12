@@ -1,7 +1,7 @@
 #pragma once
 #include "common/types.h"
 #include "common/config.h"
-
+#include "storage/freelist_page.h"
 #include <string>
 #include <unordered_set>
 #include <iostream>
@@ -10,6 +10,7 @@
 #include <fcntl.h> //open()
 #include <unistd.h> //close()
 #include <sys/stat.h> //mode constants
+#include <system_error>
 
 namespace fs = std::filesystem;
 using std::cout; 
@@ -50,17 +51,17 @@ using std::ofstream;
 
 
 struct alignas(PAGE_SIZE) GlobalMetadata {
+	//maybe add like a "dirty" flag ?? b/c this is recently updated but its gotta be pushed to disk eventually >< 
+	//and updating it constantly is kind of expensive >< >< 
 	uint32_t magic_number; 
-	uint32_t free_count;
-	page_id_t next_page_id; //uint32_t 
+	uint32_t db_version; 
+	page_id_t root_page_id; 
+	page_id_t freelist_head; //head of freelist chain
+	page_id_t next_page_id; //The "High Water Mark" 
+	
+	static constexpr size_t FIXED_SIZE = sizeof(uint32_t) * 2 + sizeof(page_id_t) * 3; 
 
-	static constexpr size_t FIXED_SIZE = sizeof(uint32_t) + sizeof(uint32_t) + sizeof(page_id_t); 
-	static constexpr size_t MAX_FREE_PAGES = (PAGE_SIZE - FIXED_SIZE) / sizeof(page_id_t); 
-	
-	page_id_t free_pages[MAX_FREE_PAGES];
-	
-	//ensure exactly PAGE_SIZE
-	uint8_t unused_padding[PAGE_SIZE - (FIXED_SIZE + (MAX_FREE_PAGES * sizeof(page_id_t)))];
+	uint8_t unused_padding[PAGE_SIZE - FIXED_SIZE];
 };
 static_assert(sizeof(GlobalMetadata) == PAGE_SIZE, "GlobalMetadata is not exactly PAGE_SIZE!");
 
@@ -126,11 +127,14 @@ private:
     int fd_;
 	GlobalMetadata global_metadata_; 
 
-    /*
-     * Writes next_page_id_ and free_pages_ into the header page (page_id 0)
-     * so the allocator state survives a clean shutdown. Called by destructor.
-     * Not called on every allocatePage() — that would be too expensive.
-     */
-    void flushHeader();
-    void readHeader();
+	//Writes global_metadata_ into page 0 (master)
+	//defined in .h b/c I suspect this will be used by many other classes
+	void UpdateMetadata(){
+		ssize_t w = pwrite(fd_, &global_metadata_, PAGE_SIZE, 0);
+		HandleWriteError(w, 0); 
+		//optional for durability
+		fsync(fd_); 
+	}   
+	void HandleWriteError(ssize_t bytes_written, page_id_t page_id);
+	void HandleReadError(ssize_t bytes_read, page_id_t page_id);
 };

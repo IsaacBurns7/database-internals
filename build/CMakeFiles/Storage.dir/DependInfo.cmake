@@ -10,6 +10,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/isaac/database-internals/main.cpp" "CMakeFiles/Storage.dir/main.cpp.o" "gcc" "CMakeFiles/Storage.dir/main.cpp.o.d"
   "/home/isaac/database-internals/storage/disk_manager.cpp" "CMakeFiles/Storage.dir/storage/disk_manager.cpp.o" "gcc" "CMakeFiles/Storage.dir/storage/disk_manager.cpp.o.d"
+  "/home/isaac/database-internals/storage/freelist_page.cpp" "CMakeFiles/Storage.dir/storage/freelist_page.cpp.o" "gcc" "CMakeFiles/Storage.dir/storage/freelist_page.cpp.o.d"
   "/home/isaac/database-internals/storage/page.cpp" "CMakeFiles/Storage.dir/storage/page.cpp.o" "gcc" "CMakeFiles/Storage.dir/storage/page.cpp.o.d"
   "/home/isaac/database-internals/storage/slotted_page.cpp" "CMakeFiles/Storage.dir/storage/slotted_page.cpp.o" "gcc" "CMakeFiles/Storage.dir/storage/slotted_page.cpp.o.d"
   )

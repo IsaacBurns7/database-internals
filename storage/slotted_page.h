@@ -63,21 +63,21 @@ using std::cout;
  *   - Overflow pages: records larger than PAGE_SIZE/2 need a separate
  *     overflow chain. Defer this until B+Tree forces the issue.
  */
-enum PageType: uint8_t{ 
-	master,
+enum SlottedPageType: uint8_t{ 
+	// master, //custom impl 
 	internal,
 	leaf,
-	freelist, //tracks empty pages 
-	overflow //for like 10KB strings  
+	// freelist, //tracks empty pages 
+	// overflow //for like 10KB strings  
 };
 
-struct alignas(4) PageHeader {
+struct alignas(4) SlottedPageHeader {
     page_id_t page_id;      // 4 bytes - Offset 0
     lsn_t lsn;              // 4 bytes - Offset 4
     uint32_t check_sum;     // 4 bytes - Offset 8
     uint16_t max_slot_id;    // 2 bytes - Offset 12
 	uint16_t free_space_ptr;// 2 bytes - Offset 14, first free space for the next record 
-    PageType page_type;     // 1 byte  - Offset 16
+    SlottedPageType page_type;     // 1 byte  - Offset 16
     uint8_t padding[3];     // 3 bytes - Explicitly pad to 20 bytes (4-byte alignment)
 };
 
@@ -103,7 +103,7 @@ public:
      * Must be called exactly once on a freshly allocated page before any
      * insertRecord() call. Calling this on an existing page destroys its data.
      */
-    void init(page_id_t page_id, PageType page_type);
+    void init(page_id_t page_id, SlottedPageType page_type);
 
     /*
      * Copies `length` bytes from `record` into the record heap, growing it
@@ -184,36 +184,36 @@ public:
      * Returns the PageType stored in the header. Used by upper layers
      * to distinguish leaf pages, internal pages, overflow pages, etc.
      */
-    PageType getPageType() const;
+    SlottedPageType getPageType() const;
 
 private:
     char* data_;  // points into Page::data_[] — not owned here
 	
 	// Internal helper to get a pointer to the header bytes
-    inline const PageHeader* GetHeader() const {
-    	return reinterpret_cast<PageHeader*>(data_);
+    inline const SlottedPageHeader* GetHeader() const {
+    	return reinterpret_cast<SlottedPageHeader*>(data_);
     }
-	inline PageHeader* GetHeader() {
-        return reinterpret_cast<PageHeader*>(data_);
+	inline SlottedPageHeader* GetHeader() {
+        return reinterpret_cast<SlottedPageHeader*>(data_);
     }
 	//THE BELOW POINTER HAS TO BE CONST BECAUSE HOW ELSE TO GUARANTEE THAT PAGE IS NOT BEING MODIFIED?
 	inline std::optional<const Slot*> GetSlot(slot_id_t slot_id) const {
-		const PageHeader* header = GetHeader(); 
+		const SlottedPageHeader* header = GetHeader(); 
 		if(slot_id >= header->max_slot_id) return std::nullopt; 
-		uint16_t slot_offset = sizeof(PageHeader) + sizeof(Slot) * slot_id; 
+		uint16_t slot_offset = sizeof(SlottedPageHeader) + sizeof(Slot) * slot_id; 
 		Slot* slot = reinterpret_cast<Slot*>(data_ + slot_offset);
 		return slot; 
 	}
 	inline std::optional<Slot*> GetSlot(slot_id_t slot_id) {
-		PageHeader* header = GetHeader(); 
+		SlottedPageHeader* header = GetHeader(); 
 		if(slot_id >= header->max_slot_id) return std::nullopt; 
-		uint16_t slot_offset = sizeof(PageHeader) + sizeof(Slot) * slot_id; 
+		uint16_t slot_offset = sizeof(SlottedPageHeader) + sizeof(Slot) * slot_id; 
 		Slot* slot = reinterpret_cast<Slot*>(data_ + slot_offset);
 		return slot; 
 	}
 	bool canInsertContigious(uint16_t length, bool needs_new_slot) const; 
 	uint16_t find_first_free_slot_id() const{
-		const PageHeader* header = GetHeader(); 
+		const SlottedPageHeader* header = GetHeader(); 
 		for(uint16_t i = 0;i < header->max_slot_id; i++){
 			const Slot* slot = GetSlot(i).value_or(nullptr); 
 			assert(slot != nullptr); 

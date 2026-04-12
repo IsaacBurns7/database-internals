@@ -13,6 +13,7 @@ add_executable(Storage
 	storage/page.cpp
 	storage/disk_manager.cpp
 	storage/slotted_page.cpp
+	storage/freelist_page.cpp
 )
 
 # 4. Define include directories

@@ -71,9 +71,9 @@ SlottedPage::SlottedPage(char* data){
      * Must be called exactly once on a freshly allocated page before any
      * insertRecord() call. Calling this on an existing page destroys its data.
      */
-void SlottedPage::init(page_id_t assigned_id, PageType type) {
+void SlottedPage::init(page_id_t assigned_id, SlottedPageType type) {
 	// 1. Create the header with 'zeroed' or 'initial' metadata
-	PageHeader header;
+	SlottedPageHeader header;
 	header.page_id = assigned_id;
 	header.page_type = type;
 	header.max_slot_id = 0;
@@ -86,10 +86,10 @@ void SlottedPage::init(page_id_t assigned_id, PageType type) {
 	
 	// 3. Write the header struct into the start of your raw data buffer
 	// (Assuming data is a char[] or uint8_t[] member of your Page class)
-	std::memcpy(data_, &header, sizeof(PageHeader));
+	std::memcpy(data_, &header, sizeof(SlottedPageHeader));
 	
 	// 4. Optional: Zero out the rest of the page to prevent "dirty" data
-	std::memset(data_ + sizeof(PageHeader), 0, PAGE_SIZE - sizeof(PageHeader));
+	std::memset(data_ + sizeof(SlottedPageHeader), 0, PAGE_SIZE - sizeof(SlottedPageHeader));
 }
 
     /*
@@ -109,7 +109,7 @@ void SlottedPage::init(page_id_t assigned_id, PageType type) {
 std::optional<slot_id_t> SlottedPage::insertRecord(const char* record, uint16_t length){
 	if(length == 0) return std::nullopt; 
 	//check there is enough space
-	PageHeader* header = GetHeader();
+	SlottedPageHeader* header = GetHeader();
 	uint16_t first_free_slot_id = find_first_free_slot_id();
 	bool needs_new_slot = (first_free_slot_id == header->max_slot_id);
 	uint16_t space_needed = length + (needs_new_slot ? sizeof(Slot) : 0);
@@ -143,15 +143,12 @@ std::optional<slot_id_t> SlottedPage::insertRecord(const char* record, uint16_t 
      * After a successful delete, caller must mark the Page dirty.
      */
  bool SlottedPage::deleteRecord(slot_id_t slot_id){
-	PageHeader* header = GetHeader(); 
-	//assumes slot_id is always its index 
-	if(header->slot_count - 1 > slot_id){
+	SlottedPageHeader* header = GetHeader();
+	if(header->max_slot_id <= slot_id){ //slot id out of range 
 		cout << "Slot id out of range" << '\n';
 		return false; 
 	}
-	//HAVE TO MODIFY
-	broken_below();
-	uint16_t slot_offset = sizeof(PageHeader) + sizeof(Slot) * slot_id; 
+	uint16_t slot_offset = sizeof(SlottedPageHeader) + sizeof(Slot) * slot_id; 
 	Slot* slot = reinterpret_cast<Slot*>(data_ + slot_offset); 
 	slot->offset = 0;
 	std::memcpy(data_ + slot_offset, slot, sizeof(Slot)); 
@@ -201,7 +198,7 @@ bool SlottedPage::updateRecord(slot_id_t slot_id, const char* record, uint16_t l
      */
 void SlottedPage::compactify(){
 	//sort by offset descending
-	PageHeader* header = GetHeader();
+	SlottedPageHeader* header = GetHeader();
 	std::vector<Slot*> live_slots;
 	for(uint16_t i = 0;i < header->max_slot_id;i++){
 		Slot* slot = GetSlot(i).value_or(nullptr);  
@@ -247,8 +244,8 @@ void SlottedPage::compactify(){
      * Equation: free_space_ptr - (sizeof(Header) + slot_count * sizeof(Slot))
      */
 uint16_t SlottedPage::getFreeSpace() const {
-	const PageHeader* header = GetHeader();
-	int32_t space = header->free_space_ptr - (sizeof(PageHeader) + sizeof(Slot) * header->max_slot_id); 
+	const SlottedPageHeader* header = GetHeader();
+	int32_t space = header->free_space_ptr - (sizeof(SlottedPageHeader) + sizeof(Slot) * header->max_slot_id); 
 	return space;
 }
 
@@ -258,9 +255,9 @@ uint16_t SlottedPage::getFreeSpace() const {
      * needed size but getFreeSpace() is not, compactify() will help.
      */
 uint16_t SlottedPage::getTotalFreeSpace() const {
-	const PageHeader* header = GetHeader();
+	const SlottedPageHeader* header = GetHeader();
 	//start with gap in the middle 
-	int32_t space = header->free_space_ptr - (sizeof(PageHeader) + sizeof(Slot) * header->max_slot_id); 
+	int32_t space = header->free_space_ptr - (sizeof(SlottedPageHeader) + sizeof(Slot) * header->max_slot_id); 
 	//add back space from dead slots - tombstones 
 	for(uint16_t i = 0;i < header->max_slot_id;i++){
 		auto slot = GetSlot(i);
@@ -281,27 +278,16 @@ bool SlottedPage::canInsertContigious(uint16_t length, bool needs_new_slot) cons
      * Returns the number of slot entries (live + deleted). The last valid
      * slot_id is getSlotCount() - 1. Does NOT count only live records.
      */
-    // uint16_t getSlotCount() const;
+uint16_t SlottedPage::getSlotCount() const{
+	const SlottedPageHeader* header = GetHeader(); 
+	return header->max_slot_id;
+}
 
     /*
-     * Returns the PageType stored in the header. Used by upper layers
+     * Returns the SlottedPageType stored in the header. Used by upper layers
      * to distinguish leaf pages, internal pages, overflow pages, etc.
      */
-    // PageType getPageType() const;
-
-    /*
-     * Returns a mutable pointer to the header at offset 0.
-     * You will define PageHeader as a packed struct in the .cpp or a
-     * separate header. Its size is fixed at compile time and must be
-     * documented in config.h (SLOTTED_PAGE_HEADER_SIZE).
-     */
-    // PageHeader* header();
-    // const PageHeader* header() const;
-
-    /*
-     * Returns a pointer to the slot array entry at index `slot_id`.
-     * Slot array starts immediately after the header.
-     * Does no bounds checking — use getSlotCount() before calling.
-     */
-    // Slot* slotAt(slot_id_t slot_id);
-    // const Slot* slotAt(slot_id_t slot_id) const;
+SlottedPageType SlottedPage::getPageType() const {
+	const SlottedPageHeader* header = GetHeader();
+	return header->page_type;
+}

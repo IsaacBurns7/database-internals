@@ -209,6 +209,7 @@ CMakeFiles/Storage.dir/storage/disk_manager.cpp.o: /home/isaac/database-internal
   /home/isaac/database-internals/common/config.h \
   /home/isaac/database-internals/common/types.h \
   /home/isaac/database-internals/storage/disk_manager.h \
+  /home/isaac/database-internals/storage/freelist_page.h \
   /usr/include/aarch64-linux-gnu/asm/bitsperlong.h \
   /usr/include/aarch64-linux-gnu/asm/errno.h \
   /usr/include/aarch64-linux-gnu/asm/posix_types.h \
@@ -318,6 +319,7 @@ CMakeFiles/Storage.dir/storage/disk_manager.cpp.o: /home/isaac/database-internal
   /usr/include/asm-generic/int-ll64.h \
   /usr/include/asm-generic/posix_types.h \
   /usr/include/asm-generic/types.h \
+  /usr/include/assert.h \
   /usr/include/c++/13/backward/binders.h \
   /usr/include/c++/13/bit \
   /usr/include/c++/13/bits/align.h \
@@ -404,6 +406,7 @@ CMakeFiles/Storage.dir/storage/disk_manager.cpp.o: /home/isaac/database-internal
   /usr/include/c++/13/bits/uses_allocator.h \
   /usr/include/c++/13/bits/uses_allocator_args.h \
   /usr/include/c++/13/bits/utility.h \
+  /usr/include/c++/13/cassert \
   /usr/include/c++/13/cctype \
   /usr/include/c++/13/cerrno \
   /usr/include/c++/13/clocale \
@@ -478,6 +481,40 @@ CMakeFiles/Storage.dir/storage/disk_manager.cpp.o: /home/isaac/database-internal
   /usr/include/wchar.h \
   /usr/include/wctype.h \
   /usr/lib/gcc/aarch64-linux-gnu/13/include/stdarg.h \
+  /usr/lib/gcc/aarch64-linux-gnu/13/include/stddef.h \
+  /usr/lib/gcc/aarch64-linux-gnu/13/include/stdint.h
+
+CMakeFiles/Storage.dir/storage/freelist_page.cpp.o: /home/isaac/database-internals/storage/freelist_page.cpp \
+  /home/isaac/database-internals/common/config.h \
+  /home/isaac/database-internals/common/types.h \
+  /home/isaac/database-internals/storage/freelist_page.h \
+  /usr/include/aarch64-linux-gnu/bits/libc-header-start.h \
+  /usr/include/aarch64-linux-gnu/bits/long-double.h \
+  /usr/include/aarch64-linux-gnu/bits/stdint-intn.h \
+  /usr/include/aarch64-linux-gnu/bits/stdint-least.h \
+  /usr/include/aarch64-linux-gnu/bits/stdint-uintn.h \
+  /usr/include/aarch64-linux-gnu/bits/time64.h \
+  /usr/include/aarch64-linux-gnu/bits/timesize.h \
+  /usr/include/aarch64-linux-gnu/bits/types.h \
+  /usr/include/aarch64-linux-gnu/bits/typesizes.h \
+  /usr/include/aarch64-linux-gnu/bits/wchar.h \
+  /usr/include/aarch64-linux-gnu/bits/wordsize.h \
+  /usr/include/aarch64-linux-gnu/c++/13/bits/c++config.h \
+  /usr/include/aarch64-linux-gnu/c++/13/bits/cpu_defines.h \
+  /usr/include/aarch64-linux-gnu/c++/13/bits/os_defines.h \
+  /usr/include/aarch64-linux-gnu/gnu/stubs-lp64.h \
+  /usr/include/aarch64-linux-gnu/gnu/stubs.h \
+  /usr/include/aarch64-linux-gnu/sys/cdefs.h \
+  /usr/include/assert.h \
+  /usr/include/c++/13/cassert \
+  /usr/include/c++/13/cstddef \
+  /usr/include/c++/13/cstdint \
+  /usr/include/c++/13/limits \
+  /usr/include/c++/13/pstl/pstl_config.h \
+  /usr/include/features-time64.h \
+  /usr/include/features.h \
+  /usr/include/stdc-predef.h \
+  /usr/include/stdint.h \
   /usr/lib/gcc/aarch64-linux-gnu/13/include/stddef.h \
   /usr/lib/gcc/aarch64-linux-gnu/13/include/stdint.h
 
@@ -942,8 +979,6 @@ CMakeFiles/Storage.dir/storage/slotted_page.cpp.o: /home/isaac/database-internal
 
 /usr/include/c++/13/algorithm:
 
-/usr/include/assert.h:
-
 /home/isaac/database-internals/storage/slotted_page.cpp:
 
 /usr/include/unistd.h:
@@ -977,6 +1012,10 @@ CMakeFiles/Storage.dir/storage/slotted_page.cpp.o: /home/isaac/database-internal
 /usr/include/c++/13/ctime:
 
 /usr/include/c++/13/codecvt:
+
+/usr/include/c++/13/bits/unordered_set.h:
+
+/usr/include/c++/13/bits/unique_ptr.h:
 
 /usr/include/c++/13/bits/range_access.h:
 
@@ -1120,8 +1159,6 @@ CMakeFiles/Storage.dir/storage/slotted_page.cpp.o: /home/isaac/database-internal
 
 /usr/include/c++/13/bits/align.h:
 
-/usr/include/c++/13/bits/unique_ptr.h:
-
 /usr/include/c++/13/bits/ios_base.h:
 
 /usr/include/aarch64-linux-gnu/asm/bitsperlong.h:
@@ -1139,6 +1176,8 @@ CMakeFiles/Storage.dir/storage/slotted_page.cpp.o: /home/isaac/database-internal
 /usr/include/aarch64-linux-gnu/bits/setjmp.h:
 
 /usr/include/aarch64-linux-gnu/bits/types/__fpos_t.h:
+
+/home/isaac/database-internals/storage/freelist_page.cpp:
 
 /usr/include/c++/13/bits/fs_fwd.h:
 
@@ -1462,6 +1501,8 @@ CMakeFiles/Storage.dir/storage/slotted_page.cpp.o: /home/isaac/database-internal
 
 /usr/include/stdlib.h:
 
+/home/isaac/database-internals/storage/freelist_page.h:
+
 /usr/include/c++/13/limits:
 
 /usr/include/aarch64-linux-gnu/bits/getopt_core.h:
@@ -1479,6 +1520,8 @@ CMakeFiles/Storage.dir/storage/slotted_page.cpp.o: /home/isaac/database-internal
 /usr/include/c++/13/cctype:
 
 /usr/include/aarch64-linux-gnu/sys/stat.h:
+
+/usr/include/assert.h:
 
 /usr/include/c++/13/bits/chrono.h:
 
@@ -1515,5 +1558,3 @@ CMakeFiles/Storage.dir/storage/slotted_page.cpp.o: /home/isaac/database-internal
 /usr/include/c++/13/bits/new_allocator.h:
 
 /usr/include/c++/13/bits/stl_uninitialized.h:
-
-/usr/include/c++/13/bits/unordered_set.h:

@@ -33,9 +33,9 @@
 /*
  * Internal data
  *	int                           fd_;
-    page_id_t                     next_page_id_;
-    std::unordered_set<page_id_t> free_pages_;
+ 	GlobalMetadata global_metadata_; 
  */
+
 
 /*
      * Opens (or creates) the database file at file_path.
@@ -45,17 +45,6 @@
      * opened or if the header is corrupt.
      */
 DiskManager::DiskManager(const std::string& file_path){
-	// try{
-	// 	fs::path p = file_path;
-	// 	fs::create_directories(p.parent_path());
-	//
-	// 	ofstream outfile(p);
-	// 	if(outfile){
-	// 		cout << "Database File successfully created at: " << p << endl; 
-	// 	}
-	// }catch(const fs::filesystem_error& e){
-	// 	cerr << "Error: " << e.what() << endl; 
-	// }
 	int fd = open(file_path.c_str(), O_WRONLY || O_CREAT | O_TRUNC, 0644);
 
 	if(fd == -1){
@@ -81,6 +70,7 @@ DiskManager::DiskManager(const std::string& file_path){
      * BufferPoolManager must flush all dirty pages before destroying this.
      */
 DiskManager::~DiskManager(){
+	UpdateMetadata();
 	close(fd_); 
 }
 
@@ -90,9 +80,19 @@ DiskManager::~DiskManager(){
      * Uses pwrite() so position is not shared with concurrent readers.
      * Caller must ensure `data` points to at least PAGE_SIZE bytes.
      * Throws on I/O error. Does NOT call fsync — durability is LogManager's job.
-     */
+     *	- yeah not so sure about not throwing fsync	
+	 */
 void DiskManager::writePage(page_id_t page_id, const char* data){
-	
+	size_t offset = page_id * PAGE_SIZE; 
+	ssize_t bytes_written = pwrite(fd_, data, PAGE_SIZE, offset); 
+	if(bytes_written != PAGE_SIZE){
+		if(bytes_written == -1){
+			throw std::system_error(errno, std::generic_category(), "Critical: pwrite failed on page " + std::to_string(page_id)); 
+		} else{
+			throw std::runtime_error("Partial write occured: wrote " + std::to_string(bytes_written) + " of " + std::to_string(PAGE_SIZE) + " on page " + std::to_string(page_id));
+		}
+	}
+	//update page metadata 
 }
 
     /*
@@ -100,36 +100,138 @@ void DiskManager::writePage(page_id_t page_id, const char* data){
      * `data`. Uses pread(). `data` must point to a PAGE_SIZE buffer (i.e.
      * Page::data_). Throws on I/O error or if page_id >= next_page_id_.
      */
-    // void readPage(page_id_t page_id, char* data);
+void DiskManager::readPage(page_id_t page_id, char* data){
+	if(page_id >= global_metadata_.next_page_id){
+		throw std::runtime_error("Page read out of allowed range");
+	}
+	size_t offset = page_id * PAGE_SIZE;
+	ssize_t bytes_read = pread(fd_, data, PAGE_SIZE, offset);
+	if(bytes_read != PAGE_SIZE){
+		if(bytes_read == -1){
+			throw std::system_error(errno, std::generic_category(), "Critical: pread failed on page " + std::to_string(page_id)); 
+		}else if(bytes_read == 0){
+			throw std::runtime_error("Read past EOF");
+		}else{
+			throw std::runtime_error("Partial read: Page is likely truncated or corrupted");
+		}
+	}
+}
 
     /*
      * Returns a page_id for a fresh, writable page.
      * Allocation order:
-     *   1. Pop from free_pages_ if non-empty (reuse deallocated space).
+     *   1. Find next free in freelist (reuse deallocated space).
      *   2. Otherwise, return next_page_id_++ and extend the file.
      * Does NOT zero-initialise the page bytes — caller must treat the
      * contents as undefined and initialise before writing.
+	 * - current implementation, look back and verify this is a good idea
+	 *
+	 *   CURRENTLY USES MANUAL BUFFER, REFACTOR WHEN BUFFERPOOL IS CREATED
+	 *   broken_comment(); 
      */
-    // page_id_t allocatePage();
+page_id_t DiskManager::allocatePage(){
+	page_id_t freelist_head_ = global_metadata_.freelist_head; 
+	if(freelist_head_ == INVALID_PAGE_ID){
+		//no freelist, just make new id manually 
+		page_id_t new_id = global_metadata_.next_page_id++; 
+		UpdateMetadata(); 
+		return new_id; 
+	}
+	//manual read b/c no buffer pool 
+	uint8_t buffer[PAGE_SIZE];
+	ssize_t r = pread(fd_, buffer, PAGE_SIZE, freelist_head_ * PAGE_SIZE);
+	HandleReadError(r, freelist_head_); 
+
+	auto* f_page = reinterpret_cast<Freelist_Page*>(buffer);
+	page_id_t recycled_id = f_page->free_page_ids[--f_page->current_id_count]; 
+
+	if(f_page->current_id_count==0){
+		//freelist page empty 
+		page_id_t old_head = freelist_head_;
+		freelist_head_ = f_page->next_freelist_page;
+		//recycle freelist page itself 
+		recycled_id = old_head; 
+	}else{
+		//still has some ids 
+		ssize_t w = pwrite(fd_, buffer, PAGE_SIZE, freelist_head_ * PAGE_SIZE);
+		HandleWriteError(w, freelist_head_);
+	}
+	UpdateMetadata();
+	return recycled_id; 
+}
+
 
     /*
-     * Marks page_id as free for future reuse. Inserts into free_pages_.
      * Does NOT zero the bytes on disk; the page is simply available for
      * reallocation. Caller must ensure no live references remain before
      * calling this (BufferPoolManager must have evicted the page first).
      */
-    // void deallocatePage(page_id_t page_id);
+void DiskManager::deallocatePage(page_id_t page_id){
+	page_id_t head_id = global_metadata_.freelist_head;
+	if(head_id == INVALID_PAGE_ID){
+		//no head -> make head 
+		Freelist_Page new_f_page; 
+		new_f_page.current_id_count = 0;
+		new_f_page.next_freelist_page = INVALID_PAGE_ID;
+		ssize_t w = pwrite(fd_, &new_f_page, PAGE_SIZE, page_id * PAGE_SIZE);
+		HandleWriteError(w, page_id); 
+		global_metadata_.freelist_head = page_id;
+		UpdateMetadata();
+		return; 
+	}
+	//read in current head 
+	Freelist_Page f_page; 
+	ssize_t r = pread(fd_, &f_page, PAGE_SIZE, head_id * PAGE_SIZE); 
+	HandleReadError(r, head_id); 
+	if(f_page.current_id_count == Freelist_Page::MAX_FREE_IDS){
+		//Head is full - deallocated page is new freelist head 
+		Freelist_Page new_head; 
+		new_head.current_id_count = 0;
+		new_head.next_freelist_page = head_id;	
+		ssize_t w = pread(fd_, &new_head, PAGE_SIZE, page_id * PAGE_SIZE);
+		global_metadata_.freelist_head = page_id;  
+		UpdateMetadata();
+	}else{
+		//Head has room - just add deallocated page to freelist 
+		f_page.free_page_ids[f_page.current_id_count++] = page_id;
+		ssize_t w = pwrite(fd_, &f_page, PAGE_SIZE, head_id * PAGE_SIZE);
+		HandleWriteError(w, head_id);
+	}
+}
 
     /*
      * Returns the number of pages currently allocated (including free pages
      * that haven't been reclaimed yet). Useful for testing and benchmarking.
      */
-    // page_id_t getPageCount() const;
+page_id_t DiskManager::getPageCount() const{
+	return global_metadata_.next_page_id; //[0, next_page_id-1] are allocated 
+}
 
-    /*
-     * Writes next_page_id_ and free_pages_ into the header page (page_id 0)
-     * so the allocator state survives a clean shutdown. Called by destructor.
-     * Not called on every allocatePage() — that would be too expensive.
-     */
-    // void flushHeader();
-    // void readHeader();
+
+void DiskManager::HandleWriteError(ssize_t bytes_written, page_id_t page_id){
+	if(bytes_written == PAGE_SIZE){
+		fsync(fd_);
+		return;
+	}
+	
+	if(bytes_written == -1){
+		throw std::system_error(errno, std::generic_category(), "Critical pwrite failure on Page " + std::to_string(page_id));
+	}else{
+		// Partial write - the "Torn Page" scenario
+		throw std::runtime_error("Partial write on Page " + std::to_string(page_id) + ": Wrote " + std::to_string(bytes_written) + " bytes.");
+	}
+}
+
+void DiskManager::HandleReadError(ssize_t bytes_read, page_id_t page_id) {
+	if (bytes_read == PAGE_SIZE) return; // Perfect read
+
+	if (bytes_read == -1) {
+		throw std::system_error(errno, std::generic_category(), 
+			"Critical pread failure on Page " + std::to_string(page_id));
+	} else {
+		// Short read (likely hit EOF prematurely)
+		throw std::runtime_error("Incomplete read on Page " + std::to_string(page_id) + 
+			": Got " + std::to_string(bytes_read) + " bytes.");
+	}
+}
+

@@ -3,6 +3,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/Storage.dir/main.cpp.o.d"
   "CMakeFiles/Storage.dir/storage/disk_manager.cpp.o"
   "CMakeFiles/Storage.dir/storage/disk_manager.cpp.o.d"
+  "CMakeFiles/Storage.dir/storage/freelist_page.cpp.o"
+  "CMakeFiles/Storage.dir/storage/freelist_page.cpp.o.d"
   "CMakeFiles/Storage.dir/storage/page.cpp.o"
   "CMakeFiles/Storage.dir/storage/page.cpp.o.d"
   "CMakeFiles/Storage.dir/storage/slotted_page.cpp.o"

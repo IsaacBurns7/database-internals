@@ -177,6 +177,30 @@ storage/disk_manager.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Storage.dir/build.make CMakeFiles/Storage.dir/storage/disk_manager.cpp.s
 .PHONY : storage/disk_manager.cpp.s
 
+storage/freelist_page.o: storage/freelist_page.cpp.o
+.PHONY : storage/freelist_page.o
+
+# target to build an object file
+storage/freelist_page.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Storage.dir/build.make CMakeFiles/Storage.dir/storage/freelist_page.cpp.o
+.PHONY : storage/freelist_page.cpp.o
+
+storage/freelist_page.i: storage/freelist_page.cpp.i
+.PHONY : storage/freelist_page.i
+
+# target to preprocess a source file
+storage/freelist_page.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Storage.dir/build.make CMakeFiles/Storage.dir/storage/freelist_page.cpp.i
+.PHONY : storage/freelist_page.cpp.i
+
+storage/freelist_page.s: storage/freelist_page.cpp.s
+.PHONY : storage/freelist_page.s
+
+# target to generate assembly for a file
+storage/freelist_page.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Storage.dir/build.make CMakeFiles/Storage.dir/storage/freelist_page.cpp.s
+.PHONY : storage/freelist_page.cpp.s
+
 storage/page.o: storage/page.cpp.o
 .PHONY : storage/page.o
 
@@ -240,6 +264,9 @@ help:
 	@echo "... storage/disk_manager.o"
 	@echo "... storage/disk_manager.i"
 	@echo "... storage/disk_manager.s"
+	@echo "... storage/freelist_page.o"
+	@echo "... storage/freelist_page.i"
+	@echo "... storage/freelist_page.s"
 	@echo "... storage/page.o"
 	@echo "... storage/page.i"
 	@echo "... storage/page.s"
