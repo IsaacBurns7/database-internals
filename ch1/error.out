@@ -1,0 +1,79 @@
+=====\nFILE THAT GENERATED ERROR: index_organized_table.cpp, BELOW\n=====\n
+#include <string>
+#include <vector>
+#include <iostream>
+#include <unordered_map>
+#include <boost/pfr.hpp>
+
+using std::vector;
+using std::cout;
+using std::string;
+using std::unordered_map;
+
+struct Employee {
+    int id;
+    string department;
+    float salary;
+};
+
+struct Row {
+	int id;
+	string name; 
+	float income;
+};
+
+template <typename Index_t, typename RecordStruct> 
+struct IndexOrganizedTable { 
+	int rows; 
+	unordered_map<Index_t, RecordStruct> data; 
+	IndexOrganizedTable(): rows(0){}
+
+	void insert(Index_t key, RecordStruct val){
+		data[key] = val;
+		rows++;
+	}	
+	
+	template<int N>
+    auto& get(const Index_t& index) { return boost::pfr::get<N>(data[index]); }
+    template<int N, typename V>
+    void set(const Index_t& index, V&& val) { boost::pfr::get<N>(data[index]) = std::forward<V>(val); }
+};
+
+template<typename Index_t, typename RecordStruct>
+std::ostream& operator<<(std::ostream& os, const IndexOrganizedTable<Index_t, RecordStruct>& iot){
+    for (const auto& [key, value]: iot.data){
+        boost::pfr::for_each_field(value, [&](const auto& field, auto idx) {
+            constexpr auto N = boost::pfr::tuple_size<RecordStruct>::value;
+            os << field << (idx + 1 < N ? ", " : "\n");
+        });
+    }
+    return os;
+}
+
+int main(){
+	// --- int key ---
+    IndexOrganizedTable<int, Row> table;
+    table.insert(1, {1, "alice", 50.0f});
+    table.insert(2, {2, "bob",   60.5f});
+    table.insert(3, {3, "carol", 72.1f});
+
+    cout << "--- Rows by int key ---\n" << table << '\n';
+
+    // --- update a field ---
+    table.set<2>(1, 99.9f);
+    cout << "--- After updating alice's income ---\n" << table << '\n';
+
+    // --- get a field ---
+    cout << "--- bob's name: " << table.get<1>(2) << " ---\n\n";
+
+    // --- string key ---
+    IndexOrganizedTable<string, Employee> employees;
+    employees.insert("eng1",  {1, "engineering", 95000.0f});
+    employees.insert("des1",  {2, "design",       88000.0f});
+    employees.insert("mkt1",  {3, "marketing",    76000.0f});
+
+    cout << "--- Employees by string key ---\n" << employees << '\n';
+
+    // --- lookup by key ---
+    cout << "--- eng1 department: " << employees.get<1>("eng1") << " ---\n";
+}

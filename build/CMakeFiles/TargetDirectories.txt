@@ -1,0 +1,3 @@
+/home/isaac/database-internals/build/CMakeFiles/Storage.dir
+/home/isaac/database-internals/build/CMakeFiles/edit_cache.dir
+/home/isaac/database-internals/build/CMakeFiles/rebuild_cache.dir
