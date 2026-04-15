@@ -126,12 +126,13 @@ std::optional<slot_id_t> SlottedPage::insertRecord(const char* record, uint16_t 
 	std::memcpy(data_ + new_offset, record, length); 
 
 	//modify slot in-place
-	Slot* slot_ptr = GetSlot(first_free_slot_id).value_or(nullptr); //ensure we are guaranteed this is within bounds... perhaps add an assert? 
+	if(needs_new_slot) header->max_slot_id++; //now first_free_slot_id is in valid range 
+	Slot* slot_ptr = GetSlot(first_free_slot_id).value_or(nullptr); //ensure we are guaranteed this is within bounds... perhaps add an assert?
+	cout << "Attempting to fetch slot_ptr w/ id: " << first_free_slot_id << " returning " << slot_ptr << '\n';
 	assert(slot_ptr != nullptr); //YOU FUCKED UP!
 	slot_ptr->offset = new_offset; 
 	slot_ptr->size = length; 
 
-	if(needs_new_slot) header->max_slot_id++;
 	return first_free_slot_id; 
 }
 
@@ -144,14 +145,9 @@ std::optional<slot_id_t> SlottedPage::insertRecord(const char* record, uint16_t 
      */
  bool SlottedPage::deleteRecord(slot_id_t slot_id){
 	SlottedPageHeader* header = GetHeader();
-	if(header->max_slot_id <= slot_id){ //slot id out of range 
-		cout << "Slot id out of range" << '\n';
-		return false; 
-	}
-	uint16_t slot_offset = sizeof(SlottedPageHeader) + sizeof(Slot) * slot_id; 
-	Slot* slot = reinterpret_cast<Slot*>(data_ + slot_offset); 
-	slot->offset = 0;
-	std::memcpy(data_ + slot_offset, slot, sizeof(Slot)); 
+	Slot* slot_ptr = GetSlot(slot_id).value_or(nullptr); 
+	if(!slot_ptr || slot_ptr->offset == 0) return false; //no record exists here 
+	slot_ptr->offset = 0;
 	return true; 
  }
 
@@ -167,7 +163,7 @@ std::optional<slot_id_t> SlottedPage::insertRecord(const char* record, uint16_t 
  */
 std::span<const char> SlottedPage::getRecord(slot_id_t slot_id) const{
 	auto slot = GetSlot(slot_id).value_or(nullptr); 
-	if(!slot) return {}; //empty span 
+	if(!slot || slot->offset == 0) return {}; //empty span 
 	return { data_ + slot->offset, slot->size }; 
 }
 

@@ -45,24 +45,38 @@
      * opened or if the header is corrupt.
      */
 DiskManager::DiskManager(const std::string& file_path){
-	int fd = open(file_path.c_str(), O_WRONLY || O_CREAT | O_TRUNC, 0644);
-
+	//so if there doesnt exist a file_path then what to do ? 
+	//Initialize a new one at file_path
+	// int fd = open(file_path.c_str(), O_RDWR || O_CREAT | O_TRUNC, 0644);
+	int fd = open(file_path.c_str(), O_RDWR | O_CREAT, 0644);
 	if(fd == -1){
-		throw std::runtime_error("Error opening file");
+		throw std::runtime_error("Error opening file: " + std::string(strerror(errno)));
 	}
-	cout << "File descriptor: " << fd << endl; 
-	
-	ssize_t bytesRead = read(fd, &global_metadata_, sizeof(GlobalMetadata));
-	if(bytesRead == -1){
-		throw std::runtime_error("Could not read from file");
-	}else if(bytesRead < sizeof(GlobalMetadata)){
-		throw std::runtime_error("Could not read entire global header from file");  
-	}
-	if(global_metadata_.magic_number != MAGIC_NUMBER){ //uint32_t
-		throw std::runtime_error("Magic number from global header wrong");
+	// cout << "File descriptor: " << fd << endl;
+	fd_ = fd; 
+	struct stat st;
+	fstat(fd, &st);
+
+	if(st.st_size == 0){
+		//brand new file 
+		global_metadata_.magic_number = MAGIC_NUMBER;
+		global_metadata_.next_page_id = 1;
+		global_metadata_.freelist_head = INVALID_PAGE_ID;
+
+		UpdateMetadata();
+	}else if(st.st_size < sizeof(GlobalMetadata)){
+		throw std::runtime_error("File is too small to be a valid database!");
+	}else{
+		ssize_t bytesRead = read(fd, &global_metadata_, sizeof(GlobalMetadata));
+		if(bytesRead < (ssize_t)sizeof(GlobalMetadata)){
+			throw std::runtime_error("File is too small to contain a valid global header");
+		}
+		if(global_metadata_.magic_number != MAGIC_NUMBER){ //uint32_t
+			throw std::runtime_error("Magic number mismatch! This isn't a database file or it's corrupt.");
+		}
 	}
 
-	fd_ = fd; 
+
 }
 
     /*
@@ -83,6 +97,9 @@ DiskManager::~DiskManager(){
      *	- yeah not so sure about not throwing fsync	
 	 */
 void DiskManager::writePage(page_id_t page_id, const char* data){
+	if (page_id >= global_metadata_.next_page_id) {
+        throw std::runtime_error("Attempted to write to unallocated page: " + std::to_string(page_id));
+    }
 	size_t offset = page_id * PAGE_SIZE; 
 	ssize_t bytes_written = pwrite(fd_, data, PAGE_SIZE, offset); 
 	if(bytes_written != PAGE_SIZE){
@@ -92,7 +109,6 @@ void DiskManager::writePage(page_id_t page_id, const char* data){
 			throw std::runtime_error("Partial write occured: wrote " + std::to_string(bytes_written) + " of " + std::to_string(PAGE_SIZE) + " on page " + std::to_string(page_id));
 		}
 	}
-	//update page metadata 
 }
 
     /*
@@ -130,8 +146,7 @@ void DiskManager::readPage(page_id_t page_id, char* data){
 	 *   broken_comment(); 
      */
 page_id_t DiskManager::allocatePage(){
-	page_id_t freelist_head_ = global_metadata_.freelist_head; 
-	if(freelist_head_ == INVALID_PAGE_ID){
+	if(global_metadata_.freelist_head == INVALID_PAGE_ID){
 		//no freelist, just make new id manually 
 		page_id_t new_id = global_metadata_.next_page_id++; 
 		UpdateMetadata(); 
@@ -139,22 +154,19 @@ page_id_t DiskManager::allocatePage(){
 	}
 	//manual read b/c no buffer pool 
 	uint8_t buffer[PAGE_SIZE];
-	ssize_t r = pread(fd_, buffer, PAGE_SIZE, freelist_head_ * PAGE_SIZE);
-	HandleReadError(r, freelist_head_); 
+	ssize_t r = pread(fd_, buffer, PAGE_SIZE, global_metadata_.freelist_head * PAGE_SIZE);
+	HandleReadError(r, global_metadata_.freelist_head); 
 
 	auto* f_page = reinterpret_cast<Freelist_Page*>(buffer);
-	page_id_t recycled_id = f_page->free_page_ids[--f_page->current_id_count]; 
+	page_id_t recycled_id; 
 
 	if(f_page->current_id_count==0){
-		//freelist page empty 
-		page_id_t old_head = freelist_head_;
-		freelist_head_ = f_page->next_freelist_page;
-		//recycle freelist page itself 
-		recycled_id = old_head; 
+		recycled_id = global_metadata_.freelist_head; //old head is allocated page  
+		global_metadata_.freelist_head = f_page->next_freelist_page; //freelist head is next freelist page
 	}else{
-		//still has some ids 
-		ssize_t w = pwrite(fd_, buffer, PAGE_SIZE, freelist_head_ * PAGE_SIZE);
-		HandleWriteError(w, freelist_head_);
+		recycled_id = f_page->free_page_ids[--f_page->current_id_count]; //decrement 
+		ssize_t w = pwrite(fd_, buffer, PAGE_SIZE, global_metadata_.freelist_head * PAGE_SIZE); //buffer and page point to same val
+		HandleWriteError(w, global_metadata_.freelist_head);
 	}
 	UpdateMetadata();
 	return recycled_id; 
@@ -188,7 +200,8 @@ void DiskManager::deallocatePage(page_id_t page_id){
 		Freelist_Page new_head; 
 		new_head.current_id_count = 0;
 		new_head.next_freelist_page = head_id;	
-		ssize_t w = pread(fd_, &new_head, PAGE_SIZE, page_id * PAGE_SIZE);
+		ssize_t w = pwrite(fd_, &new_head, PAGE_SIZE, page_id * PAGE_SIZE);
+		HandleWriteError(w, page_id);
 		global_metadata_.freelist_head = page_id;  
 		UpdateMetadata();
 	}else{

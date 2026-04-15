@@ -65,6 +65,16 @@ CMAKE_BINARY_DIR = /home/isaac/database-internals/build
 #=============================================================================
 # Targets provided globally by CMake.
 
+# Special rule for the target test
+test:
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Running tests..."
+	/usr/bin/ctest --force-new-ctest-process $(ARGS)
+.PHONY : test
+
+# Special rule for the target test
+test/fast: test
+.PHONY : test/fast
+
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "No interactive CMake dialog available..."
@@ -84,6 +94,51 @@ rebuild_cache:
 # Special rule for the target rebuild_cache
 rebuild_cache/fast: rebuild_cache
 .PHONY : rebuild_cache/fast
+
+# Special rule for the target list_install_components
+list_install_components:
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Available install components are: \"gmock\" \"gtest\""
+.PHONY : list_install_components
+
+# Special rule for the target list_install_components
+list_install_components/fast: list_install_components
+.PHONY : list_install_components/fast
+
+# Special rule for the target install
+install: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Install the project..."
+	/usr/bin/cmake -P cmake_install.cmake
+.PHONY : install
+
+# Special rule for the target install
+install/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Install the project..."
+	/usr/bin/cmake -P cmake_install.cmake
+.PHONY : install/fast
+
+# Special rule for the target install/local
+install/local: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing only the local directory..."
+	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local
+
+# Special rule for the target install/local
+install/local/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing only the local directory..."
+	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local/fast
+
+# Special rule for the target install/strip
+install/strip: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing the project stripped..."
+	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip
+
+# Special rule for the target install/strip
+install/strip/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing the project stripped..."
+	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -117,6 +172,19 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named storage_logic
+
+# Build rule for target.
+storage_logic: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 storage_logic
+.PHONY : storage_logic
+
+# fast build rule for target.
+storage_logic/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_logic.dir/build.make CMakeFiles/storage_logic.dir/build
+.PHONY : storage_logic/fast
+
+#=============================================================================
 # Target rules for targets named Storage
 
 # Build rule for target.
@@ -128,6 +196,71 @@ Storage: cmake_check_build_system
 Storage/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Storage.dir/build.make CMakeFiles/Storage.dir/build
 .PHONY : Storage/fast
+
+#=============================================================================
+# Target rules for targets named storage_tests
+
+# Build rule for target.
+storage_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 storage_tests
+.PHONY : storage_tests
+
+# fast build rule for target.
+storage_tests/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_tests.dir/build.make CMakeFiles/storage_tests.dir/build
+.PHONY : storage_tests/fast
+
+#=============================================================================
+# Target rules for targets named gmock
+
+# Build rule for target.
+gmock: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gmock
+.PHONY : gmock
+
+# fast build rule for target.
+gmock/fast:
+	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googlemock/CMakeFiles/gmock.dir/build.make _deps/googletest-build/googlemock/CMakeFiles/gmock.dir/build
+.PHONY : gmock/fast
+
+#=============================================================================
+# Target rules for targets named gmock_main
+
+# Build rule for target.
+gmock_main: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gmock_main
+.PHONY : gmock_main
+
+# fast build rule for target.
+gmock_main/fast:
+	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/build.make _deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/build
+.PHONY : gmock_main/fast
+
+#=============================================================================
+# Target rules for targets named gtest
+
+# Build rule for target.
+gtest: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gtest
+.PHONY : gtest
+
+# fast build rule for target.
+gtest/fast:
+	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googletest/CMakeFiles/gtest.dir/build.make _deps/googletest-build/googletest/CMakeFiles/gtest.dir/build
+.PHONY : gtest/fast
+
+#=============================================================================
+# Target rules for targets named gtest_main
+
+# Build rule for target.
+gtest_main: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gtest_main
+.PHONY : gtest_main
+
+# fast build rule for target.
+gtest_main/fast:
+	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/build.make _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/build
+.PHONY : gtest_main/fast
 
 main.o: main.cpp.o
 .PHONY : main.o
@@ -158,7 +291,7 @@ storage/disk_manager.o: storage/disk_manager.cpp.o
 
 # target to build an object file
 storage/disk_manager.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Storage.dir/build.make CMakeFiles/Storage.dir/storage/disk_manager.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_logic.dir/build.make CMakeFiles/storage_logic.dir/storage/disk_manager.cpp.o
 .PHONY : storage/disk_manager.cpp.o
 
 storage/disk_manager.i: storage/disk_manager.cpp.i
@@ -166,7 +299,7 @@ storage/disk_manager.i: storage/disk_manager.cpp.i
 
 # target to preprocess a source file
 storage/disk_manager.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Storage.dir/build.make CMakeFiles/Storage.dir/storage/disk_manager.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_logic.dir/build.make CMakeFiles/storage_logic.dir/storage/disk_manager.cpp.i
 .PHONY : storage/disk_manager.cpp.i
 
 storage/disk_manager.s: storage/disk_manager.cpp.s
@@ -174,7 +307,7 @@ storage/disk_manager.s: storage/disk_manager.cpp.s
 
 # target to generate assembly for a file
 storage/disk_manager.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Storage.dir/build.make CMakeFiles/Storage.dir/storage/disk_manager.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_logic.dir/build.make CMakeFiles/storage_logic.dir/storage/disk_manager.cpp.s
 .PHONY : storage/disk_manager.cpp.s
 
 storage/freelist_page.o: storage/freelist_page.cpp.o
@@ -182,7 +315,7 @@ storage/freelist_page.o: storage/freelist_page.cpp.o
 
 # target to build an object file
 storage/freelist_page.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Storage.dir/build.make CMakeFiles/Storage.dir/storage/freelist_page.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_logic.dir/build.make CMakeFiles/storage_logic.dir/storage/freelist_page.cpp.o
 .PHONY : storage/freelist_page.cpp.o
 
 storage/freelist_page.i: storage/freelist_page.cpp.i
@@ -190,7 +323,7 @@ storage/freelist_page.i: storage/freelist_page.cpp.i
 
 # target to preprocess a source file
 storage/freelist_page.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Storage.dir/build.make CMakeFiles/Storage.dir/storage/freelist_page.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_logic.dir/build.make CMakeFiles/storage_logic.dir/storage/freelist_page.cpp.i
 .PHONY : storage/freelist_page.cpp.i
 
 storage/freelist_page.s: storage/freelist_page.cpp.s
@@ -198,7 +331,7 @@ storage/freelist_page.s: storage/freelist_page.cpp.s
 
 # target to generate assembly for a file
 storage/freelist_page.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Storage.dir/build.make CMakeFiles/Storage.dir/storage/freelist_page.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_logic.dir/build.make CMakeFiles/storage_logic.dir/storage/freelist_page.cpp.s
 .PHONY : storage/freelist_page.cpp.s
 
 storage/page.o: storage/page.cpp.o
@@ -206,7 +339,7 @@ storage/page.o: storage/page.cpp.o
 
 # target to build an object file
 storage/page.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Storage.dir/build.make CMakeFiles/Storage.dir/storage/page.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_logic.dir/build.make CMakeFiles/storage_logic.dir/storage/page.cpp.o
 .PHONY : storage/page.cpp.o
 
 storage/page.i: storage/page.cpp.i
@@ -214,7 +347,7 @@ storage/page.i: storage/page.cpp.i
 
 # target to preprocess a source file
 storage/page.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Storage.dir/build.make CMakeFiles/Storage.dir/storage/page.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_logic.dir/build.make CMakeFiles/storage_logic.dir/storage/page.cpp.i
 .PHONY : storage/page.cpp.i
 
 storage/page.s: storage/page.cpp.s
@@ -222,7 +355,7 @@ storage/page.s: storage/page.cpp.s
 
 # target to generate assembly for a file
 storage/page.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Storage.dir/build.make CMakeFiles/Storage.dir/storage/page.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_logic.dir/build.make CMakeFiles/storage_logic.dir/storage/page.cpp.s
 .PHONY : storage/page.cpp.s
 
 storage/slotted_page.o: storage/slotted_page.cpp.o
@@ -230,7 +363,7 @@ storage/slotted_page.o: storage/slotted_page.cpp.o
 
 # target to build an object file
 storage/slotted_page.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Storage.dir/build.make CMakeFiles/Storage.dir/storage/slotted_page.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_logic.dir/build.make CMakeFiles/storage_logic.dir/storage/slotted_page.cpp.o
 .PHONY : storage/slotted_page.cpp.o
 
 storage/slotted_page.i: storage/slotted_page.cpp.i
@@ -238,7 +371,7 @@ storage/slotted_page.i: storage/slotted_page.cpp.i
 
 # target to preprocess a source file
 storage/slotted_page.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Storage.dir/build.make CMakeFiles/Storage.dir/storage/slotted_page.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_logic.dir/build.make CMakeFiles/storage_logic.dir/storage/slotted_page.cpp.i
 .PHONY : storage/slotted_page.cpp.i
 
 storage/slotted_page.s: storage/slotted_page.cpp.s
@@ -246,8 +379,104 @@ storage/slotted_page.s: storage/slotted_page.cpp.s
 
 # target to generate assembly for a file
 storage/slotted_page.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Storage.dir/build.make CMakeFiles/Storage.dir/storage/slotted_page.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_logic.dir/build.make CMakeFiles/storage_logic.dir/storage/slotted_page.cpp.s
 .PHONY : storage/slotted_page.cpp.s
+
+tests/disk_manager.o: tests/disk_manager.cpp.o
+.PHONY : tests/disk_manager.o
+
+# target to build an object file
+tests/disk_manager.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_tests.dir/build.make CMakeFiles/storage_tests.dir/tests/disk_manager.cpp.o
+.PHONY : tests/disk_manager.cpp.o
+
+tests/disk_manager.i: tests/disk_manager.cpp.i
+.PHONY : tests/disk_manager.i
+
+# target to preprocess a source file
+tests/disk_manager.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_tests.dir/build.make CMakeFiles/storage_tests.dir/tests/disk_manager.cpp.i
+.PHONY : tests/disk_manager.cpp.i
+
+tests/disk_manager.s: tests/disk_manager.cpp.s
+.PHONY : tests/disk_manager.s
+
+# target to generate assembly for a file
+tests/disk_manager.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_tests.dir/build.make CMakeFiles/storage_tests.dir/tests/disk_manager.cpp.s
+.PHONY : tests/disk_manager.cpp.s
+
+tests/page.o: tests/page.cpp.o
+.PHONY : tests/page.o
+
+# target to build an object file
+tests/page.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_tests.dir/build.make CMakeFiles/storage_tests.dir/tests/page.cpp.o
+.PHONY : tests/page.cpp.o
+
+tests/page.i: tests/page.cpp.i
+.PHONY : tests/page.i
+
+# target to preprocess a source file
+tests/page.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_tests.dir/build.make CMakeFiles/storage_tests.dir/tests/page.cpp.i
+.PHONY : tests/page.cpp.i
+
+tests/page.s: tests/page.cpp.s
+.PHONY : tests/page.s
+
+# target to generate assembly for a file
+tests/page.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_tests.dir/build.make CMakeFiles/storage_tests.dir/tests/page.cpp.s
+.PHONY : tests/page.cpp.s
+
+tests/slotted_page.o: tests/slotted_page.cpp.o
+.PHONY : tests/slotted_page.o
+
+# target to build an object file
+tests/slotted_page.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_tests.dir/build.make CMakeFiles/storage_tests.dir/tests/slotted_page.cpp.o
+.PHONY : tests/slotted_page.cpp.o
+
+tests/slotted_page.i: tests/slotted_page.cpp.i
+.PHONY : tests/slotted_page.i
+
+# target to preprocess a source file
+tests/slotted_page.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_tests.dir/build.make CMakeFiles/storage_tests.dir/tests/slotted_page.cpp.i
+.PHONY : tests/slotted_page.cpp.i
+
+tests/slotted_page.s: tests/slotted_page.cpp.s
+.PHONY : tests/slotted_page.s
+
+# target to generate assembly for a file
+tests/slotted_page.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_tests.dir/build.make CMakeFiles/storage_tests.dir/tests/slotted_page.cpp.s
+.PHONY : tests/slotted_page.cpp.s
+
+tests/storage_test.o: tests/storage_test.cpp.o
+.PHONY : tests/storage_test.o
+
+# target to build an object file
+tests/storage_test.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_tests.dir/build.make CMakeFiles/storage_tests.dir/tests/storage_test.cpp.o
+.PHONY : tests/storage_test.cpp.o
+
+tests/storage_test.i: tests/storage_test.cpp.i
+.PHONY : tests/storage_test.i
+
+# target to preprocess a source file
+tests/storage_test.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_tests.dir/build.make CMakeFiles/storage_tests.dir/tests/storage_test.cpp.i
+.PHONY : tests/storage_test.cpp.i
+
+tests/storage_test.s: tests/storage_test.cpp.s
+.PHONY : tests/storage_test.s
+
+# target to generate assembly for a file
+tests/storage_test.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_tests.dir/build.make CMakeFiles/storage_tests.dir/tests/storage_test.cpp.s
+.PHONY : tests/storage_test.cpp.s
 
 # Help Target
 help:
@@ -256,8 +485,19 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... edit_cache"
+	@echo "... install"
+	@echo "... install/local"
+	@echo "... install/strip"
+	@echo "... list_install_components"
 	@echo "... rebuild_cache"
+	@echo "... test"
 	@echo "... Storage"
+	@echo "... gmock"
+	@echo "... gmock_main"
+	@echo "... gtest"
+	@echo "... gtest_main"
+	@echo "... storage_logic"
+	@echo "... storage_tests"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
@@ -273,6 +513,18 @@ help:
 	@echo "... storage/slotted_page.o"
 	@echo "... storage/slotted_page.i"
 	@echo "... storage/slotted_page.s"
+	@echo "... tests/disk_manager.o"
+	@echo "... tests/disk_manager.i"
+	@echo "... tests/disk_manager.s"
+	@echo "... tests/page.o"
+	@echo "... tests/page.i"
+	@echo "... tests/page.s"
+	@echo "... tests/slotted_page.o"
+	@echo "... tests/slotted_page.i"
+	@echo "... tests/slotted_page.s"
+	@echo "... tests/storage_test.o"
+	@echo "... tests/storage_test.i"
+	@echo "... tests/storage_test.s"
 .PHONY : help
 
 

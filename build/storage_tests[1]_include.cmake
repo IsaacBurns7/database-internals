@@ -1,0 +1,5 @@
+if(EXISTS "/home/isaac/database-internals/build/storage_tests[1]_tests.cmake")
+  include("/home/isaac/database-internals/build/storage_tests[1]_tests.cmake")
+else()
+  add_test(storage_tests_NOT_BUILT storage_tests_NOT_BUILT)
+endif()

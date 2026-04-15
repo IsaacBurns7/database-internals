@@ -16,6 +16,6 @@ struct Freelist_Page{
 
 	page_id_t free_page_ids[MAX_FREE_IDS];
 	uint8_t padding[PAGE_SIZE - FIXED_SIZE - MAX_FREE_IDS * sizeof(page_id_t)];
-};
+} __attribute__((packed));
 
 static_assert(sizeof(Freelist_Page) == PAGE_SIZE, "Freelist page must be size PAGE_SIZE");

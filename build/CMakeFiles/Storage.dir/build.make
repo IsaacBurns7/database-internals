@@ -83,81 +83,18 @@ CMakeFiles/Storage.dir/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Storage.dir/main.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/isaac/database-internals/main.cpp -o CMakeFiles/Storage.dir/main.cpp.s
 
-CMakeFiles/Storage.dir/storage/page.cpp.o: CMakeFiles/Storage.dir/flags.make
-CMakeFiles/Storage.dir/storage/page.cpp.o: /home/isaac/database-internals/storage/page.cpp
-CMakeFiles/Storage.dir/storage/page.cpp.o: CMakeFiles/Storage.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/isaac/database-internals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/Storage.dir/storage/page.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Storage.dir/storage/page.cpp.o -MF CMakeFiles/Storage.dir/storage/page.cpp.o.d -o CMakeFiles/Storage.dir/storage/page.cpp.o -c /home/isaac/database-internals/storage/page.cpp
-
-CMakeFiles/Storage.dir/storage/page.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/Storage.dir/storage/page.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/isaac/database-internals/storage/page.cpp > CMakeFiles/Storage.dir/storage/page.cpp.i
-
-CMakeFiles/Storage.dir/storage/page.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Storage.dir/storage/page.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/isaac/database-internals/storage/page.cpp -o CMakeFiles/Storage.dir/storage/page.cpp.s
-
-CMakeFiles/Storage.dir/storage/disk_manager.cpp.o: CMakeFiles/Storage.dir/flags.make
-CMakeFiles/Storage.dir/storage/disk_manager.cpp.o: /home/isaac/database-internals/storage/disk_manager.cpp
-CMakeFiles/Storage.dir/storage/disk_manager.cpp.o: CMakeFiles/Storage.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/isaac/database-internals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/Storage.dir/storage/disk_manager.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Storage.dir/storage/disk_manager.cpp.o -MF CMakeFiles/Storage.dir/storage/disk_manager.cpp.o.d -o CMakeFiles/Storage.dir/storage/disk_manager.cpp.o -c /home/isaac/database-internals/storage/disk_manager.cpp
-
-CMakeFiles/Storage.dir/storage/disk_manager.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/Storage.dir/storage/disk_manager.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/isaac/database-internals/storage/disk_manager.cpp > CMakeFiles/Storage.dir/storage/disk_manager.cpp.i
-
-CMakeFiles/Storage.dir/storage/disk_manager.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Storage.dir/storage/disk_manager.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/isaac/database-internals/storage/disk_manager.cpp -o CMakeFiles/Storage.dir/storage/disk_manager.cpp.s
-
-CMakeFiles/Storage.dir/storage/slotted_page.cpp.o: CMakeFiles/Storage.dir/flags.make
-CMakeFiles/Storage.dir/storage/slotted_page.cpp.o: /home/isaac/database-internals/storage/slotted_page.cpp
-CMakeFiles/Storage.dir/storage/slotted_page.cpp.o: CMakeFiles/Storage.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/isaac/database-internals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/Storage.dir/storage/slotted_page.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Storage.dir/storage/slotted_page.cpp.o -MF CMakeFiles/Storage.dir/storage/slotted_page.cpp.o.d -o CMakeFiles/Storage.dir/storage/slotted_page.cpp.o -c /home/isaac/database-internals/storage/slotted_page.cpp
-
-CMakeFiles/Storage.dir/storage/slotted_page.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/Storage.dir/storage/slotted_page.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/isaac/database-internals/storage/slotted_page.cpp > CMakeFiles/Storage.dir/storage/slotted_page.cpp.i
-
-CMakeFiles/Storage.dir/storage/slotted_page.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Storage.dir/storage/slotted_page.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/isaac/database-internals/storage/slotted_page.cpp -o CMakeFiles/Storage.dir/storage/slotted_page.cpp.s
-
-CMakeFiles/Storage.dir/storage/freelist_page.cpp.o: CMakeFiles/Storage.dir/flags.make
-CMakeFiles/Storage.dir/storage/freelist_page.cpp.o: /home/isaac/database-internals/storage/freelist_page.cpp
-CMakeFiles/Storage.dir/storage/freelist_page.cpp.o: CMakeFiles/Storage.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/isaac/database-internals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/Storage.dir/storage/freelist_page.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Storage.dir/storage/freelist_page.cpp.o -MF CMakeFiles/Storage.dir/storage/freelist_page.cpp.o.d -o CMakeFiles/Storage.dir/storage/freelist_page.cpp.o -c /home/isaac/database-internals/storage/freelist_page.cpp
-
-CMakeFiles/Storage.dir/storage/freelist_page.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/Storage.dir/storage/freelist_page.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/isaac/database-internals/storage/freelist_page.cpp > CMakeFiles/Storage.dir/storage/freelist_page.cpp.i
-
-CMakeFiles/Storage.dir/storage/freelist_page.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Storage.dir/storage/freelist_page.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/isaac/database-internals/storage/freelist_page.cpp -o CMakeFiles/Storage.dir/storage/freelist_page.cpp.s
-
 # Object files for target Storage
 Storage_OBJECTS = \
-"CMakeFiles/Storage.dir/main.cpp.o" \
-"CMakeFiles/Storage.dir/storage/page.cpp.o" \
-"CMakeFiles/Storage.dir/storage/disk_manager.cpp.o" \
-"CMakeFiles/Storage.dir/storage/slotted_page.cpp.o" \
-"CMakeFiles/Storage.dir/storage/freelist_page.cpp.o"
+"CMakeFiles/Storage.dir/main.cpp.o"
 
 # External object files for target Storage
 Storage_EXTERNAL_OBJECTS =
 
 Storage: CMakeFiles/Storage.dir/main.cpp.o
-Storage: CMakeFiles/Storage.dir/storage/page.cpp.o
-Storage: CMakeFiles/Storage.dir/storage/disk_manager.cpp.o
-Storage: CMakeFiles/Storage.dir/storage/slotted_page.cpp.o
-Storage: CMakeFiles/Storage.dir/storage/freelist_page.cpp.o
 Storage: CMakeFiles/Storage.dir/build.make
+Storage: libstorage_logic.a
 Storage: CMakeFiles/Storage.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/isaac/database-internals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Linking CXX executable Storage"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/isaac/database-internals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable Storage"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/Storage.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

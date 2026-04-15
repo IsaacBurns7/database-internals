@@ -1,0 +1,20 @@
+PageTest.BasicSetup 5 0.000284571
+PageTest.InitialState 5 0.000189161
+PageTest.DataBufferAccess 5 0.000188719
+PageTest.SettersAndGetters 5 0.000191003
+PageTest.ResetTest 5 0.000179106
+DiskManagerTest.ReadWritePageTest 0 0
+DiskManagerTest.PersistenceTest 0 0
+DiskManagerTest.FreelistTest 0 0
+DiskManagerTest.OutOfBoundsRead 0 0
+SlottedPageTest.InitializationTest 1 0.000899283
+SlottedPageTest.InsertAndGetTest 0 0
+SlottedPageTest.DeleteRecordTest 0 0
+SlottedPageTest.UpdateRecordTest 0 0
+SlottedPageTest.CompactionTest 0 0
+SlottedPageTest.PageFullTest 1 0.00352905
+---
+SlottedPageTest.InsertAndGetTest
+SlottedPageTest.DeleteRecordTest
+SlottedPageTest.UpdateRecordTest
+SlottedPageTest.CompactionTest

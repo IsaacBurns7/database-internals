@@ -1,35 +1,31 @@
-# Compiler and Flags
-CXX      := g++
-CXXFLAGS := -Wall -Wextra -std=c++17 -I.
-LDFLAGS  := 
 
-# Target Executable
-TARGET   := my_program
+.PHONY: test build cmake rescan clean
 
-# Directories
-SRC_DIRS := . common storage
+test:
+	@echo "Configuring and building..."
+	cd build && cmake .. && make -j$$(nproc)
+	@echo "Running tests..."
+	ctest --test-dir build --output-on-failure
 
-# Find all .cpp files in the specified directories
-SRCS := $(shell find $(SRC_DIRS) -maxdepth 1 -name "*.cpp")
+build: 
+	@echo "Configuring and building..."
+	cd build && cmake .. && make -j$$(nproc)
 
-# Define object files (e.g., common/utils.cpp -> obj/common/utils.o)
-OBJ_DIR := obj
-OBJS    := $(SRCS:%.cpp=$(OBJ_DIR)/%.o)
+cmake: 
+	cd build && cmake .. && cd ..
 
-# Default Rule
-all: $(TARGET)
+test_granular:
+	cd build && cmake .. && make -j $$(nproc) 
+	./build/storage_tests
 
-# Link the executable
-$(TARGET): $(OBJS)
-	$(CXX) $(OBJS) -o $@ $(LDFLAGS)
+rescan:
+	@echo "Nuking build directory..."
+	rm -rf build
+	mkdir -p build
+	@echo "Configuring and building..."
+	cd build && cmake .. && make -j$$(nproc)
+	@echo "Running tests..."
+	cd build && ctest --output-on-failure
 
-# Compile source files into object files
-$(OBJ_DIR)/%.o: %.cpp
-	@mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-# Clean up build artifacts
 clean:
-	rm -rf $(OBJ_DIR) $(TARGET)
-
-.PHONY: all clean
+	rm -rf build

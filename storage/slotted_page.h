@@ -65,8 +65,8 @@ using std::cout;
  */
 enum SlottedPageType: uint8_t{ 
 	// master, //custom impl 
-	internal,
-	leaf,
+	INTERNAL_PAGE,
+	LEAF_PAGE,
 	// freelist, //tracks empty pages 
 	// overflow //for like 10KB strings  
 };
@@ -202,6 +202,7 @@ private:
 		if(slot_id >= header->max_slot_id) return std::nullopt; 
 		uint16_t slot_offset = sizeof(SlottedPageHeader) + sizeof(Slot) * slot_id; 
 		Slot* slot = reinterpret_cast<Slot*>(data_ + slot_offset);
+		cout << "Fetched slot as: " << slot << " with attributes... (offset=" << slot->offset << ",size=" << slot->size << '\n';
 		return slot; 
 	}
 	inline std::optional<Slot*> GetSlot(slot_id_t slot_id) {

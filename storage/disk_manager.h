@@ -11,6 +11,7 @@
 #include <unistd.h> //close()
 #include <sys/stat.h> //mode constants
 #include <system_error>
+#include <string.h>
 
 namespace fs = std::filesystem;
 using std::cout; 

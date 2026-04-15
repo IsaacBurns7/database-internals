@@ -1,0 +1,4 @@
+7:SlottedPageTest.InsertAndGetTest
+8:SlottedPageTest.DeleteRecordTest
+9:SlottedPageTest.UpdateRecordTest
+10:SlottedPageTest.CompactionTest
