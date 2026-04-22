@@ -1,6 +1,6 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/Storage.dir/main.cpp.o"
-  "CMakeFiles/Storage.dir/main.cpp.o.d"
+  "CMakeFiles/Storage.dir/storage/main.cpp.o"
+  "CMakeFiles/Storage.dir/storage/main.cpp.o.d"
   "Storage"
   "Storage.pdb"
 )

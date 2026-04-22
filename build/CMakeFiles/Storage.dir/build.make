@@ -69,28 +69,28 @@ include CMakeFiles/Storage.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/Storage.dir/flags.make
 
-CMakeFiles/Storage.dir/main.cpp.o: CMakeFiles/Storage.dir/flags.make
-CMakeFiles/Storage.dir/main.cpp.o: /home/isaac/database-internals/main.cpp
-CMakeFiles/Storage.dir/main.cpp.o: CMakeFiles/Storage.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/isaac/database-internals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/Storage.dir/main.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Storage.dir/main.cpp.o -MF CMakeFiles/Storage.dir/main.cpp.o.d -o CMakeFiles/Storage.dir/main.cpp.o -c /home/isaac/database-internals/main.cpp
+CMakeFiles/Storage.dir/storage/main.cpp.o: CMakeFiles/Storage.dir/flags.make
+CMakeFiles/Storage.dir/storage/main.cpp.o: /home/isaac/database-internals/storage/main.cpp
+CMakeFiles/Storage.dir/storage/main.cpp.o: CMakeFiles/Storage.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/isaac/database-internals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/Storage.dir/storage/main.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Storage.dir/storage/main.cpp.o -MF CMakeFiles/Storage.dir/storage/main.cpp.o.d -o CMakeFiles/Storage.dir/storage/main.cpp.o -c /home/isaac/database-internals/storage/main.cpp
 
-CMakeFiles/Storage.dir/main.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/Storage.dir/main.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/isaac/database-internals/main.cpp > CMakeFiles/Storage.dir/main.cpp.i
+CMakeFiles/Storage.dir/storage/main.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/Storage.dir/storage/main.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/isaac/database-internals/storage/main.cpp > CMakeFiles/Storage.dir/storage/main.cpp.i
 
-CMakeFiles/Storage.dir/main.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Storage.dir/main.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/isaac/database-internals/main.cpp -o CMakeFiles/Storage.dir/main.cpp.s
+CMakeFiles/Storage.dir/storage/main.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Storage.dir/storage/main.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/isaac/database-internals/storage/main.cpp -o CMakeFiles/Storage.dir/storage/main.cpp.s
 
 # Object files for target Storage
 Storage_OBJECTS = \
-"CMakeFiles/Storage.dir/main.cpp.o"
+"CMakeFiles/Storage.dir/storage/main.cpp.o"
 
 # External object files for target Storage
 Storage_EXTERNAL_OBJECTS =
 
-Storage: CMakeFiles/Storage.dir/main.cpp.o
+Storage: CMakeFiles/Storage.dir/storage/main.cpp.o
 Storage: CMakeFiles/Storage.dir/build.make
 Storage: libstorage_logic.a
 Storage: CMakeFiles/Storage.dir/link.txt

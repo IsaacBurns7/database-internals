@@ -33,8 +33,8 @@ add_library(storage_logic
 target_include_directories(storage_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 # --- 3. Main Executable ---
-add_executable(Storage main.cpp)
-target_link_libraries(Storage PRIVATE storage_logic)
+add_executable(storage_viz tests/storage_viz.cpp)
+target_link_libraries(storage_viz PRIVATE storage_logic)
 
 # --- 4. Testing Setup ---
 enable_testing()

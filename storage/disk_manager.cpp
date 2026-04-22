@@ -143,7 +143,6 @@ void DiskManager::readPage(page_id_t page_id, char* data){
 	 * - current implementation, look back and verify this is a good idea
 	 *
 	 *   CURRENTLY USES MANUAL BUFFER, REFACTOR WHEN BUFFERPOOL IS CREATED
-	 *   broken_comment(); 
      */
 page_id_t DiskManager::allocatePage(){
 	if(global_metadata_.freelist_head == INVALID_PAGE_ID){

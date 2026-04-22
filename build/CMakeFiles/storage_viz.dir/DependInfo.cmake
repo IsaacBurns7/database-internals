@@ -8,7 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/home/isaac/database-internals/storage/main.cpp" "CMakeFiles/Storage.dir/storage/main.cpp.o" "gcc" "CMakeFiles/Storage.dir/storage/main.cpp.o.d"
+  "/home/isaac/database-internals/tests/storage_viz.cpp" "CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.o" "gcc" "CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

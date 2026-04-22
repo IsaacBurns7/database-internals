@@ -37,7 +37,7 @@ private:
     page_id_t findLeaf(KeyType key);
     void splitChild(page_id_t parent_id, int child_index);
     void mergeOrRedistribute(page_id_t node_id);  // called on underflow after delete
-};
+}
 The split and merge logic is where you'll spend most of your time. scan is important to implement here because it validates that your leaf-level sibling pointers are correct — a common place for bugs to hide.
 At this point you have a functional persistent key-value store. Slow, but correct. That correctness is what you verify before moving on.
 

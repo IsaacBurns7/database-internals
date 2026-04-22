@@ -1,0 +1,4 @@
+Hello Claude, I would like to show off my disk manager and slotted page implementation. To that end, can you please make a main.cpp file in this storage directory that creates a master page, and then
+  allocates a few pages, and deallocates a few pages, showing off the memory footprint and the internals of the freelist and master page. The slottedpages themselves will be shown off in a different
+  section. Please also make sure that main.cpp only runs one function - page_allocation(), so that I can extend it later to also show off other things. Please print out memory footprint and internals in
+  a human readable format to the terminal.

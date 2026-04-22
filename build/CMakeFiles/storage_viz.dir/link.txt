@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.o -o storage_viz  libstorage_logic.a 

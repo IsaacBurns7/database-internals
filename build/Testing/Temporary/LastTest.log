@@ -1,10 +1,10 @@
-Start testing: Apr 14 15:22 UTC
+Start testing: Apr 22 21:38 UTC
 ----------------------------------------------------------
-1/11 Testing: PageTest.BasicSetup
-1/11 Test: PageTest.BasicSetup
+1/16 Testing: PageTest.BasicSetup
+1/16 Test: PageTest.BasicSetup
 Command: "/home/isaac/database-internals/build/storage_tests" "--gtest_filter=PageTest.BasicSetup" "--gtest_also_run_disabled_tests"
 Directory: /home/isaac/database-internals/build
-"PageTest.BasicSetup" start time: Apr 14 15:22 UTC
+"PageTest.BasicSetup" start time: Apr 22 21:38 UTC
 Output:
 ----------------------------------------------------------
 Running main() from /home/isaac/database-internals/build/_deps/googletest-src/googletest/src/gtest_main.cc
@@ -23,15 +23,15 @@ Note: Google Test filter = PageTest.BasicSetup
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"PageTest.BasicSetup" end time: Apr 14 15:22 UTC
+"PageTest.BasicSetup" end time: Apr 22 21:38 UTC
 "PageTest.BasicSetup" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-2/11 Testing: PageTest.InitialState
-2/11 Test: PageTest.InitialState
+2/16 Testing: PageTest.InitialState
+2/16 Test: PageTest.InitialState
 Command: "/home/isaac/database-internals/build/storage_tests" "--gtest_filter=PageTest.InitialState" "--gtest_also_run_disabled_tests"
 Directory: /home/isaac/database-internals/build
-"PageTest.InitialState" start time: Apr 14 15:22 UTC
+"PageTest.InitialState" start time: Apr 22 21:38 UTC
 Output:
 ----------------------------------------------------------
 Running main() from /home/isaac/database-internals/build/_deps/googletest-src/googletest/src/gtest_main.cc
@@ -50,15 +50,15 @@ Note: Google Test filter = PageTest.InitialState
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"PageTest.InitialState" end time: Apr 14 15:22 UTC
+"PageTest.InitialState" end time: Apr 22 21:38 UTC
 "PageTest.InitialState" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-3/11 Testing: PageTest.DataBufferAccess
-3/11 Test: PageTest.DataBufferAccess
+3/16 Testing: PageTest.DataBufferAccess
+3/16 Test: PageTest.DataBufferAccess
 Command: "/home/isaac/database-internals/build/storage_tests" "--gtest_filter=PageTest.DataBufferAccess" "--gtest_also_run_disabled_tests"
 Directory: /home/isaac/database-internals/build
-"PageTest.DataBufferAccess" start time: Apr 14 15:22 UTC
+"PageTest.DataBufferAccess" start time: Apr 22 21:38 UTC
 Output:
 ----------------------------------------------------------
 Running main() from /home/isaac/database-internals/build/_deps/googletest-src/googletest/src/gtest_main.cc
@@ -77,15 +77,15 @@ Note: Google Test filter = PageTest.DataBufferAccess
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"PageTest.DataBufferAccess" end time: Apr 14 15:22 UTC
+"PageTest.DataBufferAccess" end time: Apr 22 21:38 UTC
 "PageTest.DataBufferAccess" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-4/11 Testing: PageTest.SettersAndGetters
-4/11 Test: PageTest.SettersAndGetters
+4/16 Testing: PageTest.SettersAndGetters
+4/16 Test: PageTest.SettersAndGetters
 Command: "/home/isaac/database-internals/build/storage_tests" "--gtest_filter=PageTest.SettersAndGetters" "--gtest_also_run_disabled_tests"
 Directory: /home/isaac/database-internals/build
-"PageTest.SettersAndGetters" start time: Apr 14 15:22 UTC
+"PageTest.SettersAndGetters" start time: Apr 22 21:38 UTC
 Output:
 ----------------------------------------------------------
 Running main() from /home/isaac/database-internals/build/_deps/googletest-src/googletest/src/gtest_main.cc
@@ -104,15 +104,15 @@ Note: Google Test filter = PageTest.SettersAndGetters
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"PageTest.SettersAndGetters" end time: Apr 14 15:22 UTC
+"PageTest.SettersAndGetters" end time: Apr 22 21:38 UTC
 "PageTest.SettersAndGetters" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-5/11 Testing: PageTest.ResetTest
-5/11 Test: PageTest.ResetTest
+5/16 Testing: PageTest.ResetTest
+5/16 Test: PageTest.ResetTest
 Command: "/home/isaac/database-internals/build/storage_tests" "--gtest_filter=PageTest.ResetTest" "--gtest_also_run_disabled_tests"
 Directory: /home/isaac/database-internals/build
-"PageTest.ResetTest" start time: Apr 14 15:22 UTC
+"PageTest.ResetTest" start time: Apr 22 21:38 UTC
 Output:
 ----------------------------------------------------------
 Running main() from /home/isaac/database-internals/build/_deps/googletest-src/googletest/src/gtest_main.cc
@@ -131,15 +131,15 @@ Note: Google Test filter = PageTest.ResetTest
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"PageTest.ResetTest" end time: Apr 14 15:22 UTC
+"PageTest.ResetTest" end time: Apr 22 21:38 UTC
 "PageTest.ResetTest" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-6/11 Testing: SlottedPageTest.InitializationTest
-6/11 Test: SlottedPageTest.InitializationTest
+6/16 Testing: SlottedPageTest.InitializationTest
+6/16 Test: SlottedPageTest.InitializationTest
 Command: "/home/isaac/database-internals/build/storage_tests" "--gtest_filter=SlottedPageTest.InitializationTest" "--gtest_also_run_disabled_tests"
 Directory: /home/isaac/database-internals/build
-"SlottedPageTest.InitializationTest" start time: Apr 14 15:22 UTC
+"SlottedPageTest.InitializationTest" start time: Apr 22 21:38 UTC
 Output:
 ----------------------------------------------------------
 Running main() from /home/isaac/database-internals/build/_deps/googletest-src/googletest/src/gtest_main.cc
@@ -158,15 +158,15 @@ Note: Google Test filter = SlottedPageTest.InitializationTest
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"SlottedPageTest.InitializationTest" end time: Apr 14 15:22 UTC
+"SlottedPageTest.InitializationTest" end time: Apr 22 21:38 UTC
 "SlottedPageTest.InitializationTest" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-7/11 Testing: SlottedPageTest.InsertAndGetTest
-7/11 Test: SlottedPageTest.InsertAndGetTest
+7/16 Testing: SlottedPageTest.InsertAndGetTest
+7/16 Test: SlottedPageTest.InsertAndGetTest
 Command: "/home/isaac/database-internals/build/storage_tests" "--gtest_filter=SlottedPageTest.InsertAndGetTest" "--gtest_also_run_disabled_tests"
 Directory: /home/isaac/database-internals/build
-"SlottedPageTest.InsertAndGetTest" start time: Apr 14 15:22 UTC
+"SlottedPageTest.InsertAndGetTest" start time: Apr 22 21:38 UTC
 Output:
 ----------------------------------------------------------
 Running main() from /home/isaac/database-internals/build/_deps/googletest-src/googletest/src/gtest_main.cc
@@ -175,20 +175,31 @@ Note: Google Test filter = SlottedPageTest.InsertAndGetTest
 [----------] Global test environment set-up.
 [----------] 1 test from SlottedPageTest
 [ RUN      ] SlottedPageTest.InsertAndGetTest
-storage_tests: /home/isaac/database-internals/storage/slotted_page.cpp:130: std::optional<short unsigned int> SlottedPage::insertRecord(const char*, uint16_t): Assertion `slot_ptr != nullptr' failed.
+Attempting to fetch slot_ptr w/ id: 0 returning 0xc4b7a896a060
+Fetched slot as: 0xc4b7a896a060 with attributes... (offset=4080,size=16
+Fetched slot as: 0xc4b7a896a060 with attributes... (offset=4080,size=16
+Attempting to fetch slot_ptr w/ id: 1 returning 0xc4b7a896a064
+Fetched slot as: 0xc4b7a896a060 with attributes... (offset=4080,size=16
+Fetched slot as: 0xc4b7a896a064 with attributes... (offset=4057,size=23
+[       OK ] SlottedPageTest.InsertAndGetTest (0 ms)
+[----------] 1 test from SlottedPageTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
 <end of output>
-Test time =   1.13 sec
+Test time =   0.00 sec
 ----------------------------------------------------------
-Test Failed.
-"SlottedPageTest.InsertAndGetTest" end time: Apr 14 15:22 UTC
-"SlottedPageTest.InsertAndGetTest" time elapsed: 00:00:01
+Test Passed.
+"SlottedPageTest.InsertAndGetTest" end time: Apr 22 21:38 UTC
+"SlottedPageTest.InsertAndGetTest" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-8/11 Testing: SlottedPageTest.DeleteRecordTest
-8/11 Test: SlottedPageTest.DeleteRecordTest
+8/16 Testing: SlottedPageTest.DeleteRecordTest
+8/16 Test: SlottedPageTest.DeleteRecordTest
 Command: "/home/isaac/database-internals/build/storage_tests" "--gtest_filter=SlottedPageTest.DeleteRecordTest" "--gtest_also_run_disabled_tests"
 Directory: /home/isaac/database-internals/build
-"SlottedPageTest.DeleteRecordTest" start time: Apr 14 15:22 UTC
+"SlottedPageTest.DeleteRecordTest" start time: Apr 22 21:38 UTC
 Output:
 ----------------------------------------------------------
 Running main() from /home/isaac/database-internals/build/_deps/googletest-src/googletest/src/gtest_main.cc
@@ -197,20 +208,27 @@ Note: Google Test filter = SlottedPageTest.DeleteRecordTest
 [----------] Global test environment set-up.
 [----------] 1 test from SlottedPageTest
 [ RUN      ] SlottedPageTest.DeleteRecordTest
-storage_tests: /home/isaac/database-internals/storage/slotted_page.cpp:130: std::optional<short unsigned int> SlottedPage::insertRecord(const char*, uint16_t): Assertion `slot_ptr != nullptr' failed.
+Attempting to fetch slot_ptr w/ id: 0 returning 0xc0b149ff7060
+Fetched slot as: 0xc0b149ff7060 with attributes... (offset=0,size=9
+[       OK ] SlottedPageTest.DeleteRecordTest (0 ms)
+[----------] 1 test from SlottedPageTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
 <end of output>
-Test time =   1.12 sec
+Test time =   0.00 sec
 ----------------------------------------------------------
-Test Failed.
-"SlottedPageTest.DeleteRecordTest" end time: Apr 14 15:22 UTC
-"SlottedPageTest.DeleteRecordTest" time elapsed: 00:00:01
+Test Passed.
+"SlottedPageTest.DeleteRecordTest" end time: Apr 22 21:38 UTC
+"SlottedPageTest.DeleteRecordTest" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-9/11 Testing: SlottedPageTest.UpdateRecordTest
-9/11 Test: SlottedPageTest.UpdateRecordTest
+9/16 Testing: SlottedPageTest.UpdateRecordTest
+9/16 Test: SlottedPageTest.UpdateRecordTest
 Command: "/home/isaac/database-internals/build/storage_tests" "--gtest_filter=SlottedPageTest.UpdateRecordTest" "--gtest_also_run_disabled_tests"
 Directory: /home/isaac/database-internals/build
-"SlottedPageTest.UpdateRecordTest" start time: Apr 14 15:22 UTC
+"SlottedPageTest.UpdateRecordTest" start time: Apr 22 21:38 UTC
 Output:
 ----------------------------------------------------------
 Running main() from /home/isaac/database-internals/build/_deps/googletest-src/googletest/src/gtest_main.cc
@@ -219,20 +237,27 @@ Note: Google Test filter = SlottedPageTest.UpdateRecordTest
 [----------] Global test environment set-up.
 [----------] 1 test from SlottedPageTest
 [ RUN      ] SlottedPageTest.UpdateRecordTest
-storage_tests: /home/isaac/database-internals/storage/slotted_page.cpp:130: std::optional<short unsigned int> SlottedPage::insertRecord(const char*, uint16_t): Assertion `slot_ptr != nullptr' failed.
+Attempting to fetch slot_ptr w/ id: 0 returning 0xadab84d8c060
+Fetched slot as: 0xadab84d8c060 with attributes... (offset=4088,size=8
+[       OK ] SlottedPageTest.UpdateRecordTest (0 ms)
+[----------] 1 test from SlottedPageTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
 <end of output>
-Test time =   1.13 sec
+Test time =   0.00 sec
 ----------------------------------------------------------
-Test Failed.
-"SlottedPageTest.UpdateRecordTest" end time: Apr 14 15:22 UTC
-"SlottedPageTest.UpdateRecordTest" time elapsed: 00:00:01
+Test Passed.
+"SlottedPageTest.UpdateRecordTest" end time: Apr 22 21:38 UTC
+"SlottedPageTest.UpdateRecordTest" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-10/11 Testing: SlottedPageTest.CompactionTest
-10/11 Test: SlottedPageTest.CompactionTest
+10/16 Testing: SlottedPageTest.CompactionTest
+10/16 Test: SlottedPageTest.CompactionTest
 Command: "/home/isaac/database-internals/build/storage_tests" "--gtest_filter=SlottedPageTest.CompactionTest" "--gtest_also_run_disabled_tests"
 Directory: /home/isaac/database-internals/build
-"SlottedPageTest.CompactionTest" start time: Apr 14 15:22 UTC
+"SlottedPageTest.CompactionTest" start time: Apr 22 21:38 UTC
 Output:
 ----------------------------------------------------------
 Running main() from /home/isaac/database-internals/build/_deps/googletest-src/googletest/src/gtest_main.cc
@@ -241,20 +266,36 @@ Note: Google Test filter = SlottedPageTest.CompactionTest
 [----------] Global test environment set-up.
 [----------] 1 test from SlottedPageTest
 [ RUN      ] SlottedPageTest.CompactionTest
-storage_tests: /home/isaac/database-internals/storage/slotted_page.cpp:130: std::optional<short unsigned int> SlottedPage::insertRecord(const char*, uint16_t): Assertion `slot_ptr != nullptr' failed.
+Attempting to fetch slot_ptr w/ id: 0 returning 0xabca10e20060
+Fetched slot as: 0xabca10e20060 with attributes... (offset=4085,size=11
+Fetched slot as: 0xabca10e20060 with attributes... (offset=4085,size=11
+Attempting to fetch slot_ptr w/ id: 1 returning 0xabca10e20064
+Fetched slot as: 0xabca10e20060 with attributes... (offset=4085,size=11
+Fetched slot as: 0xabca10e20064 with attributes... (offset=4062,size=23
+Fetched slot as: 0xabca10e20060 with attributes... (offset=4085,size=11
+Fetched slot as: 0xabca10e20064 with attributes... (offset=4062,size=23
+Attempting to fetch slot_ptr w/ id: 2 returning 0xabca10e20068
+Fetched slot as: 0xabca10e20060 with attributes... (offset=4085,size=11
+Fetched slot as: 0xabca10e20068 with attributes... (offset=4074,size=11
+[       OK ] SlottedPageTest.CompactionTest (0 ms)
+[----------] 1 test from SlottedPageTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
 <end of output>
-Test time =   1.12 sec
+Test time =   0.00 sec
 ----------------------------------------------------------
-Test Failed.
-"SlottedPageTest.CompactionTest" end time: Apr 14 15:22 UTC
-"SlottedPageTest.CompactionTest" time elapsed: 00:00:01
+Test Passed.
+"SlottedPageTest.CompactionTest" end time: Apr 22 21:38 UTC
+"SlottedPageTest.CompactionTest" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-11/11 Testing: SlottedPageTest.PageFullTest
-11/11 Test: SlottedPageTest.PageFullTest
+11/16 Testing: SlottedPageTest.PageFullTest
+11/16 Test: SlottedPageTest.PageFullTest
 Command: "/home/isaac/database-internals/build/storage_tests" "--gtest_filter=SlottedPageTest.PageFullTest" "--gtest_also_run_disabled_tests"
 Directory: /home/isaac/database-internals/build
-"SlottedPageTest.PageFullTest" start time: Apr 14 15:22 UTC
+"SlottedPageTest.PageFullTest" start time: Apr 22 21:38 UTC
 Output:
 ----------------------------------------------------------
 Running main() from /home/isaac/database-internals/build/_deps/googletest-src/googletest/src/gtest_main.cc
@@ -273,8 +314,144 @@ Note: Google Test filter = SlottedPageTest.PageFullTest
 Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"SlottedPageTest.PageFullTest" end time: Apr 14 15:22 UTC
+"SlottedPageTest.PageFullTest" end time: Apr 22 21:38 UTC
 "SlottedPageTest.PageFullTest" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-End testing: Apr 14 15:22 UTC
+12/16 Testing: DiskManagerTest.ConstructorDestroysExistingFile
+12/16 Test: DiskManagerTest.ConstructorDestroysExistingFile
+Command: "/home/isaac/database-internals/build/storage_tests" "--gtest_filter=DiskManagerTest.ConstructorDestroysExistingFile" "--gtest_also_run_disabled_tests"
+Directory: /home/isaac/database-internals/build
+"DiskManagerTest.ConstructorDestroysExistingFile" start time: Apr 22 21:38 UTC
+Output:
+----------------------------------------------------------
+Running main() from /home/isaac/database-internals/build/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = DiskManagerTest.ConstructorDestroysExistingFile
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DiskManagerTest
+[ RUN      ] DiskManagerTest.ConstructorDestroysExistingFile
+[EXPECTED ERROR CAUGHT]: File is too small to be a valid database!
+[       OK ] DiskManagerTest.ConstructorDestroysExistingFile (1 ms)
+[----------] 1 test from DiskManagerTest (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"DiskManagerTest.ConstructorDestroysExistingFile" end time: Apr 22 21:38 UTC
+"DiskManagerTest.ConstructorDestroysExistingFile" time elapsed: 00:00:00
+----------------------------------------------------------
+
+13/16 Testing: DiskManagerTest.InitializesNewFileCorrectly
+13/16 Test: DiskManagerTest.InitializesNewFileCorrectly
+Command: "/home/isaac/database-internals/build/storage_tests" "--gtest_filter=DiskManagerTest.InitializesNewFileCorrectly" "--gtest_also_run_disabled_tests"
+Directory: /home/isaac/database-internals/build
+"DiskManagerTest.InitializesNewFileCorrectly" start time: Apr 22 21:38 UTC
+Output:
+----------------------------------------------------------
+Running main() from /home/isaac/database-internals/build/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = DiskManagerTest.InitializesNewFileCorrectly
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DiskManagerTest
+[ RUN      ] DiskManagerTest.InitializesNewFileCorrectly
+[       OK ] DiskManagerTest.InitializesNewFileCorrectly (26 ms)
+[----------] 1 test from DiskManagerTest (26 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (26 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.03 sec
+----------------------------------------------------------
+Test Passed.
+"DiskManagerTest.InitializesNewFileCorrectly" end time: Apr 22 21:38 UTC
+"DiskManagerTest.InitializesNewFileCorrectly" time elapsed: 00:00:00
+----------------------------------------------------------
+
+14/16 Testing: DiskManagerTest.StrictAllocationAndWriteTest
+14/16 Test: DiskManagerTest.StrictAllocationAndWriteTest
+Command: "/home/isaac/database-internals/build/storage_tests" "--gtest_filter=DiskManagerTest.StrictAllocationAndWriteTest" "--gtest_also_run_disabled_tests"
+Directory: /home/isaac/database-internals/build
+"DiskManagerTest.StrictAllocationAndWriteTest" start time: Apr 22 21:38 UTC
+Output:
+----------------------------------------------------------
+Running main() from /home/isaac/database-internals/build/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = DiskManagerTest.StrictAllocationAndWriteTest
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DiskManagerTest
+[ RUN      ] DiskManagerTest.StrictAllocationAndWriteTest
+[       OK ] DiskManagerTest.StrictAllocationAndWriteTest (54 ms)
+[----------] 1 test from DiskManagerTest (54 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (54 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.06 sec
+----------------------------------------------------------
+Test Passed.
+"DiskManagerTest.StrictAllocationAndWriteTest" end time: Apr 22 21:38 UTC
+"DiskManagerTest.StrictAllocationAndWriteTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+15/16 Testing: DiskManagerTest.DeallocateAndReallocate
+15/16 Test: DiskManagerTest.DeallocateAndReallocate
+Command: "/home/isaac/database-internals/build/storage_tests" "--gtest_filter=DiskManagerTest.DeallocateAndReallocate" "--gtest_also_run_disabled_tests"
+Directory: /home/isaac/database-internals/build
+"DiskManagerTest.DeallocateAndReallocate" start time: Apr 22 21:38 UTC
+Output:
+----------------------------------------------------------
+Running main() from /home/isaac/database-internals/build/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = DiskManagerTest.DeallocateAndReallocate
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DiskManagerTest
+[ RUN      ] DiskManagerTest.DeallocateAndReallocate
+[       OK ] DiskManagerTest.DeallocateAndReallocate (39 ms)
+[----------] 1 test from DiskManagerTest (39 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (39 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"DiskManagerTest.DeallocateAndReallocate" end time: Apr 22 21:38 UTC
+"DiskManagerTest.DeallocateAndReallocate" time elapsed: 00:00:00
+----------------------------------------------------------
+
+16/16 Testing: DiskManagerTest.ReadOutOfBounds
+16/16 Test: DiskManagerTest.ReadOutOfBounds
+Command: "/home/isaac/database-internals/build/storage_tests" "--gtest_filter=DiskManagerTest.ReadOutOfBounds" "--gtest_also_run_disabled_tests"
+Directory: /home/isaac/database-internals/build
+"DiskManagerTest.ReadOutOfBounds" start time: Apr 22 21:38 UTC
+Output:
+----------------------------------------------------------
+Running main() from /home/isaac/database-internals/build/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = DiskManagerTest.ReadOutOfBounds
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DiskManagerTest
+[ RUN      ] DiskManagerTest.ReadOutOfBounds
+[       OK ] DiskManagerTest.ReadOutOfBounds (8 ms)
+[----------] 1 test from DiskManagerTest (8 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (8 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"DiskManagerTest.ReadOutOfBounds" end time: Apr 22 21:38 UTC
+"DiskManagerTest.ReadOutOfBounds" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Apr 22 21:38 UTC

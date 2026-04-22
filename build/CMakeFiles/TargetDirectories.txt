@@ -1,5 +1,5 @@
 /home/isaac/database-internals/build/CMakeFiles/storage_logic.dir
-/home/isaac/database-internals/build/CMakeFiles/Storage.dir
+/home/isaac/database-internals/build/CMakeFiles/storage_viz.dir
 /home/isaac/database-internals/build/CMakeFiles/storage_tests.dir
 /home/isaac/database-internals/build/CMakeFiles/test.dir
 /home/isaac/database-internals/build/CMakeFiles/edit_cache.dir
