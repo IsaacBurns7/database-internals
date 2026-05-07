@@ -6,6 +6,8 @@ CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.o: /home/isaac/database-interna
   /home/isaac/database-internals/common/types.h \
   /home/isaac/database-internals/storage/disk_manager.h \
   /home/isaac/database-internals/storage/freelist_page.h \
+  /home/isaac/database-internals/storage/page.h \
+  /home/isaac/database-internals/storage/slotted_page.h \
   /usr/include/aarch64-linux-gnu/asm/bitsperlong.h \
   /usr/include/aarch64-linux-gnu/asm/errno.h \
   /usr/include/aarch64-linux-gnu/asm/posix_types.h \
@@ -116,8 +118,11 @@ CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.o: /home/isaac/database-interna
   /usr/include/asm-generic/posix_types.h \
   /usr/include/asm-generic/types.h \
   /usr/include/assert.h \
+  /usr/include/c++/13/algorithm \
+  /usr/include/c++/13/array \
   /usr/include/c++/13/backward/binders.h \
   /usr/include/c++/13/bit \
+  /usr/include/c++/13/bits/algorithmfwd.h \
   /usr/include/c++/13/bits/align.h \
   /usr/include/c++/13/bits/alloc_traits.h \
   /usr/include/c++/13/bits/allocated_ptr.h \
@@ -176,6 +181,8 @@ CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.o: /home/isaac/database-interna
   /usr/include/c++/13/bits/ptr_traits.h \
   /usr/include/c++/13/bits/quoted_string.h \
   /usr/include/c++/13/bits/range_access.h \
+  /usr/include/c++/13/bits/ranges_algo.h \
+  /usr/include/c++/13/bits/ranges_algobase.h \
   /usr/include/c++/13/bits/ranges_base.h \
   /usr/include/c++/13/bits/ranges_cmp.h \
   /usr/include/c++/13/bits/ranges_util.h \
@@ -185,20 +192,24 @@ CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.o: /home/isaac/database-interna
   /usr/include/c++/13/bits/shared_ptr_base.h \
   /usr/include/c++/13/bits/sstream.tcc \
   /usr/include/c++/13/bits/std_abs.h \
+  /usr/include/c++/13/bits/stl_algo.h \
   /usr/include/c++/13/bits/stl_algobase.h \
   /usr/include/c++/13/bits/stl_bvector.h \
   /usr/include/c++/13/bits/stl_construct.h \
   /usr/include/c++/13/bits/stl_function.h \
+  /usr/include/c++/13/bits/stl_heap.h \
   /usr/include/c++/13/bits/stl_iterator.h \
   /usr/include/c++/13/bits/stl_iterator_base_funcs.h \
   /usr/include/c++/13/bits/stl_iterator_base_types.h \
   /usr/include/c++/13/bits/stl_pair.h \
+  /usr/include/c++/13/bits/stl_tempbuf.h \
   /usr/include/c++/13/bits/stl_uninitialized.h \
   /usr/include/c++/13/bits/stl_vector.h \
   /usr/include/c++/13/bits/streambuf.tcc \
   /usr/include/c++/13/bits/streambuf_iterator.h \
   /usr/include/c++/13/bits/string_view.tcc \
   /usr/include/c++/13/bits/stringfwd.h \
+  /usr/include/c++/13/bits/uniform_int_dist.h \
   /usr/include/c++/13/bits/unique_ptr.h \
   /usr/include/c++/13/bits/unordered_set.h \
   /usr/include/c++/13/bits/uses_allocator.h \
@@ -216,6 +227,7 @@ CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.o: /home/isaac/database-interna
   /usr/include/c++/13/cstdint \
   /usr/include/c++/13/cstdio \
   /usr/include/c++/13/cstdlib \
+  /usr/include/c++/13/cstring \
   /usr/include/c++/13/ctime \
   /usr/include/c++/13/cwchar \
   /usr/include/c++/13/cwctype \
@@ -241,9 +253,13 @@ CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.o: /home/isaac/database-interna
   /usr/include/c++/13/locale \
   /usr/include/c++/13/new \
   /usr/include/c++/13/numbers \
+  /usr/include/c++/13/optional \
   /usr/include/c++/13/ostream \
+  /usr/include/c++/13/pstl/execution_defs.h \
+  /usr/include/c++/13/pstl/glue_algorithm_defs.h \
   /usr/include/c++/13/pstl/pstl_config.h \
   /usr/include/c++/13/ratio \
+  /usr/include/c++/13/span \
   /usr/include/c++/13/sstream \
   /usr/include/c++/13/stdexcept \
   /usr/include/c++/13/streambuf \
@@ -319,27 +335,39 @@ CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.o: /home/isaac/database-interna
 
 /usr/include/fcntl.h:
 
-/usr/include/c++/13/bits/basic_string.h:
+/usr/include/errno.h:
 
-/usr/include/c++/13/bits/basic_ios.h:
+/usr/include/stdint.h:
+
+/usr/include/endian.h:
+
+/usr/include/ctype.h:
+
+/usr/include/c++/13/unordered_set:
+
+/usr/include/c++/13/typeinfo:
+
+/usr/include/c++/13/type_traits:
+
+/usr/include/c++/13/string:
+
+/usr/include/c++/13/stdexcept:
+
+/usr/include/c++/13/sstream:
+
+/usr/include/c++/13/span:
+
+/usr/include/c++/13/ratio:
 
 /usr/include/c++/13/clocale:
-
-/usr/include/c++/13/bits/charconv.h:
-
-/usr/include/c++/13/bits/fs_path.h:
-
-/usr/include/c++/13/bits/stl_pair.h:
-
-/usr/include/c++/13/cstdio:
-
-/usr/include/c++/13/fstream:
 
 /usr/include/c++/13/bits/allocated_ptr.h:
 
 /usr/include/c++/13/bit:
 
 /usr/include/c++/13/bits/basic_string.tcc:
+
+/usr/include/c++/13/algorithm:
 
 /usr/include/asm-generic/posix_types.h:
 
@@ -381,8 +409,6 @@ CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.o: /home/isaac/database-interna
 
 /usr/include/asm-generic/types.h:
 
-/usr/include/aarch64-linux-gnu/bits/wordsize.h:
-
 /usr/include/c++/13/bits/stl_iterator_base_funcs.h:
 
 /usr/include/asm-generic/errno-base.h:
@@ -405,17 +431,9 @@ CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.o: /home/isaac/database-interna
 
 /usr/include/c++/13/bits/align.h:
 
-/usr/include/aarch64-linux-gnu/bits/uintn-identity.h:
-
 /usr/include/c++/13/bits/unique_ptr.h:
 
 /usr/include/aarch64-linux-gnu/bits/typesizes.h:
-
-/usr/include/c++/13/bits/char_traits.h:
-
-/usr/include/aarch64-linux-gnu/bits/types/struct_timespec.h:
-
-/usr/include/c++/13/bits/hashtable_policy.h:
 
 /usr/include/aarch64-linux-gnu/gnu/stubs.h:
 
@@ -461,47 +479,35 @@ CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.o: /home/isaac/database-interna
 
 /usr/include/aarch64-linux-gnu/bits/types/sigset_t.h:
 
+/usr/include/c++/13/array:
+
 /usr/include/aarch64-linux-gnu/bits/types/error_t.h:
 
 /usr/include/aarch64-linux-gnu/bits/types/cookie_io_functions_t.h:
 
 /usr/include/aarch64-linux-gnu/bits/statx-generic.h:
 
-/usr/include/aarch64-linux-gnu/bits/pthreadtypes-arch.h:
+/usr/include/aarch64-linux-gnu/bits/types/clockid_t.h:
 
-/usr/include/c++/13/bits/locale_facets.h:
+/usr/include/c++/13/bits/stl_bvector.h:
 
-/usr/include/aarch64-linux-gnu/bits/posix_opt.h:
+/usr/include/aarch64-linux-gnu/bits/getopt_posix.h:
+
+/usr/include/c++/13/ios:
 
 /usr/include/aarch64-linux-gnu/bits/fcntl.h:
+
+/usr/include/aarch64-linux-gnu/bits/posix_opt.h:
 
 /usr/include/aarch64-linux-gnu/bits/stat.h:
 
 /usr/include/aarch64-linux-gnu/bits/types/__mbstate_t.h:
 
-/usr/include/c++/13/bits/basic_ios.tcc:
-
-/usr/include/aarch64-linux-gnu/bits/timex.h:
-
-/usr/include/c++/13/bits/cxxabi_init_exception.h:
-
-/usr/include/c++/13/typeinfo:
-
-/usr/include/c++/13/bits/alloc_traits.h:
-
-/usr/include/c++/13/bits/concept_check.h:
-
-/usr/include/aarch64-linux-gnu/bits/environments.h:
-
-/usr/include/aarch64-linux-gnu/bits/types/struct_statx_timestamp.h:
-
-/usr/include/c++/13/bits/invoke.h:
-
-/usr/include/aarch64-linux-gnu/bits/errno.h:
-
 /usr/include/c++/13/cctype:
 
 /usr/include/aarch64-linux-gnu/sys/stat.h:
+
+/usr/include/c++/13/bits/ranges_algobase.h:
 
 /home/isaac/database-internals/tests/storage_viz.cpp:
 
@@ -511,39 +517,27 @@ CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.o: /home/isaac/database-interna
 
 /usr/include/c++/13/bits/hash_bytes.h:
 
-/usr/include/aarch64-linux-gnu/c++/13/bits/cpu_defines.h:
+/usr/include/aarch64-linux-gnu/bits/timex.h:
 
-/usr/include/aarch64-linux-gnu/bits/libc-header-start.h:
+/usr/include/c++/13/bits/cxxabi_init_exception.h:
 
-/home/isaac/database-internals/common/config.h:
+/usr/include/aarch64-linux-gnu/bits/types/struct_timespec.h:
 
-/usr/include/alloca.h:
+/usr/include/c++/13/bits/char_traits.h:
 
-/usr/include/aarch64-linux-gnu/bits/time64.h:
+/usr/include/c++/13/bits/hashtable_policy.h:
 
-/usr/include/aarch64-linux-gnu/bits/endianness.h:
+/usr/include/aarch64-linux-gnu/bits/uintn-identity.h:
 
-/usr/include/ctype.h:
+/home/isaac/database-internals/storage/slotted_page.h:
 
-/home/isaac/database-internals/storage/freelist_page.h:
+/usr/include/c++/13/bits/basic_string.h:
 
-/usr/include/c++/13/bits/unordered_set.h:
+/usr/include/aarch64-linux-gnu/c++/13/bits/messages_members.h:
 
-/usr/include/aarch64-linux-gnu/bits/types/clockid_t.h:
+/usr/include/aarch64-linux-gnu/bits/stdint-least.h:
 
-/usr/include/c++/13/type_traits:
-
-/usr/include/aarch64-linux-gnu/bits/atomic_wide_counter.h:
-
-/usr/include/aarch64-linux-gnu/bits/types/struct_itimerspec.h:
-
-/usr/include/c++/13/bits/vector.tcc:
-
-/usr/include/aarch64-linux-gnu/bits/getopt_posix.h:
-
-/usr/include/c++/13/ios:
-
-/usr/include/c++/13/bits/functexcept.h:
+/usr/include/c++/13/exception:
 
 /usr/include/aarch64-linux-gnu/bits/floatn.h:
 
@@ -559,7 +553,57 @@ CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.o: /home/isaac/database-interna
 
 /usr/include/aarch64-linux-gnu/bits/types/__locale_t.h:
 
+/usr/include/aarch64-linux-gnu/c++/13/bits/cpu_defines.h:
+
+/usr/include/c++/13/bits/alloc_traits.h:
+
+/usr/include/c++/13/bits/concept_check.h:
+
+/usr/include/aarch64-linux-gnu/bits/environments.h:
+
+/usr/include/aarch64-linux-gnu/bits/types/struct_statx_timestamp.h:
+
+/usr/include/aarch64-linux-gnu/bits/errno.h:
+
+/usr/include/c++/13/bits/basic_ios.h:
+
+/home/isaac/database-internals/storage/page.h:
+
+/usr/include/c++/13/istream:
+
+/usr/include/alloca.h:
+
+/usr/include/aarch64-linux-gnu/bits/time64.h:
+
+/home/isaac/database-internals/common/config.h:
+
+/usr/include/aarch64-linux-gnu/bits/endianness.h:
+
+/usr/include/c++/13/vector:
+
+/usr/include/aarch64-linux-gnu/bits/long-double.h:
+
+/usr/include/aarch64-linux-gnu/bits/libc-header-start.h:
+
+/home/isaac/database-internals/storage/freelist_page.h:
+
+/usr/include/c++/13/bits/unordered_set.h:
+
+/usr/include/aarch64-linux-gnu/bits/atomic_wide_counter.h:
+
+/usr/include/aarch64-linux-gnu/bits/types/struct_itimerspec.h:
+
+/usr/include/c++/13/bits/functexcept.h:
+
+/usr/include/aarch64-linux-gnu/bits/pthreadtypes-arch.h:
+
+/usr/include/c++/13/bits/locale_facets.h:
+
 /usr/include/aarch64-linux-gnu/bits/pthreadtypes.h:
+
+/usr/include/c++/13/cstring:
+
+/usr/include/c++/13/bits/algorithmfwd.h:
 
 /usr/include/aarch64-linux-gnu/bits/pthread_stack_min-dynamic.h:
 
@@ -573,25 +617,21 @@ CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.o: /home/isaac/database-interna
 
 /usr/include/aarch64-linux-gnu/bits/select.h:
 
+/usr/include/c++/13/bits/allocator.h:
+
+/usr/include/aarch64-linux-gnu/bits/timesize.h:
+
 /usr/include/c++/13/bits/uses_allocator_args.h:
 
 /usr/include/aarch64-linux-gnu/bits/cpu-set.h:
 
 /usr/include/aarch64-linux-gnu/bits/types/mbstate_t.h:
 
-/usr/include/aarch64-linux-gnu/c++/13/bits/messages_members.h:
-
-/usr/include/aarch64-linux-gnu/bits/stdint-least.h:
-
-/usr/include/c++/13/exception:
-
 /usr/include/c++/13/bits/ostream_insert.h:
 
-/usr/include/aarch64-linux-gnu/bits/timesize.h:
+/usr/include/c++/13/bits/invoke.h:
 
-/usr/include/c++/13/bits/allocator.h:
-
-/usr/include/c++/13/bits/stl_bvector.h:
+/usr/include/c++/13/bits/ranges_algo.h:
 
 /usr/include/aarch64-linux-gnu/c++/13/bits/c++locale.h:
 
@@ -615,6 +655,8 @@ CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.o: /home/isaac/database-interna
 
 /usr/include/aarch64-linux-gnu/bits/thread-shared-types.h:
 
+/usr/include/c++/13/bits/stl_algo.h:
+
 /usr/include/c++/13/cstddef:
 
 /usr/include/assert.h:
@@ -625,7 +667,23 @@ CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.o: /home/isaac/database-interna
 
 /usr/include/c++/13/new:
 
+/usr/include/c++/13/bits/charconv.h:
+
+/usr/include/c++/13/bits/fs_path.h:
+
+/usr/include/c++/13/bits/stl_pair.h:
+
+/usr/include/c++/13/cstdio:
+
+/usr/include/c++/13/fstream:
+
 /usr/include/aarch64-linux-gnu/bits/types/__sigset_t.h:
+
+/usr/include/c++/13/bits/basic_ios.tcc:
+
+/usr/include/aarch64-linux-gnu/bits/wordsize.h:
+
+/usr/include/c++/13/pstl/execution_defs.h:
 
 /usr/include/c++/13/bits/chrono.h:
 
@@ -643,9 +701,11 @@ CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.o: /home/isaac/database-interna
 
 /usr/include/c++/13/bits/exception_ptr.h:
 
-/usr/include/c++/13/bits/fs_dir.h:
+/usr/include/c++/13/bits/vector.tcc:
 
-/usr/include/c++/13/sstream:
+/usr/include/c++/13/optional:
+
+/usr/include/c++/13/bits/fs_dir.h:
 
 /usr/include/aarch64-linux-gnu/bits/stdlib-float.h:
 
@@ -663,11 +723,7 @@ CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.o: /home/isaac/database-interna
 
 /usr/include/c++/13/bits/functional_hash.h:
 
-/usr/include/errno.h:
-
 /usr/include/c++/13/bits/hashtable.h:
-
-/usr/include/c++/13/bits/locale_classes.tcc:
 
 /usr/include/c++/13/bits/istream.tcc:
 
@@ -686,10 +742,6 @@ CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.o: /home/isaac/database-interna
 /usr/include/c++/13/bits/max_size_type.h:
 
 /usr/include/c++/13/bits/streambuf.tcc:
-
-/usr/include/stdint.h:
-
-/usr/include/endian.h:
 
 /usr/include/c++/13/streambuf:
 
@@ -761,31 +813,31 @@ CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.o: /home/isaac/database-interna
 
 /usr/include/c++/13/cwctype:
 
-/usr/include/c++/13/ratio:
-
 /usr/include/c++/13/bits/stl_algobase.h:
 
 /usr/include/c++/13/bits/stl_function.h:
 
 /usr/include/c++/13/bits/utility.h:
 
+/usr/include/c++/13/bits/stl_heap.h:
+
 /usr/include/stdio.h:
 
 /usr/include/c++/13/bits/stl_iterator_base_types.h:
+
+/usr/include/c++/13/bits/stl_tempbuf.h:
 
 /usr/include/c++/13/bits/new_allocator.h:
 
 /usr/include/c++/13/bits/stl_uninitialized.h:
 
-/usr/include/aarch64-linux-gnu/sys/select.h:
-
 /usr/include/aarch64-linux-gnu/gnu/stubs-lp64.h:
+
+/usr/include/aarch64-linux-gnu/sys/select.h:
 
 /usr/include/c++/13/locale:
 
 /usr/include/c++/13/bits/stl_vector.h:
-
-/usr/include/c++/13/unordered_set:
 
 /usr/include/aarch64-linux-gnu/bits/types.h:
 
@@ -799,6 +851,10 @@ CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.o: /home/isaac/database-interna
 
 /usr/include/c++/13/bits/stringfwd.h:
 
+/usr/include/c++/13/bits/locale_classes.tcc:
+
+/usr/include/c++/13/bits/uniform_int_dist.h:
+
 /usr/include/c++/13/bits/cpp_type_traits.h:
 
 /usr/include/c++/13/cassert:
@@ -809,9 +865,9 @@ CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.o: /home/isaac/database-interna
 
 /usr/include/c++/13/compare:
 
-/usr/include/aarch64-linux-gnu/asm/posix_types.h:
-
 /usr/include/aarch64-linux-gnu/bits/setjmp.h:
+
+/usr/include/aarch64-linux-gnu/asm/posix_types.h:
 
 /usr/include/c++/13/filesystem:
 
@@ -833,24 +889,16 @@ CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.o: /home/isaac/database-interna
 
 /usr/include/c++/13/ext/concurrence.h:
 
+/usr/include/c++/13/pstl/glue_algorithm_defs.h:
+
 /usr/include/c++/13/ext/string_conversions.h:
 
 /usr/include/c++/13/ext/type_traits.h:
 
 /usr/include/c++/13/iostream:
 
-/usr/include/c++/13/istream:
-
 /usr/include/aarch64-linux-gnu/bits/getopt_core.h:
 
 /usr/include/c++/13/limits:
 
 /usr/include/c++/13/pstl/pstl_config.h:
-
-/usr/include/c++/13/stdexcept:
-
-/usr/include/c++/13/string:
-
-/usr/include/aarch64-linux-gnu/bits/long-double.h:
-
-/usr/include/c++/13/vector:

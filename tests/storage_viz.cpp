@@ -166,9 +166,8 @@ void record_viz() {
     for (slot_id_t slot_id : inserted_slots) {
         auto record_span = slotted_page.getRecord(slot_id);
         if (!record_span.empty()) {
-            cout << "  Slot " << slot_id << ": ";
-            cout.write(record_span.data(), record_span.size());
-            cout << " (" << record_span.size() << " bytes)" << endl;
+            std::string record(record_span.data(), record_span.size());
+            cout << "  Slot " << slot_id << ": '" << record << "' (" << record_span.size() << " bytes)" << endl;
         }
     }
 
