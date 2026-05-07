@@ -185,6 +185,19 @@ storage_logic/fast:
 .PHONY : storage_logic/fast
 
 #=============================================================================
+# Target rules for targets named index_logic
+
+# Build rule for target.
+index_logic: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 index_logic
+.PHONY : index_logic
+
+# fast build rule for target.
+index_logic/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/index_logic.dir/build.make CMakeFiles/index_logic.dir/build
+.PHONY : index_logic/fast
+
+#=============================================================================
 # Target rules for targets named storage_viz
 
 # Build rule for target.
@@ -261,6 +274,30 @@ gtest_main: cmake_check_build_system
 gtest_main/fast:
 	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/build.make _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/build
 .PHONY : gtest_main/fast
+
+index/b_plus_tree.o: index/b_plus_tree.cpp.o
+.PHONY : index/b_plus_tree.o
+
+# target to build an object file
+index/b_plus_tree.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/index_logic.dir/build.make CMakeFiles/index_logic.dir/index/b_plus_tree.cpp.o
+.PHONY : index/b_plus_tree.cpp.o
+
+index/b_plus_tree.i: index/b_plus_tree.cpp.i
+.PHONY : index/b_plus_tree.i
+
+# target to preprocess a source file
+index/b_plus_tree.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/index_logic.dir/build.make CMakeFiles/index_logic.dir/index/b_plus_tree.cpp.i
+.PHONY : index/b_plus_tree.cpp.i
+
+index/b_plus_tree.s: index/b_plus_tree.cpp.s
+.PHONY : index/b_plus_tree.s
+
+# target to generate assembly for a file
+index/b_plus_tree.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/index_logic.dir/build.make CMakeFiles/index_logic.dir/index/b_plus_tree.cpp.s
+.PHONY : index/b_plus_tree.cpp.s
 
 storage/disk_manager.o: storage/disk_manager.cpp.o
 .PHONY : storage/disk_manager.o
@@ -495,9 +532,13 @@ help:
 	@echo "... gmock_main"
 	@echo "... gtest"
 	@echo "... gtest_main"
+	@echo "... index_logic"
 	@echo "... storage_logic"
 	@echo "... storage_tests"
 	@echo "... storage_viz"
+	@echo "... index/b_plus_tree.o"
+	@echo "... index/b_plus_tree.i"
+	@echo "... index/b_plus_tree.s"
 	@echo "... storage/disk_manager.o"
 	@echo "... storage/disk_manager.i"
 	@echo "... storage/disk_manager.s"

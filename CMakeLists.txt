@@ -28,10 +28,14 @@ add_library(storage_logic
     storage/freelist_page.cpp
 )
 
+add_library(index_logic
+	index/b_plus_tree.cpp
+)
+
 # This is the "Magic Fix": It tells CMake that the project root 
 # is where searches for "common/..." or "storage/..." should start.
 target_include_directories(storage_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-
+target_include_directories(index_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 # --- 3. Main Executable ---
 add_executable(storage_viz tests/storage_viz.cpp)
 target_link_libraries(storage_viz PRIVATE storage_logic)

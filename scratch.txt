@@ -1,0 +1,57 @@
+
+//serialize primitive to char and find size
+template<typename T>
+struct AsBytes {
+	static const char* get(const T& value){
+		return reinterpret_cast<const char*>(&value);
+	}
+
+	static size_t size(const T&){
+		return sizeof(T);
+	}
+};
+
+//serialize std::string to char and find size 
+template<>
+struct AsBytes<std::string> {
+    static const char* get(const std::string& s) {
+        return s.c_str();
+    }
+
+    static size_t size(const std::string& s) {
+        return s.size();
+    }
+};
+
+template<typename... Args>
+class Record{
+public:
+	std::tuple<Args...> fields; 
+};
+
+template<typename... Args>
+class RecordType{
+	
+	template<size_t I>
+	const char* getFieldData() const {
+		const auto& val = std::get<I>(fields);
+		return AsBytes<std::decay_t<decltype(val)>::get(val);
+	}
+
+	template<size_t I>
+	size_t getFieldSize() const {
+		const auto& val = std::get<I>(fields);
+		return AsBytes<std::decay_t<decltype(val)>>::size(val);
+	}
+
+	//serialize
+	size_t serialize(std::byte* buf) const {
+		std::byte* cursor = buf; 
+		for(size_t i = 0;i < fields.size();i++){
+			cursor += serialize_field(
+		}
+	}
+	//deserialize
+	Record
+	//compare? 
+};
