@@ -8,10 +8,47 @@
 #include "optional"
 #include "tuple"
 
-//given a template serialize and deserialize
-	//serialize: take in a Record 
-	//
+template <typename T>
+struct FieldDescriptor {
+	std::string name;
+	bool is_primary_index = false;
+	// size_t size = sizeof(T); 
+		//each slot in a "slottedpage" is a record in of itself, so I dont think BTree needs to know the size of the record itself, since its just going to be writing a slot to a slotted_page
+		//restrict records to a constant size 
+			//if an element of a record is variable-length, you will know because you have RecordType (or its template)
+				//instead of recording the record itself, record the overflow page_id, and the slot_id at that overflow page
+					//is the overflow page just a slotted page thats not TECHNICALLY part of the BTree? 
+	set_primary_index(){
+		is_primary_index = true; 
+	}
+	bool is_primary_index(){
+		return is_primary_index;
+	}
+}
+//specialization for std::string
+
+
+template <typename T>
+class FieldDescriptors; //intentionally undefined? WHY? 
+
+template <typename... Args>
+class FieldDescriptors<RecordType<Args...>>{
+	std::tuple<FieldDescriptor<Args>...> descriptors;
+public:
+	FieldDescriptors(std::string... names): descriptors(FieldDescriptor<Args>{names}...) {}
+};
+//example usage: FieldDescriptors<RecordType<int, double, std::string>> fd;
+
+//proper like field_descriptors too complex, currently first field is just gonna be assumed as index, no secondary indexes
+template <typename... Args>
 class RecordType{
+	std::tuple<Args...> fields; 
+	RecordType(Args&&... args): fields(std::forward<Args>(args)...) {}
+}
+
+
+// template <typename... Args>
+static class Record{
 	//maybe raw recordtype and then friend functions? 
 	//parameterized friend functions?
 	//is there a way for BPlusTree to "own" the schema, and then it applies that schema every time it serializes or deserializes through the RecordType class 
@@ -20,15 +57,57 @@ class RecordType{
 		//how is this useful? 
 			//serialization is obviously useful, but much easier 
 			//deserialization will mostly happen in get and scan
-				//should deserialization even be necessarily seperate from the BPlusTree? 
+					//should deserialization even be necessarily seperate from the BPlusTree? 
+	// std::vector<FieldDescriptor> field_descriptors;
+		//figure out way to take in FDs 
+		//maybe FDs are in B_Tree class? 
+			//or in separate FDs class, and then trust B_Tree has one template it gives to both FD and Record class 
+	void serialize(char& buf, const RecordType& record){
+		std::apply([](auto&&... args){
+			([](auto&& x){
+				using T = std::decay_t<decltype(x)>;
+				if constexpr (std::is_arithmetic_v<T>){
+					//write to buf
+					std::memcpy(buf, &x, sizeof(T));
+					buf += sizeof(T);
+				}else{
+					//add uint32_t (4 bytes) for size, then the element 
+					//probably have to figure out its size dynamically dependent on the actual type 
+					//ADVANCED PROBABLY DO IN THE FUTURE: maybe allow them to pass in the "length" access function for each type
+						//for now just support std::string 
+					if constexpr (std::is_same_v<T, std::string>){
+						std::memcpy(buf, x.size(), sizeof(std::string::size_type));
+						buf += sizeof(std::string::size_type);
+						std::memcpy(buf, x.data(), x.size());
+						buf += sizeof(x.size());
+					}
+				}
+			}(args), ...); //invoked lambda per element
+		}, record.fields);
+	}
 	
-	serialize(){
-	
+	void deserialize(const char& buf, RecordType& record){
+		std::apply([](auto&&... args){
+			([](auto&& x){
+				using T = std::decay_t<decltype(x)>;
+				if constexpr (std::is_arithmetic_v<T>){
+					std::memcpy(&x, buf, sizeof(T));
+					buf += sizeof(T);
+				}else{
+					if constexpr (std::is_same_v<T, std::string>){
+						//read in sizetype 
+						std::string::size_type string_size; 
+						std::memcpy(&string_size, buf, sizeof(string_size)); //maybe this should be a uint16_t or sth idk 
+						buf += sizeof(string_size);
+						//read in data and size
+						x = std::string(buf, string_size);
+						buf += string_size;
+					}
+				}
+			}(args), ...);
+		}, record.fields);
 	}
 
-
-	deserialize(){
-	}
 };
 
 class BPlusTree{
