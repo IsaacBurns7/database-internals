@@ -2,8 +2,8 @@
 
 template <typename... Args>
 void Record<Args...>::serialize(char& buf, const RecordType<Args...>& record){
-    std::apply([](auto&&... args){
-        ([](auto&& x){
+    std::apply([&](auto&&... args){
+        ([&](auto&& x){
             using T = std::decay_t<decltype(x)>;
             if constexpr (std::is_arithmetic_v<T>){
                 //write to buf
@@ -27,21 +27,22 @@ void Record<Args...>::serialize(char& buf, const RecordType<Args...>& record){
 
 template <typename... Args>
 void Record<Args...>::deserialize(const char& buf, RecordType<Args...>& record){
-    std::apply([](auto&&... args){
-        ([](auto&& x){
+    std::apply([&](auto&&... args){
+        uint32_t index = 0;
+		([&](auto&& x){
             using T = std::decay_t<decltype(x)>;
             if constexpr (std::is_arithmetic_v<T>){
-                std::memcpy(&x, buf, sizeof(T));
-                buf += sizeof(T);
+                std::memcpy(&x, buf+index, sizeof(T));
+                index += sizeof(T);
             }else{
                 if constexpr (std::is_same_v<T, std::string>){
                     //read in sizetype 
                     std::string::size_type string_size; 
-                    std::memcpy(&string_size, buf, sizeof(string_size)); //maybe this should be a uint16_t or sth idk 
-                    buf += sizeof(string_size);
+                    std::memcpy(&string_size, buf+index, sizeof(string_size)); //maybe this should be a uint16_t or sth idk 
+                    index += sizeof(string_size);
                     //read in data and size
                     x = std::string(buf, string_size);
-                    buf += string_size;
+                    index += string_size;
                 }
             }
         }(args), ...);
