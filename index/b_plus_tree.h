@@ -24,7 +24,7 @@ struct FieldDescriptor {
 	bool is_primary_index(){
 		return is_primary_index;
 	}
-}
+};
 //specialization for std::string
 
 
@@ -44,11 +44,11 @@ template <typename... Args>
 class RecordType{
 	std::tuple<Args...> fields; 
 	RecordType(Args&&... args): fields(std::forward<Args>(args)...) {}
-}
+};
 
 
-// template <typename... Args>
-static class Record{
+template <typename... Args>
+class Record{
 	//maybe raw recordtype and then friend functions? 
 	//parameterized friend functions?
 	//is there a way for BPlusTree to "own" the schema, and then it applies that schema every time it serializes or deserializes through the RecordType class 
@@ -62,7 +62,7 @@ static class Record{
 		//figure out way to take in FDs 
 		//maybe FDs are in B_Tree class? 
 			//or in separate FDs class, and then trust B_Tree has one template it gives to both FD and Record class 
-	void serialize(char& buf, const RecordType& record){
+	static void serialize(char& buf, const RecordType<Args...>& record){
 		std::apply([](auto&&... args){
 			([](auto&& x){
 				using T = std::decay_t<decltype(x)>;
@@ -86,7 +86,7 @@ static class Record{
 		}, record.fields);
 	}
 	
-	void deserialize(const char& buf, RecordType& record){
+	static void deserialize(const char& buf, RecordType<Args...>& record){
 		std::apply([](auto&&... args){
 			([](auto&& x){
 				using T = std::decay_t<decltype(x)>;
@@ -110,6 +110,7 @@ static class Record{
 
 };
 
+template <typename... Args>
 class BPlusTree{
 	//uses sibling pointers + strict min-key 
 		//will implement latch crabbing for concurrency
@@ -118,9 +119,9 @@ class BPlusTree{
 		//... 
 		//maybe we could have a RecordType parameter for the BPlusTree class, and then also define the primary index as part of the recordtype 
 			//then they just insert via a RecordType (which is also the schema of the aforementioned table) 
-	bool insert(RecordType record);
+	bool insert(RecordType<Args...> record);
 		//RecordType is a parameter of the class (DELETE COMMENT WHEN IMPLEMENTED) 
-	bool remove(RecordType record); //could also just be keytype 
+	bool remove(RecordType<Args...> record); //could also just be keytype 
 	std::optional<RecordType> get(RecordType record); //could also be keytype 
     // range scan — returns all values where key is in [start, end]
     std::vector<RecordType> scan(KeyType start, KeyType end); //could also be recordtype 

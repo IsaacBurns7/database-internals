@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/Storage.dir/storage/main.cpp.o -o Storage  libstorage_logic.a 
