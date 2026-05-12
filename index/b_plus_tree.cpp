@@ -48,3 +48,22 @@ void Record<Args...>::deserialize(const char& buf, RecordType<Args...>& record){
         }(args), ...);
     }, record.fields);
 }
+
+//BPlusTree<0, int, std::string, double> tree;	
+	//RecordType<int, std::string, double> rec(42, "Alice", 1000.0);
+	//tree.insert(rec);
+template <std::size_t KeyIdx, typename... Args>
+requires (KeyIdx < sizeof...(Args))
+bool BPlusTree<KeyIdx, Args...>::insert(RecordType<Args...> record) {
+	KeyType key = std::get<KeyIdx>(record.fields);
+	//while the current page is not a leaf page
+		//binary search to find right boundary(first key greater than record's key), and then take the pointer to the left of that right boundary 
+	
+	//insert slot into correct id via binary search (may have to modify slottedpage) 
+	
+}
+
+bool remove(RecordType<Args...> record); 
+std::optional<RecordType<Args...>> get(KeyType target); 
+std::vector<RecordType<Args...>> scan(KeyType start, KeyType end); 
+

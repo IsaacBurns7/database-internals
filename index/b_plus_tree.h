@@ -9,12 +9,26 @@
 #include <tuple>
 #include <vector>
 #include <cstring>
+#include <variant> 
+#include <string>
+#include <concepts> 
 
-template <typename... Args>
+using FieldVariant = std::variant<int, double, std::string>; 
+
+template <typename T>
+concept IsFieldVariant = std::same_as<T, FieldVariant>; 
+
+template <IsFieldVariant... Args>
 class RecordType{
 	std::tuple<Args...> fields; 
 	RecordType(Args&&... args): fields(std::forward<Args>(args)...) {}
 };
+
+//example usage: 
+    // RecordType<FieldVariant, FieldVariant> record(
+    //     FieldVariant{10}, 
+    //     FieldVariant{"Hello"}
+    // );
 
 template <typename... Args>
 class Record{
@@ -63,35 +77,48 @@ private:
 };
 //example usage: FieldDescriptors<RecordType<int, double, std::string>> fd;
 
-template <typename... Args>
-class BPlusTree{
+//example usage: BPlusTree<0, int, float, std::string> tree; 
+template <std::size_t KeyIdx, typename... Args>
+	requires (KeyIdx < sizeof...(Args))
+class BPlusTree {   // <-- no pack, exactly one value
+    //IMPORTANT INFORMATION: ALL NODES ARE SLOTTED PAGES
+		//INTERNAL NODE INFORMATION 
+			//HEADER MUST CONTAIN 
+				//key_max_len for # of bytes variable length keys can contain (= sizeof(keytype) for fixed-size keys)) 
+				//overflow_page_id at byte min(size given by slot, key_max_len)
+				//overflow_page_offset at byte min(size given by slot, key_max_len) + sizeof(overflow_page_id)
+			//KIND OF SLOTS
+				//POINTER: data is page_id:page_id_t 
+				//KEY: data is [keytype_data][overflow_page_id][overflow_page_offset] 
+					//if key is fixed-size overflow_page_id and overflow_page_offset are not added, and data is just [keytype_data] of size sizeof(keytype) 
+		//LEAF NODE INFORMATION 
+			//HEADER MUST CONTAIN 
+				//nothing beyond normal header 
+			//ONLY HAS RECORD SLOTS 
+				//RecordType template will give you a generic templated type, which is a std variant determined at runtime
+					//this is how recordtype can even exist 
+	using KeyType = std::tuple_element_t<KeyIdx, std::tuple<Args...>>;
 	//uses sibling pointers + strict min-key 
 		//will implement latch crabbing for concurrency
 	//database overall is IoT (Index Organized Tables) 
-		//therefore caller must know Primary Index to Insert? 
-		//... 
-		//maybe we could have a RecordType parameter for the BPlusTree class, and then also define the primary index as part of the recordtype 
-			//then they just insert via a RecordType (which is also the schema of the aforementioned table) 
 	bool insert(RecordType<Args...> record);
-		//RecordType is a parameter of the class (DELETE COMMENT WHEN IMPLEMENTED) 
-	bool remove(RecordType<Args...> record); //could also just be keytype 
-	std::optional<RecordType<Args...>> get(RecordType<Args...> record); //could also be keytype 
-		//fielddescriptor is the keytype? 
-		//if we allow multi-field keys, then we have to make a dedicated keytype 
-		//we could just have keytype = fielddescriptor<T> 
-    // range scan — returns all values where key is in [start, end]
-    std::vector<RecordType<Args...>> scan(KeyType start, KeyType end); //could also be recordtype 
+	bool remove(RecordType<Args...> record); 
+	std::optional<RecordType<Args...>> get(KeyType target); 
+    std::vector<RecordType<Args...>> scan(KeyType start, KeyType end); 
+		// range scan — returns all values where key is in [start, end]
 private:
-	// splitChild(page_id_t parent_node, KeyType child); //could also be index 
-		//take child, split into two. remember to add/update key stuff to parent node (strict min-key) 
-	// merge(page_id_t parent_node, KeyType left_child); //could also be index, could also input right child
+	void splitChild(page_id_t parent_node, KeyType child); 
+		//take child, split into two. 
+		//remember to add/update key stuff to parent node (strict min-key) 
+	void merge(page_id_t parent_node, KeyType left_child); //could also input right child
 		//take nodes left_child and left_child+1=right_child, and put keys into left_child. destroy right_child
 		//remember to delete right_child key, shouldn't affect left_child key(strict min-key) 
-	// redistribute(page_id_t parent_node, KeyType child); //could also be index 
+	void redistribute(page_id_t parent_node, KeyType child);  
 		//take stuff in child, give to siblings (sibling pointers!)
 		//remember to update parent keys (strict min-key)
 	DiskManager* disk_manager_;
-	//root page id is 0
+	// uint16_t primary_key_index;
+	uint32_t root_page_id; 
 };
 
 #endif
