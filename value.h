@@ -1,15 +1,3 @@
-//===----------------------------------------------------------------------===//
-//
-//                         BusTub
-//
-// value.h
-//
-// Identification: src/include/type/value.h
-//
-// Copyright (c) 2015-2025, Carnegie Mellon University Database Group
-//
-//===----------------------------------------------------------------------===//
-
 #pragma once
 
 #include <cstring>
@@ -22,6 +10,7 @@
 
 #include "type/limits.h"
 #include "type/type.h"
+
 
 class Column;
 

@@ -1,6 +1,7 @@
 exception - no external dependencies
 macro - no external dependencies 
 util/string_util - fmt/format and fmt/ranges (both 3rd-party)
+catalog/column.h
 
 fmt/format (third-party)
 fmt/ranges (third-party)
@@ -19,8 +20,11 @@ in total it may be ~5000-8000 lines of code, but should take only about a week t
             perhaps I will review siddhartha as well...
 
 plan 
-walk through exception, macro, string_util 
+walk through exception, macro, string_util -> DONE (800) 
 walk through type(+type_id), value
+- SERIALIZE_TO inline?? - you have to store it in a different place? 
+- wtf is inlined and manage_data_ ... I guess I'll find out 
+walk through column(in common)
 walk through boolean
 walk through numeric, integer_parent_type, <4 integer types> 
 walk through numeric, decimal 
@@ -29,3 +33,6 @@ walk through timestamp
 walk through value factory 
 walk through vector
 walk through type util
+
+add back copyright and a README 
+    oh man maybe i shouldve just made one myself...
