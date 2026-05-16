@@ -1,71 +1,28 @@
-#pragma once 
+// type.h
 
-#include <cstdint>
-#include <string>
+#pragma once
+#include "value.h"
 
-enum TypeId{
-	INVALID = 0, BOOLEAN, TINYINT, SMALLINT, INTEGER, BIGINT, DECIMAL, VARCHAR, TIMESTAMP, VECTOR
-};
-class Value;
-enum class CmpBool { CmpFalse = 0, CmpTrue = 1, CmpNull = 2 };
 class Type {
- public:
-  explicit Type(TypeId type_id) : type_id_(type_id) {}
-  virtual ~Type() = default;
-  static auto GetTypeSize(TypeId type_id) -> uint64_t;
-  auto IsCoercableFrom(TypeId type_id) const -> bool;
-  static auto TypeIdToString(TypeId type_id) -> std::string;
-  static auto GetMinValue(TypeId type_id) -> Value;
-  static auto GetMaxValue(TypeId type_id) -> Value;
-  inline static auto GetInstance(TypeId type_id) -> Type * { return k_types[type_id]; }
-  inline auto GetTypeId() const -> TypeId { return type_id_; }
+public:
+    virtual ~Type() = default;
 
-  virtual auto CompareEquals(const Value &left, const Value &right) const -> CmpBool;
-  virtual auto CompareNotEquals(const Value &left, const Value &right) const -> CmpBool;
-  virtual auto CompareLessThan(const Value &left, const Value &right) const -> CmpBool;
-  virtual auto CompareLessThanEquals(const Value &left, const Value &right) const -> CmpBool;
-  virtual auto CompareGreaterThan(const Value &left, const Value &right) const -> CmpBool;
-  virtual auto CompareGreaterThanEquals(const Value &left, const Value &right) const -> CmpBool;
+    // The three things the B+ Tree actually needs
+    virtual int  Compare(const Value &a, const Value &b) const = 0;
 
-  // Other mathematical functions
-  virtual auto Add(const Value &left, const Value &right) const -> Value;
-  virtual auto Subtract(const Value &left, const Value &right) const -> Value;
-  virtual auto Multiply(const Value &left, const Value &right) const -> Value;
-  virtual auto Divide(const Value &left, const Value &right) const -> Value;
-  virtual auto Modulo(const Value &left, const Value &right) const -> Value;
-  virtual auto Min(const Value &left, const Value &right) const -> Value;
-  virtual auto Max(const Value &left, const Value &right) const -> Value;
-  virtual auto Sqrt(const Value &val) const -> Value;
-  virtual auto OperateNull(const Value &val, const Value &right) const -> Value;
-  virtual auto IsZero(const Value &val) const -> bool;
+    // Arithmetic — only defined where it makes sense
+    virtual Value Add(const Value &a, const Value &b) const {
+        throw std::logic_error("Add not supported for this type");
+    }
+    virtual Value Sub(const Value &a, const Value &b) const {
+        throw std::logic_error("Sub not supported for this type");
+    }
 
-  // Is the data inlined into this classes storage space, or must it be accessed
-  // through an indirection/pointer?
-  virtual auto IsInlined(const Value &val) const -> bool;
+    // Serialization
+    virtual uint16_t SerializedSize(const Value &v) const = 0;
+    virtual void     Serialize(const Value &v, uint8_t *buf) const = 0;
+    virtual Value    Deserialize(const uint8_t *buf, uint8_t width) const = 0;
 
-  // Return a stringified version of this value
-  virtual auto ToString(const Value &val) const -> std::string;
-
-  // Serialize this value into the given storage space.
-  virtual void SerializeTo(const Value &val, char *storage) const;
-
-  // Deserialize a value of the given type from the given storage space.
-  virtual auto DeserializeFrom(const char *storage) const -> Value;
-
-  // Create a copy of this value
-  virtual auto Copy(const Value &val) const -> Value;
-
-  virtual auto CastAs(const Value &val, TypeId type_id) const -> Value;
-
-  // Access the raw varlen data stored from the tuple storage
-  virtual auto GetData(const Value &val) const -> const char *;
-
-  // Get the storage size of the value.
-  virtual auto GetStorageSize(const Value &val) const -> uint32_t;
-
- protected:
-  // The actual type ID
-  TypeId type_id_;
-  // Singleton instances.
-  static Type *k_types[10];
+    // Registry
+    static Type *GetInstance(TypeId id);
 };

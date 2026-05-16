@@ -1,3 +1,11 @@
+has access to:
+    Key — compare, copy, free, serialize, deserialize. That's its entire interface with the type system.
+    - uses uint8_t* for reading and writing rows 
+    DiskManager - read, write
+    - uint8_t* buf = disk.read(node.page_id);  // borrow for this scope
+      // ... do work ...
+      disk.write(node.page_id, buf);           // or however your disk manager works
+      // buf is dead after this point (because it will be evicted by the buffer pool manager)
 class BPlusTree {
 public:
     explicit BPlusTree(DiskManager* disk_manager);

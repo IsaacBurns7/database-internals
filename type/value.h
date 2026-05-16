@@ -1,201 +1,66 @@
-//===----------------------------------------------------------------------===//
-//
-//                         BusTub
-//
 // value.h
-//
-// Identification: src/include/type/value.h
-//
-// Copyright (c) 2015-2025, Carnegie Mellon University Database Group
-//
-//===----------------------------------------------------------------------===//
 
 #pragma once
-
+#include <cstdint>
 #include <cstring>
-#include <memory>
+#include <cassert>
 #include <string>
-#include <utility>
-#include <vector>
+#include <stdexcept>
 
-#include "fmt/format.h"
+// ─────────────────────────────────────────────
+//  TypeId
+//  Numeric covers all integer widths.
+//  Float covers float + double.
+// ─────────────────────────────────────────────
 
-#include "type/limits.h"
-#include "type/type.h"
+enum class TypeId : uint8_t {
+    INVALID = 0,
+    BOOLEAN,
+    NUMERIC,    // int8, int16, int32, int64 — distinguished by width
+    FLOAT,      // float or double — distinguished by width
+    VARCHAR,
+};
 
-class Column;
+// ─────────────────────────────────────────────
+//  Value
+//  A tagged union. Width disambiguates within NUMERIC and FLOAT.
+// ─────────────────────────────────────────────
 
-inline auto GetCmpBool(bool boolean) -> CmpBool { return boolean ? CmpBool::CmpTrue : CmpBool::CmpFalse; }
+struct Value {
+    TypeId  type_id;
+    uint8_t width;      // bytes: 1,2,4,8 for NUMERIC; 4,8 for FLOAT; 0 otherwise
 
-// A value is an abstract class that represents a view over SQL data stored in
-// some materialized state. All values have a type and comparison functions, but
-// subclasses implement other type-specific functionality.
-class Value {
-  // Friend Type classes
-  friend class Type;
-  friend class NumericType;
-  friend class IntegerParentType;
-  friend class TinyintType;
-  friend class SmallintType;
-  friend class IntegerType;
-  friend class BigintType;
-  friend class DecimalType;
-  friend class TimestampType;
-  friend class BooleanType;
-  friend class VarlenType;
-  friend class VectorType;
+    union {
+        int64_t  integer;   // all NUMERIC values sign-extend into here
+        double   fp;        // all FLOAT values widen into here
+        bool     boolean;
+        struct {
+            char    *data;
+            uint16_t len;
+        } varchar;
+    } val;
 
- public:
-  explicit Value(const TypeId type) : manage_data_(false), type_id_(type) { size_.len_ = BUSTUB_VALUE_NULL; }
-  // BOOLEAN and TINYINT
-  Value(TypeId type, int8_t i);
-  // DECIMAL
-  Value(TypeId type, double d);
-  Value(TypeId type, float f);
-  // SMALLINT
-  Value(TypeId type, int16_t i);
-  // INTEGER
-  Value(TypeId type, int32_t i);
-  // BIGINT
-  Value(TypeId type, int64_t i);
-  // TIMESTAMP
-  Value(TypeId type, uint64_t i);
-  // VARCHAR
-  Value(TypeId type, const char *data, uint32_t len, bool manage_data);
-  Value(TypeId type, const std::string &data);
-  Value(TypeId type, const std::vector<double> &data);
+    // ── constructors ──────────────────────────
 
-  Value() : Value(TypeId::INVALID) {}
-  Value(const Value &other);
-  auto operator=(Value other) -> Value &;
-  ~Value();
-  // NOLINTNEXTLINE
-  friend void Swap(Value &first, Value &second) {
-    std::swap(first.value_, second.value_);
-    std::swap(first.size_, second.size_);
-    std::swap(first.manage_data_, second.manage_data_);
-    std::swap(first.type_id_, second.type_id_);
-  }
-
-  auto CheckInteger() const -> bool;
-  auto CheckComparable(const Value &o) const -> bool;
-
-  // Get the type of this value
-  inline auto GetTypeId() const -> TypeId { return type_id_; }
-
-  auto GetColumn() const -> Column;
-
-  // Get the length of the variable length data
-  inline auto GetStorageSize() const -> uint32_t { return Type::GetInstance(type_id_)->GetStorageSize(*this); }
-  // Access the raw variable length data
-  inline auto GetData() const -> const char * { return Type::GetInstance(type_id_)->GetData(*this); }
-
-  template <class T>
-  inline auto GetAs() const -> T {
-    return *reinterpret_cast<const T *>(&value_);
-  }
-
-  auto GetVector() const -> std::vector<double>;
-
-  inline auto CastAs(const TypeId type_id) const -> Value {
-    return Type::GetInstance(type_id_)->CastAs(*this, type_id);
-  }
-  // You will likely need this in project 4...
-  inline auto CompareExactlyEquals(const Value &o) const -> bool {
-    if (this->IsNull() && o.IsNull()) {
-      return true;
+    static Value make_int(int64_t v, uint8_t width = 8) {
+        assert(width == 1 || width == 2 || width == 4 || width == 8);
+        Value r; r.type_id = TypeId::NUMERIC; r.width = width; r.val.integer = v;
+        return r;
     }
-    return (Type::GetInstance(type_id_)->CompareEquals(*this, o)) == CmpBool::CmpTrue;
-  }
-  // Comparison Methods
-  inline auto CompareEquals(const Value &o) const -> CmpBool {
-    return Type::GetInstance(type_id_)->CompareEquals(*this, o);
-  }
-  inline auto CompareNotEquals(const Value &o) const -> CmpBool {
-    return Type::GetInstance(type_id_)->CompareNotEquals(*this, o);
-  }
-  inline auto CompareLessThan(const Value &o) const -> CmpBool {
-    return Type::GetInstance(type_id_)->CompareLessThan(*this, o);
-  }
-  inline auto CompareLessThanEquals(const Value &o) const -> CmpBool {
-    return Type::GetInstance(type_id_)->CompareLessThanEquals(*this, o);
-  }
-  inline auto CompareGreaterThan(const Value &o) const -> CmpBool {
-    return Type::GetInstance(type_id_)->CompareGreaterThan(*this, o);
-  }
-  inline auto CompareGreaterThanEquals(const Value &o) const -> CmpBool {
-    return Type::GetInstance(type_id_)->CompareGreaterThanEquals(*this, o);
-  }
-
-  // Other mathematical functions
-  inline auto Add(const Value &o) const -> Value { return Type::GetInstance(type_id_)->Add(*this, o); }
-  inline auto Subtract(const Value &o) const -> Value { return Type::GetInstance(type_id_)->Subtract(*this, o); }
-  inline auto Multiply(const Value &o) const -> Value { return Type::GetInstance(type_id_)->Multiply(*this, o); }
-  inline auto Divide(const Value &o) const -> Value { return Type::GetInstance(type_id_)->Divide(*this, o); }
-  inline auto Modulo(const Value &o) const -> Value { return Type::GetInstance(type_id_)->Modulo(*this, o); }
-  inline auto Min(const Value &o) const -> Value { return Type::GetInstance(type_id_)->Min(*this, o); }
-  inline auto Max(const Value &o) const -> Value { return Type::GetInstance(type_id_)->Max(*this, o); }
-  inline auto Sqrt() const -> Value { return Type::GetInstance(type_id_)->Sqrt(*this); }
-
-  inline auto OperateNull(const Value &o) const -> Value { return Type::GetInstance(type_id_)->OperateNull(*this, o); }
-  inline auto IsZero() const -> bool { return Type::GetInstance(type_id_)->IsZero(*this); }
-  inline auto IsNull() const -> bool { return size_.len_ == BUSTUB_VALUE_NULL; }
-
-  // Serialize this value into the given storage space. The inlined parameter
-  // indicates whether we are allowed to inline this value into the storage
-  // space, or whether we must store only a reference to this value. If inlined
-  // is false, we may use the provided data pool to allocate space for this
-  // value, storing a reference into the allocated pool space in the storage.
-  inline void SerializeTo(char *storage) const { Type::GetInstance(type_id_)->SerializeTo(*this, storage); }
-
-  // Deserialize a value of the given type from the given storage space.
-  inline static auto DeserializeFrom(const char *storage, const TypeId type_id) -> Value {
-    return Type::GetInstance(type_id)->DeserializeFrom(storage);
-  }
-
-  // Return a string version of this value
-  inline auto ToString() const -> std::string { return Type::GetInstance(type_id_)->ToString(*this); }
-  // Create a copy of this value
-  inline auto Copy() const -> Value { return Type::GetInstance(type_id_)->Copy(*this); }
-
- protected:
-  // The actual value item
-  union Val {
-    int8_t boolean_;
-    int8_t tinyint_;
-    int16_t smallint_;
-    int32_t integer_;
-    int64_t bigint_;
-    double decimal_;
-    uint64_t timestamp_;
-    char *varlen_;
-    const char *const_varlen_;
-  } value_;
-
-  union {
-    uint32_t len_;
-    TypeId elem_type_id_;
-  } size_;
-
-  bool manage_data_;
-  // The data type
-  TypeId type_id_;
-};
-
-template <typename T>
-struct fmt::formatter<T, std::enable_if_t<std::is_base_of<bustub::Value, T>::value, char>>
-    : fmt::formatter<std::string> {
-  template <typename FormatCtx>
-  auto format(const bustub::Value &x, FormatCtx &ctx) const {
-    return fmt::formatter<std::string>::format(x.ToString(), ctx);
-  }
-};
-
-template <typename T>
-struct fmt::formatter<std::unique_ptr<T>, std::enable_if_t<std::is_base_of<bustub::Value, T>::value, char>>
-    : fmt::formatter<std::string> {
-  template <typename FormatCtx>
-  auto format(const std::unique_ptr<bustub::Value> &x, FormatCtx &ctx) const {
-    return fmt::formatter<std::string>::format(x->ToString(), ctx);
-  }
+    static Value make_float(double v, uint8_t width = 8) {
+        assert(width == 4 || width == 8);
+        Value r; r.type_id = TypeId::FLOAT; r.width = width; r.val.fp = v;
+        return r;
+    }
+    static Value make_bool(bool v) {
+        Value r; r.type_id = TypeId::BOOLEAN; r.width = 1; r.val.boolean = v;
+        return r;
+    }
+    // varchar does NOT own the data — caller manages lifetime
+    static Value make_varchar(const char *data, uint16_t len) {
+        Value r; r.type_id = TypeId::VARCHAR; r.width = 0;
+        r.val.varchar.data = const_cast<char*>(data);
+        r.val.varchar.len  = len;
+        return r;
+    }
 };
