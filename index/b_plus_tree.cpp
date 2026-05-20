@@ -32,29 +32,67 @@ has access to:
 */
 
 bool BPlusTree::insert(uint8_t* record){
-	//start at root page 
-	//loop until page is a leaf page
-		//find first key "x" greater than or equal to record's key via binary search
-		//go to the page_id directly after this key (strict min-key -> all records below strictly less than or equal to "x") 
-			//this page_id must exist 
-	//find first key "x" greater than or equal to the record's key via binary search with slot_id "slot_id_x" 
+	//find correct leaf page and slot_id_x 
+	//get page via disk manager 
+	//read page as slottedpage 
 	//if enough space to insert 
 		//insert record at slot_id_x - you have to shift the rest of slots through memmove (cheap)
 	//else 
 		//split the current page, giving you a new page_id 
 		//find if you should insert at this page or the new page, and then insert!! 
+	//update keys in ancestral line via BTStack 
 }
-	bool remove(uint8_t* record); 
-	uint8_t* get(Key target); 
-    std::vector<uint8_t*> scan(Key start, Key end); 
-		// range scan — returns all values where key is in [start, end]
-	void splitChild(page_id_t parent_node, Key child); 
-		//take child, split into two. 
-		//remember to add/update key stuff to parent node (strict min-key) 
-	void merge(page_id_t parent_node, Key left_child); //could also input right child
-		//take nodes left_child and left_child+1=right_child, and put keys into left_child. destroy right_child
-		//remember to delete right_child key, shouldn't affect left_child key(strict min-key) 
-	void redistribute(page_id_t parent_node, Key child);  
+bool BPlusTree::remove(uint8_t* record){
+	//find correct leaf page and slot_id_x 
+	//get page via disk manager 
+	//read page as slottedpage 
+	//delete slot_id_x 
+	//if this + sibling (via sibling pointer) can fit in one page, merge 
+		//not so sure if this is a good idea??  
+	//update keys in ancestral line via BTStack 
+}
+uint8_t* BPlusTree::get(Key target){
+	//find correct leaf page and slot_id_x 
+	//get page via disk manager 
+	//read page as slottedpage 
+	//return slot_id_x's record as uint8_t* 
+}
+std::vector<uint8_t*> BPlusTree::scan(Key start, Key end){
+	//find correct start page and record 
+	//find correct end page and record 
+	//iterate from start to end via sibling pointers, scanning uint8_t* into vector
+}
+
+std::pair<page_id_t, uint16_t> BPlusTree::findRecord(Key Target){
+	//start at root page 
+	//loop until page is a leaf page
+		//find first key "x" greater than or equal to record's key via binary search
+		//go to the page_id directly after this key (strict min-key -> all records below strictly less than or equal to "x") 
+			//this page_id must exist 
+	//find first key "x" greater than or equal to the record's key via binary search with slot_id "slot_id_x"
+	//return leaf page, slot_id_x, and BTStack 
+}
+//take child, split into two. 
+//remember to add/update key stuff to parent node (strict min-key) 
+void BPlusTree::splitChild(page_id_t parent, slot_id child){ //also needs BTStack
+	//allocate new page 
+	//pick a pivot record in the child - the midpoint is a good heuristic
+	//make right sibling of child newly allocated page 
+		//separator key is pivot record's key 
+		//insert key + page_id in parent node slots, right after child
+			//if not enough space, splitChild(parent's parent, parent) via BTStack?? WTF!!
+				//ok so we need to maintain a BTStack
+	//move [pivot, end] into new right sibling - [begin, pivot) still in OG child 
+}
+//take nodes left_child and left_child+1=right_child, and put keys into left_child. destroy right_child
+//remember to delete right_child key, shouldn't affect left_child key(strict min-key) 
+void BPlusTree::merge(page_id_t parent_node, Key left_child){ 
+	//find right child via sibling pointer 
+	//delete right child and separator key from parent 
+	//move all of right child's live slots into left child 
+}
+	//not doing for now 
+	// void redistribute(page_id_t parent_node, Key child);  
 		//take stuff in child, give to siblings (sibling pointers!)
 		//remember to update parent keys (strict min-key)
 /*
