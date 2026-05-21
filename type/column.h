@@ -30,12 +30,13 @@ class Column {
   /**
    * Returns the byte offset of this column within a tuple's fixed region.
    * For inlined columns: the actual offset into the tuple.
-   * For VARCHAR columns: offset of the uint16_t length prefix, after which the data section proceeds... 
+   * For VARCHAR columns: offset of the uint16_t length prefix 
    */
   auto GetOffset() const -> uint32_t;
   //the below is meaningless currently 
 	  /** Returns true if the column's value is stored inline in the tuple. */
 	  // auto IsInlined() const -> bool;
+  auto IsVariableLength() const -> bool; //if its varchar (or vector, when vector is added) 
   /** Returns a human-readable string describing this column. */
   auto ToString() const -> std::string;
 
