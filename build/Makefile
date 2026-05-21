@@ -185,17 +185,30 @@ storage_logic/fast:
 .PHONY : storage_logic/fast
 
 #=============================================================================
-# Target rules for targets named Storage
+# Target rules for targets named index_logic
 
 # Build rule for target.
-Storage: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 Storage
-.PHONY : Storage
+index_logic: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 index_logic
+.PHONY : index_logic
 
 # fast build rule for target.
-Storage/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Storage.dir/build.make CMakeFiles/Storage.dir/build
-.PHONY : Storage/fast
+index_logic/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/index_logic.dir/build.make CMakeFiles/index_logic.dir/build
+.PHONY : index_logic/fast
+
+#=============================================================================
+# Target rules for targets named storage_viz
+
+# Build rule for target.
+storage_viz: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 storage_viz
+.PHONY : storage_viz
+
+# fast build rule for target.
+storage_viz/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_viz.dir/build.make CMakeFiles/storage_viz.dir/build
+.PHONY : storage_viz/fast
 
 #=============================================================================
 # Target rules for targets named storage_tests
@@ -262,29 +275,29 @@ gtest_main/fast:
 	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/build.make _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/build
 .PHONY : gtest_main/fast
 
-main.o: main.cpp.o
-.PHONY : main.o
+index/b_plus_tree.o: index/b_plus_tree.cpp.o
+.PHONY : index/b_plus_tree.o
 
 # target to build an object file
-main.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Storage.dir/build.make CMakeFiles/Storage.dir/main.cpp.o
-.PHONY : main.cpp.o
+index/b_plus_tree.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/index_logic.dir/build.make CMakeFiles/index_logic.dir/index/b_plus_tree.cpp.o
+.PHONY : index/b_plus_tree.cpp.o
 
-main.i: main.cpp.i
-.PHONY : main.i
+index/b_plus_tree.i: index/b_plus_tree.cpp.i
+.PHONY : index/b_plus_tree.i
 
 # target to preprocess a source file
-main.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Storage.dir/build.make CMakeFiles/Storage.dir/main.cpp.i
-.PHONY : main.cpp.i
+index/b_plus_tree.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/index_logic.dir/build.make CMakeFiles/index_logic.dir/index/b_plus_tree.cpp.i
+.PHONY : index/b_plus_tree.cpp.i
 
-main.s: main.cpp.s
-.PHONY : main.s
+index/b_plus_tree.s: index/b_plus_tree.cpp.s
+.PHONY : index/b_plus_tree.s
 
 # target to generate assembly for a file
-main.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Storage.dir/build.make CMakeFiles/Storage.dir/main.cpp.s
-.PHONY : main.cpp.s
+index/b_plus_tree.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/index_logic.dir/build.make CMakeFiles/index_logic.dir/index/b_plus_tree.cpp.s
+.PHONY : index/b_plus_tree.cpp.s
 
 storage/disk_manager.o: storage/disk_manager.cpp.o
 .PHONY : storage/disk_manager.o
@@ -478,6 +491,30 @@ tests/storage_test.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_tests.dir/build.make CMakeFiles/storage_tests.dir/tests/storage_test.cpp.s
 .PHONY : tests/storage_test.cpp.s
 
+tests/storage_viz.o: tests/storage_viz.cpp.o
+.PHONY : tests/storage_viz.o
+
+# target to build an object file
+tests/storage_viz.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_viz.dir/build.make CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.o
+.PHONY : tests/storage_viz.cpp.o
+
+tests/storage_viz.i: tests/storage_viz.cpp.i
+.PHONY : tests/storage_viz.i
+
+# target to preprocess a source file
+tests/storage_viz.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_viz.dir/build.make CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.i
+.PHONY : tests/storage_viz.cpp.i
+
+tests/storage_viz.s: tests/storage_viz.cpp.s
+.PHONY : tests/storage_viz.s
+
+# target to generate assembly for a file
+tests/storage_viz.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_viz.dir/build.make CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.s
+.PHONY : tests/storage_viz.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -491,16 +528,17 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... test"
-	@echo "... Storage"
 	@echo "... gmock"
 	@echo "... gmock_main"
 	@echo "... gtest"
 	@echo "... gtest_main"
+	@echo "... index_logic"
 	@echo "... storage_logic"
 	@echo "... storage_tests"
-	@echo "... main.o"
-	@echo "... main.i"
-	@echo "... main.s"
+	@echo "... storage_viz"
+	@echo "... index/b_plus_tree.o"
+	@echo "... index/b_plus_tree.i"
+	@echo "... index/b_plus_tree.s"
 	@echo "... storage/disk_manager.o"
 	@echo "... storage/disk_manager.i"
 	@echo "... storage/disk_manager.s"
@@ -525,6 +563,9 @@ help:
 	@echo "... tests/storage_test.o"
 	@echo "... tests/storage_test.i"
 	@echo "... tests/storage_test.s"
+	@echo "... tests/storage_viz.o"
+	@echo "... tests/storage_viz.i"
+	@echo "... tests/storage_viz.s"
 .PHONY : help
 
 
