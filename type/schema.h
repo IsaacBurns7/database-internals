@@ -36,7 +36,6 @@ class Schema {
  public:
   /** Construct a schema from an ordered list of columns. */
   explicit Schema(const std::vector<Column> &columns);
-
   /**
    * Construct a schema that is a subset/projection of another schema.
    * col_indices specifies which columns to include, in the given order.
@@ -47,48 +46,21 @@ class Schema {
   // -----------------------------------------------------------------------
   // Lookup / Access
   // -----------------------------------------------------------------------
-
-  /** Returns the column at the given index. */
   auto GetColumn(uint32_t col_idx) const -> const Column &;
-
-  /**
-   * Returns the index of the column with the given name.
-   * // UNCERTAIN: should this throw, return -1, or return std::optional?
-   * // Depends on whether callers always have validated names beforehand.
-   */
-  auto GetColIdx(const std::string &col_name) const -> uint32_t;
-
-  /** Returns all columns in order. */
+  auto GetColIdx(const std::string &col_name) const -> uint32_t; //returns -1 if column with given col_name doesn't exist 
   auto GetColumns() const -> const std::vector<Column> &;
-
-  /** Returns the number of columns. */
   auto GetColumnCount() const -> uint32_t;
 
   // -----------------------------------------------------------------------
   // Size / Layout
   // -----------------------------------------------------------------------
-
-  /**
-   * Returns the fixed portion of a tuple's size in bytes.
-   * For inlined columns: sum of their lengths.
-   * For varchar columns: sizeof(uint16_t) per column (the length prefix).
-   * The actual varchar data is accounted for separately at runtime.
-   */
-  auto GetFixedSize() const -> uint32_t;
-
-  /** Returns true if the schema contains at least one VARCHAR column. */
+  auto GetFixedSize() const -> uint32_t; //varchar columns contribute sizeof(len_prefix), currently equals sizeof(uint16_t)
   auto HasVariableLengthColumns() const -> bool;
-
-  /**
-   * Returns the indices of all non-inlined (VARCHAR) columns.
-   * Useful for iterating only over columns that need special handling.
-   */
-  auto GetUninlinedColumns() const -> const std::vector<uint32_t> &;
-
+  auto GetVariableLengthColumns() const -> const std::vector<uint32_t> &;
+  
   // -----------------------------------------------------------------------
   // Runtime offset resolution
   // -----------------------------------------------------------------------
-
   /**
    * Given a raw tuple pointer, returns the byte offset at which column
    * col_idx begins within that tuple.
@@ -121,16 +93,6 @@ class Schema {
  private:
   /** Ordered list of columns. */
   std::vector<Column> columns_;
-
-  /**
-   * Indices of non-inlined (VARCHAR) columns within columns_.
-   * Pre-computed at construction for fast iteration.
-   */
-  std::vector<uint32_t> uninlined_columns_;
-
-  /**
-   * The fixed-size footprint of a tuple under this schema.
-   * Pre-computed at construction.
-   */
+  std::vector<uint32_t> fixed_size_columns;
   uint32_t fixed_size_{0};
 };
