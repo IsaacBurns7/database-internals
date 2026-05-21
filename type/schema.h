@@ -59,37 +59,25 @@ class Schema {
   auto GetVariableLengthColumns() const -> const std::vector<uint32_t> &;
   
   // -----------------------------------------------------------------------
-  // Runtime offset resolution
+  // Runtime size resolution
   // -----------------------------------------------------------------------
-  /**
-   * Given a raw tuple pointer, returns the byte offset at which column
-   * col_idx begins within that tuple.
-   *
-   * For inlined columns this is just Column::GetOffset().
-   * For varchar columns this requires walking the tuple at runtime because
-   * prior varchar columns have variable lengths.
-   *
-   * // UNCERTAIN: you may prefer to put this on Tuple rather than Schema,
-   * // since it needs access to the raw tuple bytes. Included here as a
-   * // candidate; remove if it feels like the wrong layer.
-   */
-  auto GetColumnOffset(uint32_t col_idx, const char *tuple_data) const -> uint32_t;
-
+  auto RecordSize(const Tuple& record) const -> uint32_t; 
   // -----------------------------------------------------------------------
   // Debug / Serialization
   // -----------------------------------------------------------------------
-
-  /** Returns a human-readable string describing the schema. */
-  auto ToString() const -> std::string;
-
-  /**
-   * Serialize the schema to a byte buffer (for catalog persistence).
-   * // UNCERTAIN: signature depends on your serialization strategy
-   * // (e.g. WriteBuffer, std::ostream, or raw byte vector).
-   */
-  // void SerializeTo(WriteBuffer &out) const;
-  // static auto DeserializeFrom(ReadBuffer &in) -> Schema;
-
+  auto ToString() const -> std::string; //maybe another one for ostream 
+  auto SerializeSchema(uint8_t *buf) const -> uint32_t; //serializes this schema 
+  static auto DeserializeSchema(uint8_t *schema) -> Schema; //deserializes into this schema - should this be a constructor ? 
+	
+  // Record layout:
+	// [null bitmap: ceil(n/8) bytes]
+	// [fixed section: one slot per field, fixed width per type]
+	//   - NUMERICTYPE:   1/2/4/8 bytes  (or 0 if null)
+	//   - FLOATTYPE:     4/8 bytes (or 0 if null)
+	//   - VARCHAR: 	  2-byte length into variable tail 
+	// [variable tail: varchar data appended in index order]
+  auto SerializeRecord(const Tuple& record, uint8_t *buf) const -> uint32_t; //returns # of bytes written
+  auto DeserializeRecord(const uint8_t *buf) const -> Tuple; 
  private:
   /** Ordered list of columns. */
   std::vector<Column> columns_;
