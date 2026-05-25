@@ -28,7 +28,7 @@ enum class TypeId : uint8_t {
 
 struct Value {
     TypeId  type_id;
-    uint8_t width;      // bytes: 1,2,4,8 for NUMERIC; 4,8 for FLOAT; 0 otherwise
+    uint8_t width;      // bytes: 1,2,4,8 for NUMERIC; 4,8 for FLOAT; 1 for bool, 0 otherwise
 
     union {
         int64_t  integer;   // all NUMERIC values sign-extend into here
@@ -37,6 +37,7 @@ struct Value {
         struct {
             char    *data;
             uint16_t len;
+			bool owns_data; 
         } varchar;
     } val;
 
@@ -56,11 +57,29 @@ struct Value {
         Value r; r.type_id = TypeId::BOOLEAN; r.width = 1; r.val.boolean = v;
         return r;
     }
-    // varchar does NOT own the data — caller manages lifetime
-    static Value make_varchar(const char *data, uint16_t len) {
+    //varchar does not own the data
+	static Value make_varchar_nonowning(const char *data, uint16_t len) {
         Value r; r.type_id = TypeId::VARCHAR; r.width = 0;
         r.val.varchar.data = const_cast<char*>(data);
         r.val.varchar.len  = len;
+        r.val.varchar.owns_data = false;
         return r;
     }
+	//varchar owns the data - wont be used once arenas exist  
+	static Value make_varchar_owning(const char *data, uint16_t len){
+		Value r; r.type_id = TypeId::VARCHAR; r.width = 0; 
+		char* copy = new char[len]; 
+		std::memcpy(copy, data, len);
+		r.val.varchar.data = copy;
+		r.val.varchar.len = len; 
+		r.val.varchar.owns_data = true;
+		return r;
+	}
+
+	// destructor SPECIFICALLY for owning varchars 
+	~Value(){
+		if(type_id == VARCHAR && val.varchar.owns_data){
+			delete[] val.varchar.data; 
+		}
+	}
 };

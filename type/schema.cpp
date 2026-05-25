@@ -38,26 +38,73 @@ Schema::Schema(const Schema &other, const std::vector<uint32_t> &col_indices){
   // Lookup / Access
   // -----------------------------------------------------------------------
 auto Schema::GetColumn(uint32_t col_idx) const -> const Column & {
-	
+	return columns_[col_idx];
 }
-  auto GetColIdx(const std::string &col_name) const -> uint32_t; //returns -1 if column with given col_name doesn't exist 
-  auto GetColumns() const -> const std::vector<Column> &;
-  auto GetColumnCount() const -> uint32_t;
+auto Schema::GetColIdx(const std::string &col_name) const -> std::optional<uint32_t> { 
+	for(size_t i = 0;i < columns_.size();i++){
+		const Column &col = columns_[i];
+		if(col.GetName() == col_name){
+			return static_cast<uint32_t>(i);
+		}
+	}
+	return std::nullopt; 
+}
+auto Schema::GetColumns() const -> const std::vector<Column> & { return columns_; }
+auto Schema::GetColumnCount() const -> uint32_t { return static_cast<uint32_t>(columns_.size()); }
 
   // -----------------------------------------------------------------------
   // Size / Layout
   // -----------------------------------------------------------------------
-  auto GetFixedSize() const -> uint32_t; //varchar columns contribute sizeof(len_prefix), currently equals sizeof(uint16_t)
-  auto HasVariableLengthColumns() const -> bool;
-  auto GetVariableLengthColumns() const -> const std::vector<uint32_t> &;
-  
-  // -----------------------------------------------------------------------
-  // Runtime size resolution
-  // -----------------------------------------------------------------------
-  auto RecordSize(const Tuple& record) const -> uint32_t; 
-  // -----------------------------------------------------------------------
-  // Debug / Serialization
-  // -----------------------------------------------------------------------
-  auto ToString() const -> std::string; //maybe another one for ostream 
-  auto SerializeSchema(uint8_t *buf) const -> uint32_t; //serializes this schema 
-  static auto DeserializeSchema(uint8_t *schema) -> Schema; //deserializes into this schema - should this be a constructor ?
+auto Schema::GetFixedSize() const -> uint32_t { //varchar columns contribute sizeof(len_prefix), currently equals sizeof(uint16_t)
+	uint32_t ret = 0;
+	for(const auto& col: columns_){
+		ret += col.length_;
+		if(col.type_id_ == TypeID::VARCHAR) ret += sizeof(uint16_t); //length prefix is a uint16_t
+	}
+	return ret; 
+}
+// std::vector<Column> columns_;
+	// std::vector<uint32_t> fixed_size_columns;
+	// uint32_t fixed_size_{0};
+
+
+auto Schema::HasVariableLengthColumns() const -> bool { return fixed_size_columns.size() != columns_.size(); }
+auto Schema::IsFixedLength(uint32_t col_idx) const -> bool {return !columns_[col_idx].IsVariableLength(); }
+//logical/in-memory record size, NOT disk size
+auto Schema::RecordSize(const Tuple& record) const -> uint32_t{
+	uint32_t ret = 0;
+	for(uint32_t i = 0;i < columns_.size(); i++){
+		Value curr = record.get(i); 
+		ret += curr.width;
+		if(curr.type_id_ == TypeID::VARCHAR){
+			ret += sizeof(curr.val.varchar.len);
+			ret += curr.val.varchar.len;
+		}
+	}
+}
+// -----------------------------------------------------------------------
+// Debug / Serialization
+// -----------------------------------------------------------------------
+auto Schema::ToString() const -> std::string { //maybe another one for ostream 
+	//maybe use same format as serialize
+	std::string ret{"Size: " + columns_.size() + "\n"}; 
+	for(uint32_t i = 0; i < columns_.size(); i++){
+		const &Column col = columns_[i];
+		ret += "Column " + i + ": " + col.ToString(); 
+	}
+	return ret; 
+}
+/* format:
+ * [uint32_t num_cols] 
+ * repeat num_cols times: 
+ * 		[serialized_col] 
+ */
+auto SerializeSchema(uint8_t *buf) const -> uint32_t { //serializes this schema
+	
+}
+static auto Deserialize(const uint8_t *buf) -> std::unique_ptr<Schema> {
+	//read num_cols 
+	//for i in range [0, num_cols]: 
+	//	Deserialize col using 
+	//		static auto Deserialize(const uint8_t *buf) -> std::unique_ptr<Column>; 
+}
