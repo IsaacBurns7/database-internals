@@ -97,7 +97,7 @@ auto Schema::ToString() const -> std::string { //maybe another one for ostream
 /* format:
  * [uint32_t num_cols] 
  * repeat num_cols times: 
- * 		[serialized_col] 
+ * 		[serialized_col] mayhaps [uint8_t TypeID] [uint32_t fixed_size]  
  */
 auto SerializeSchema(uint8_t *buf) const -> uint32_t { //serializes this schema
 	
