@@ -4,7 +4,7 @@
 
 class VarcharType: public Type {
 public:
-    using varchar_len_t = uint16_t; //maybe add to the like common.config or whatever later 
+	using varchar_len_t = ::varchar_len_t; //maybe add to the like common.config or whatever later 
     int Compare(const Value &a, const Value &b) const override {
         assert(a.type_id == TypeId::VARCHAR && b.type_id == TypeId::VARCHAR);
 		uint16_t comparable_len = std::min(a.val.varchar.len, b.val.varchar.len);

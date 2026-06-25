@@ -1,0 +1,5 @@
+if(EXISTS "/Users/kingisaac/Github/database-internals/build/type_tests[1]_tests.cmake")
+  include("/Users/kingisaac/Github/database-internals/build/type_tests[1]_tests.cmake")
+else()
+  add_test(type_tests_NOT_BUILT type_tests_NOT_BUILT)
+endif()

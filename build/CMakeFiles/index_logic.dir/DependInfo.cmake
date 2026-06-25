@@ -8,7 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/home/isaac/database-internals/index/b_plus_tree.cpp" "CMakeFiles/index_logic.dir/index/b_plus_tree.cpp.o" "gcc" "CMakeFiles/index_logic.dir/index/b_plus_tree.cpp.o.d"
+  "/Users/kingisaac/Github/database-internals/index/b_plus_tree.cpp" "CMakeFiles/index_logic.dir/index/b_plus_tree.cpp.o" "gcc" "CMakeFiles/index_logic.dir/index/b_plus_tree.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

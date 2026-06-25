@@ -21,6 +21,8 @@ enum class TypeId : uint8_t {
     VARCHAR,
 };
 
+using varchar_len_t = uint16_t;
+
 // ─────────────────────────────────────────────
 //  Value
 //  A tagged union. Width disambiguates within NUMERIC and FLOAT.
@@ -36,7 +38,7 @@ struct Value {
         bool     boolean;
         struct {
             char    *data;
-            uint16_t len;
+			varchar_len_t len;
 			bool owns_data; 
         } varchar;
     } val;
@@ -58,7 +60,7 @@ struct Value {
         return r;
     }
     //varchar does not own the data
-	static Value make_varchar_nonowning(const char *data, uint16_t len) {
+    static Value make_varchar_nonowning(const char *data, varchar_len_t len) {
         Value r; r.type_id = TypeId::VARCHAR; r.width = 0;
         r.val.varchar.data = const_cast<char*>(data);
         r.val.varchar.len  = len;
@@ -66,7 +68,7 @@ struct Value {
         return r;
     }
 	//varchar owns the data - wont be used once arenas exist  
-	static Value make_varchar_owning(const char *data, uint16_t len){
+    static Value make_varchar_owning(const char *data, varchar_len_t len){
 		Value r; r.type_id = TypeId::VARCHAR; r.width = 0; 
 		char* copy = new char[len]; 
 		std::memcpy(copy, data, len);

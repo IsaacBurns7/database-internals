@@ -28,6 +28,10 @@ add_library(storage_logic
     storage/freelist_page.cpp
 )
 
+add_library(type_logic
+	type/type.cpp
+)
+
 add_library(index_logic
 	index/b_plus_tree.cpp
 )
@@ -35,6 +39,7 @@ add_library(index_logic
 # This is the "Magic Fix": It tells CMake that the project root 
 # is where searches for "common/..." or "storage/..." should start.
 target_include_directories(storage_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(type_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(index_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 # --- 3. Main Executable ---
 add_executable(storage_viz tests/storage_viz.cpp)
@@ -49,11 +54,25 @@ add_executable(storage_tests
     tests/disk_manager.cpp
 )
 
+add_executable(type_tests
+  tests/type/boolean_type.cpp
+  tests/type/numeric_type.cpp
+  tests/type/float_type.cpp
+  tests/type/varchar_type.cpp
+)
+
 target_link_libraries(storage_tests 
     PRIVATE 
     gtest_main 
     storage_logic
 )
 
+target_link_libraries(type_tests
+  PRIVATE
+  gtest_main
+  type_logic
+)
+
 include(GoogleTest)
 gtest_discover_tests(storage_tests)
+gtest_discover_tests(type_tests)
