@@ -1,4 +1,3 @@
-
 //tuple needs to serialize according to a schema - schema only exists in memory 
 //decides column order, offsets, null bitmap, and inline vs overflow encoding
 
