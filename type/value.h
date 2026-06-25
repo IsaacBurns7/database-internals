@@ -78,7 +78,7 @@ struct Value {
 
 	// destructor SPECIFICALLY for owning varchars 
 	~Value(){
-		if(type_id == VARCHAR && val.varchar.owns_data){
+		if(type_id == TypeId::VARCHAR && val.varchar.owns_data){
 			delete[] val.varchar.data; 
 		}
 	}

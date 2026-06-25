@@ -1,5 +1,11 @@
 // type.cpp
 
+#include "type.h"
+#include "numeric_type.h"
+#include "float_type.h"
+#include "varchar_type.h"
+#include "boolean_type.h"
+
 static NumericType  numeric_instance;
 static FloatType    float_instance;
 static BooleanType  boolean_instance;
