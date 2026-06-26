@@ -565,6 +565,30 @@ tests/type/boolean_type.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_tests.dir/build.make CMakeFiles/type_tests.dir/tests/type/boolean_type.cpp.s
 .PHONY : tests/type/boolean_type.cpp.s
 
+tests/type/column.o: tests/type/column.cpp.o
+.PHONY : tests/type/column.o
+
+# target to build an object file
+tests/type/column.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_tests.dir/build.make CMakeFiles/type_tests.dir/tests/type/column.cpp.o
+.PHONY : tests/type/column.cpp.o
+
+tests/type/column.i: tests/type/column.cpp.i
+.PHONY : tests/type/column.i
+
+# target to preprocess a source file
+tests/type/column.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_tests.dir/build.make CMakeFiles/type_tests.dir/tests/type/column.cpp.i
+.PHONY : tests/type/column.cpp.i
+
+tests/type/column.s: tests/type/column.cpp.s
+.PHONY : tests/type/column.s
+
+# target to generate assembly for a file
+tests/type/column.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_tests.dir/build.make CMakeFiles/type_tests.dir/tests/type/column.cpp.s
+.PHONY : tests/type/column.cpp.s
+
 tests/type/float_type.o: tests/type/float_type.cpp.o
 .PHONY : tests/type/float_type.o
 
@@ -613,6 +637,30 @@ tests/type/numeric_type.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_tests.dir/build.make CMakeFiles/type_tests.dir/tests/type/numeric_type.cpp.s
 .PHONY : tests/type/numeric_type.cpp.s
 
+tests/type/schema.o: tests/type/schema.cpp.o
+.PHONY : tests/type/schema.o
+
+# target to build an object file
+tests/type/schema.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_tests.dir/build.make CMakeFiles/type_tests.dir/tests/type/schema.cpp.o
+.PHONY : tests/type/schema.cpp.o
+
+tests/type/schema.i: tests/type/schema.cpp.i
+.PHONY : tests/type/schema.i
+
+# target to preprocess a source file
+tests/type/schema.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_tests.dir/build.make CMakeFiles/type_tests.dir/tests/type/schema.cpp.i
+.PHONY : tests/type/schema.cpp.i
+
+tests/type/schema.s: tests/type/schema.cpp.s
+.PHONY : tests/type/schema.s
+
+# target to generate assembly for a file
+tests/type/schema.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_tests.dir/build.make CMakeFiles/type_tests.dir/tests/type/schema.cpp.s
+.PHONY : tests/type/schema.cpp.s
+
 tests/type/varchar_type.o: tests/type/varchar_type.cpp.o
 .PHONY : tests/type/varchar_type.o
 
@@ -636,6 +684,54 @@ tests/type/varchar_type.s: tests/type/varchar_type.cpp.s
 tests/type/varchar_type.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_tests.dir/build.make CMakeFiles/type_tests.dir/tests/type/varchar_type.cpp.s
 .PHONY : tests/type/varchar_type.cpp.s
+
+type/column.o: type/column.cpp.o
+.PHONY : type/column.o
+
+# target to build an object file
+type/column.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_logic.dir/build.make CMakeFiles/type_logic.dir/type/column.cpp.o
+.PHONY : type/column.cpp.o
+
+type/column.i: type/column.cpp.i
+.PHONY : type/column.i
+
+# target to preprocess a source file
+type/column.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_logic.dir/build.make CMakeFiles/type_logic.dir/type/column.cpp.i
+.PHONY : type/column.cpp.i
+
+type/column.s: type/column.cpp.s
+.PHONY : type/column.s
+
+# target to generate assembly for a file
+type/column.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_logic.dir/build.make CMakeFiles/type_logic.dir/type/column.cpp.s
+.PHONY : type/column.cpp.s
+
+type/schema.o: type/schema.cpp.o
+.PHONY : type/schema.o
+
+# target to build an object file
+type/schema.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_logic.dir/build.make CMakeFiles/type_logic.dir/type/schema.cpp.o
+.PHONY : type/schema.cpp.o
+
+type/schema.i: type/schema.cpp.i
+.PHONY : type/schema.i
+
+# target to preprocess a source file
+type/schema.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_logic.dir/build.make CMakeFiles/type_logic.dir/type/schema.cpp.i
+.PHONY : type/schema.cpp.i
+
+type/schema.s: type/schema.cpp.s
+.PHONY : type/schema.s
+
+# target to generate assembly for a file
+type/schema.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_logic.dir/build.make CMakeFiles/type_logic.dir/type/schema.cpp.s
+.PHONY : type/schema.cpp.s
 
 type/type.o: type/type.cpp.o
 .PHONY : type/type.o
@@ -717,15 +813,27 @@ help:
 	@echo "... tests/type/boolean_type.o"
 	@echo "... tests/type/boolean_type.i"
 	@echo "... tests/type/boolean_type.s"
+	@echo "... tests/type/column.o"
+	@echo "... tests/type/column.i"
+	@echo "... tests/type/column.s"
 	@echo "... tests/type/float_type.o"
 	@echo "... tests/type/float_type.i"
 	@echo "... tests/type/float_type.s"
 	@echo "... tests/type/numeric_type.o"
 	@echo "... tests/type/numeric_type.i"
 	@echo "... tests/type/numeric_type.s"
+	@echo "... tests/type/schema.o"
+	@echo "... tests/type/schema.i"
+	@echo "... tests/type/schema.s"
 	@echo "... tests/type/varchar_type.o"
 	@echo "... tests/type/varchar_type.i"
 	@echo "... tests/type/varchar_type.s"
+	@echo "... type/column.o"
+	@echo "... type/column.i"
+	@echo "... type/column.s"
+	@echo "... type/schema.o"
+	@echo "... type/schema.i"
+	@echo "... type/schema.s"
 	@echo "... type/type.o"
 	@echo "... type/type.i"
 	@echo "... type/type.s"

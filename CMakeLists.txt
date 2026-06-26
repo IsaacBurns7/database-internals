@@ -30,6 +30,8 @@ add_library(storage_logic
 
 add_library(type_logic
 	type/type.cpp
+  type/column.cpp
+  type/schema.cpp
 )
 
 add_library(index_logic
@@ -56,6 +58,8 @@ add_executable(storage_tests
 
 add_executable(type_tests
   tests/type/boolean_type.cpp
+  tests/type/column.cpp
+  tests/type/schema.cpp
   tests/type/numeric_type.cpp
   tests/type/float_type.cpp
   tests/type/varchar_type.cpp

@@ -1,7 +1,7 @@
 #pragma once
 
+#include <cstddef>
 #include <string>
-#include <unique_ptr>
 
 #include "type.h"  
 
@@ -41,7 +41,7 @@ class Column {
   /** Returns a human-readable string describing this column. */
   auto ToString() const -> std::string;
   auto Serialize(uint8_t *buf) const -> uint16_t; //returns bytes written 
-  static auto Deserialize(const uint8_t *buf) -> std::unique_ptr<Column>; 
+  static auto Deserialize(const uint8_t *buf, std::size_t *consumed) -> Column; 
  private:
   std::string name_;
   TypeId type_id_;

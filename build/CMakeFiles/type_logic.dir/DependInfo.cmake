@@ -8,6 +8,8 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/Users/kingisaac/Github/database-internals/type/column.cpp" "CMakeFiles/type_logic.dir/type/column.cpp.o" "gcc" "CMakeFiles/type_logic.dir/type/column.cpp.o.d"
+  "/Users/kingisaac/Github/database-internals/type/schema.cpp" "CMakeFiles/type_logic.dir/type/schema.cpp.o" "gcc" "CMakeFiles/type_logic.dir/type/schema.cpp.o.d"
   "/Users/kingisaac/Github/database-internals/type/type.cpp" "CMakeFiles/type_logic.dir/type/type.cpp.o" "gcc" "CMakeFiles/type_logic.dir/type/type.cpp.o.d"
   )
 

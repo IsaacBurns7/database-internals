@@ -4,3 +4,5 @@ easily optimizable later into more singletons for TINYINT, SMALLINT, etc but rig
 type.h 
 value.h 
 
+
+TODO: verify type_tests make sense. 

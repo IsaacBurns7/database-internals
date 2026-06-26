@@ -1,2 +1,2 @@
-/Library/Developer/CommandLineTools/usr/bin/ar qc libtype_logic.a CMakeFiles/type_logic.dir/type/type.cpp.o
+/Library/Developer/CommandLineTools/usr/bin/ar qc libtype_logic.a CMakeFiles/type_logic.dir/type/type.cpp.o CMakeFiles/type_logic.dir/type/column.cpp.o CMakeFiles/type_logic.dir/type/schema.cpp.o
 /Library/Developer/CommandLineTools/usr/bin/ranlib libtype_logic.a

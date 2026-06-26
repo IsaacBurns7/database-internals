@@ -86,17 +86,49 @@ CMakeFiles/type_logic.dir/type/type.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/type_logic.dir/type/type.cpp.s"
 	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/kingisaac/Github/database-internals/type/type.cpp -o CMakeFiles/type_logic.dir/type/type.cpp.s
 
+CMakeFiles/type_logic.dir/type/column.cpp.o: CMakeFiles/type_logic.dir/flags.make
+CMakeFiles/type_logic.dir/type/column.cpp.o: /Users/kingisaac/Github/database-internals/type/column.cpp
+CMakeFiles/type_logic.dir/type/column.cpp.o: CMakeFiles/type_logic.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/kingisaac/Github/database-internals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/type_logic.dir/type/column.cpp.o"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/type_logic.dir/type/column.cpp.o -MF CMakeFiles/type_logic.dir/type/column.cpp.o.d -o CMakeFiles/type_logic.dir/type/column.cpp.o -c /Users/kingisaac/Github/database-internals/type/column.cpp
+
+CMakeFiles/type_logic.dir/type/column.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/type_logic.dir/type/column.cpp.i"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/kingisaac/Github/database-internals/type/column.cpp > CMakeFiles/type_logic.dir/type/column.cpp.i
+
+CMakeFiles/type_logic.dir/type/column.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/type_logic.dir/type/column.cpp.s"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/kingisaac/Github/database-internals/type/column.cpp -o CMakeFiles/type_logic.dir/type/column.cpp.s
+
+CMakeFiles/type_logic.dir/type/schema.cpp.o: CMakeFiles/type_logic.dir/flags.make
+CMakeFiles/type_logic.dir/type/schema.cpp.o: /Users/kingisaac/Github/database-internals/type/schema.cpp
+CMakeFiles/type_logic.dir/type/schema.cpp.o: CMakeFiles/type_logic.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/kingisaac/Github/database-internals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/type_logic.dir/type/schema.cpp.o"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/type_logic.dir/type/schema.cpp.o -MF CMakeFiles/type_logic.dir/type/schema.cpp.o.d -o CMakeFiles/type_logic.dir/type/schema.cpp.o -c /Users/kingisaac/Github/database-internals/type/schema.cpp
+
+CMakeFiles/type_logic.dir/type/schema.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/type_logic.dir/type/schema.cpp.i"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/kingisaac/Github/database-internals/type/schema.cpp > CMakeFiles/type_logic.dir/type/schema.cpp.i
+
+CMakeFiles/type_logic.dir/type/schema.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/type_logic.dir/type/schema.cpp.s"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/kingisaac/Github/database-internals/type/schema.cpp -o CMakeFiles/type_logic.dir/type/schema.cpp.s
+
 # Object files for target type_logic
 type_logic_OBJECTS = \
-"CMakeFiles/type_logic.dir/type/type.cpp.o"
+"CMakeFiles/type_logic.dir/type/type.cpp.o" \
+"CMakeFiles/type_logic.dir/type/column.cpp.o" \
+"CMakeFiles/type_logic.dir/type/schema.cpp.o"
 
 # External object files for target type_logic
 type_logic_EXTERNAL_OBJECTS =
 
 libtype_logic.a: CMakeFiles/type_logic.dir/type/type.cpp.o
+libtype_logic.a: CMakeFiles/type_logic.dir/type/column.cpp.o
+libtype_logic.a: CMakeFiles/type_logic.dir/type/schema.cpp.o
 libtype_logic.a: CMakeFiles/type_logic.dir/build.make
 libtype_logic.a: CMakeFiles/type_logic.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/kingisaac/Github/database-internals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX static library libtype_logic.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/kingisaac/Github/database-internals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX static library libtype_logic.a"
 	$(CMAKE_COMMAND) -P CMakeFiles/type_logic.dir/cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/type_logic.dir/link.txt --verbose=$(VERBOSE)
 

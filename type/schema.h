@@ -11,28 +11,16 @@
 	//column is typeid, name, length, offset 
 //what should it be able to do .... 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #pragma once
 
+#include <cstddef>
+#include <optional>
 #include <string>
 #include <vector>
-#include <optional>
-#include <unique_ptr>
 
 #include "column.h"  // assumed to define Column, TypeId, etc.
+
+struct Tuple;
 
 class Schema {
  public:
@@ -60,17 +48,14 @@ class Schema {
   auto HasVariableLengthColumns() const -> bool;
   // auto GetVariableLengthColumns() const -> const std::vector<uint32_t> &;
   
-  // -----------------------------------------------------------------------
-  // Runtime size resolution
-  // -----------------------------------------------------------------------
-  auto RecordSize(const Tuple& record) const -> uint32_t; 
+  //NOTE: runtime size resolution for Tuple is done... by Tuple 
+
   // -----------------------------------------------------------------------
   // Debug / Serialization
   // -----------------------------------------------------------------------
   auto ToString() const -> std::string; //maybe another one for ostream 
-  auto SerializeSchema(uint8_t *buf) const -> uint32_t; //serializes this schema 
-	//constructs schema from bytes 
-  static auto Deserialize(const uint8_t *buf) -> std::unique_ptr<Schema>; 
+  auto SerializeSchema(uint8_t *buf) const -> uint32_t; //serializes this schema into buf
+  static auto Deserialize(const uint8_t *buf, std::size_t *consumed) -> Schema;
 
    private:
   /** Ordered list of columns. */

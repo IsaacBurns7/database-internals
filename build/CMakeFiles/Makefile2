@@ -201,12 +201,12 @@ CMakeFiles/storage_logic.dir/clean:
 CMakeFiles/type_logic.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_logic.dir/build.make CMakeFiles/type_logic.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_logic.dir/build.make CMakeFiles/type_logic.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/kingisaac/Github/database-internals/build/CMakeFiles --progress-num=23,24 "Built target type_logic"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/kingisaac/Github/database-internals/build/CMakeFiles --progress-num=23,24,25,26 "Built target type_logic"
 .PHONY : CMakeFiles/type_logic.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/type_logic.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/kingisaac/Github/database-internals/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/kingisaac/Github/database-internals/build/CMakeFiles 4
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/type_logic.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/kingisaac/Github/database-internals/build/CMakeFiles 0
 .PHONY : CMakeFiles/type_logic.dir/rule
@@ -218,7 +218,7 @@ type_logic: CMakeFiles/type_logic.dir/rule
 # codegen rule for target.
 CMakeFiles/type_logic.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_logic.dir/build.make CMakeFiles/type_logic.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/kingisaac/Github/database-internals/build/CMakeFiles --progress-num=23,24 "Finished codegen for target type_logic"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/kingisaac/Github/database-internals/build/CMakeFiles --progress-num=23,24,25,26 "Finished codegen for target type_logic"
 .PHONY : CMakeFiles/type_logic.dir/codegen
 
 # clean rule for target.
@@ -333,12 +333,12 @@ CMakeFiles/type_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtes
 CMakeFiles/type_tests.dir/all: _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_tests.dir/build.make CMakeFiles/type_tests.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_tests.dir/build.make CMakeFiles/type_tests.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/kingisaac/Github/database-internals/build/CMakeFiles --progress-num=25,26,27,28,29 "Built target type_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/kingisaac/Github/database-internals/build/CMakeFiles --progress-num=27,28,29,30,31,32,33 "Built target type_tests"
 .PHONY : CMakeFiles/type_tests.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/type_tests.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/kingisaac/Github/database-internals/build/CMakeFiles 11
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/kingisaac/Github/database-internals/build/CMakeFiles 15
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/type_tests.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/kingisaac/Github/database-internals/build/CMakeFiles 0
 .PHONY : CMakeFiles/type_tests.dir/rule
@@ -350,7 +350,7 @@ type_tests: CMakeFiles/type_tests.dir/rule
 # codegen rule for target.
 CMakeFiles/type_tests.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_tests.dir/build.make CMakeFiles/type_tests.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/kingisaac/Github/database-internals/build/CMakeFiles --progress-num=25,26,27,28,29 "Finished codegen for target type_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/kingisaac/Github/database-internals/build/CMakeFiles --progress-num=27,28,29,30,31,32,33 "Finished codegen for target type_tests"
 .PHONY : CMakeFiles/type_tests.dir/codegen
 
 # clean rule for target.

@@ -86,10 +86,38 @@ CMakeFiles/type_tests.dir/tests/type/boolean_type.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/type_tests.dir/tests/type/boolean_type.cpp.s"
 	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/kingisaac/Github/database-internals/tests/type/boolean_type.cpp -o CMakeFiles/type_tests.dir/tests/type/boolean_type.cpp.s
 
+CMakeFiles/type_tests.dir/tests/type/column.cpp.o: CMakeFiles/type_tests.dir/flags.make
+CMakeFiles/type_tests.dir/tests/type/column.cpp.o: /Users/kingisaac/Github/database-internals/tests/type/column.cpp
+CMakeFiles/type_tests.dir/tests/type/column.cpp.o: CMakeFiles/type_tests.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/kingisaac/Github/database-internals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/type_tests.dir/tests/type/column.cpp.o"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/type_tests.dir/tests/type/column.cpp.o -MF CMakeFiles/type_tests.dir/tests/type/column.cpp.o.d -o CMakeFiles/type_tests.dir/tests/type/column.cpp.o -c /Users/kingisaac/Github/database-internals/tests/type/column.cpp
+
+CMakeFiles/type_tests.dir/tests/type/column.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/type_tests.dir/tests/type/column.cpp.i"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/kingisaac/Github/database-internals/tests/type/column.cpp > CMakeFiles/type_tests.dir/tests/type/column.cpp.i
+
+CMakeFiles/type_tests.dir/tests/type/column.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/type_tests.dir/tests/type/column.cpp.s"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/kingisaac/Github/database-internals/tests/type/column.cpp -o CMakeFiles/type_tests.dir/tests/type/column.cpp.s
+
+CMakeFiles/type_tests.dir/tests/type/schema.cpp.o: CMakeFiles/type_tests.dir/flags.make
+CMakeFiles/type_tests.dir/tests/type/schema.cpp.o: /Users/kingisaac/Github/database-internals/tests/type/schema.cpp
+CMakeFiles/type_tests.dir/tests/type/schema.cpp.o: CMakeFiles/type_tests.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/kingisaac/Github/database-internals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/type_tests.dir/tests/type/schema.cpp.o"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/type_tests.dir/tests/type/schema.cpp.o -MF CMakeFiles/type_tests.dir/tests/type/schema.cpp.o.d -o CMakeFiles/type_tests.dir/tests/type/schema.cpp.o -c /Users/kingisaac/Github/database-internals/tests/type/schema.cpp
+
+CMakeFiles/type_tests.dir/tests/type/schema.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/type_tests.dir/tests/type/schema.cpp.i"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/kingisaac/Github/database-internals/tests/type/schema.cpp > CMakeFiles/type_tests.dir/tests/type/schema.cpp.i
+
+CMakeFiles/type_tests.dir/tests/type/schema.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/type_tests.dir/tests/type/schema.cpp.s"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/kingisaac/Github/database-internals/tests/type/schema.cpp -o CMakeFiles/type_tests.dir/tests/type/schema.cpp.s
+
 CMakeFiles/type_tests.dir/tests/type/numeric_type.cpp.o: CMakeFiles/type_tests.dir/flags.make
 CMakeFiles/type_tests.dir/tests/type/numeric_type.cpp.o: /Users/kingisaac/Github/database-internals/tests/type/numeric_type.cpp
 CMakeFiles/type_tests.dir/tests/type/numeric_type.cpp.o: CMakeFiles/type_tests.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/kingisaac/Github/database-internals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/type_tests.dir/tests/type/numeric_type.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/kingisaac/Github/database-internals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/type_tests.dir/tests/type/numeric_type.cpp.o"
 	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/type_tests.dir/tests/type/numeric_type.cpp.o -MF CMakeFiles/type_tests.dir/tests/type/numeric_type.cpp.o.d -o CMakeFiles/type_tests.dir/tests/type/numeric_type.cpp.o -c /Users/kingisaac/Github/database-internals/tests/type/numeric_type.cpp
 
 CMakeFiles/type_tests.dir/tests/type/numeric_type.cpp.i: cmake_force
@@ -103,7 +131,7 @@ CMakeFiles/type_tests.dir/tests/type/numeric_type.cpp.s: cmake_force
 CMakeFiles/type_tests.dir/tests/type/float_type.cpp.o: CMakeFiles/type_tests.dir/flags.make
 CMakeFiles/type_tests.dir/tests/type/float_type.cpp.o: /Users/kingisaac/Github/database-internals/tests/type/float_type.cpp
 CMakeFiles/type_tests.dir/tests/type/float_type.cpp.o: CMakeFiles/type_tests.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/kingisaac/Github/database-internals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/type_tests.dir/tests/type/float_type.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/kingisaac/Github/database-internals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/type_tests.dir/tests/type/float_type.cpp.o"
 	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/type_tests.dir/tests/type/float_type.cpp.o -MF CMakeFiles/type_tests.dir/tests/type/float_type.cpp.o.d -o CMakeFiles/type_tests.dir/tests/type/float_type.cpp.o -c /Users/kingisaac/Github/database-internals/tests/type/float_type.cpp
 
 CMakeFiles/type_tests.dir/tests/type/float_type.cpp.i: cmake_force
@@ -117,7 +145,7 @@ CMakeFiles/type_tests.dir/tests/type/float_type.cpp.s: cmake_force
 CMakeFiles/type_tests.dir/tests/type/varchar_type.cpp.o: CMakeFiles/type_tests.dir/flags.make
 CMakeFiles/type_tests.dir/tests/type/varchar_type.cpp.o: /Users/kingisaac/Github/database-internals/tests/type/varchar_type.cpp
 CMakeFiles/type_tests.dir/tests/type/varchar_type.cpp.o: CMakeFiles/type_tests.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/kingisaac/Github/database-internals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/type_tests.dir/tests/type/varchar_type.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/kingisaac/Github/database-internals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/type_tests.dir/tests/type/varchar_type.cpp.o"
 	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/type_tests.dir/tests/type/varchar_type.cpp.o -MF CMakeFiles/type_tests.dir/tests/type/varchar_type.cpp.o.d -o CMakeFiles/type_tests.dir/tests/type/varchar_type.cpp.o -c /Users/kingisaac/Github/database-internals/tests/type/varchar_type.cpp
 
 CMakeFiles/type_tests.dir/tests/type/varchar_type.cpp.i: cmake_force
@@ -131,6 +159,8 @@ CMakeFiles/type_tests.dir/tests/type/varchar_type.cpp.s: cmake_force
 # Object files for target type_tests
 type_tests_OBJECTS = \
 "CMakeFiles/type_tests.dir/tests/type/boolean_type.cpp.o" \
+"CMakeFiles/type_tests.dir/tests/type/column.cpp.o" \
+"CMakeFiles/type_tests.dir/tests/type/schema.cpp.o" \
 "CMakeFiles/type_tests.dir/tests/type/numeric_type.cpp.o" \
 "CMakeFiles/type_tests.dir/tests/type/float_type.cpp.o" \
 "CMakeFiles/type_tests.dir/tests/type/varchar_type.cpp.o"
@@ -139,6 +169,8 @@ type_tests_OBJECTS = \
 type_tests_EXTERNAL_OBJECTS =
 
 type_tests: CMakeFiles/type_tests.dir/tests/type/boolean_type.cpp.o
+type_tests: CMakeFiles/type_tests.dir/tests/type/column.cpp.o
+type_tests: CMakeFiles/type_tests.dir/tests/type/schema.cpp.o
 type_tests: CMakeFiles/type_tests.dir/tests/type/numeric_type.cpp.o
 type_tests: CMakeFiles/type_tests.dir/tests/type/float_type.cpp.o
 type_tests: CMakeFiles/type_tests.dir/tests/type/varchar_type.cpp.o
@@ -147,7 +179,7 @@ type_tests: lib/libgtest_main.a
 type_tests: libtype_logic.a
 type_tests: lib/libgtest.a
 type_tests: CMakeFiles/type_tests.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/kingisaac/Github/database-internals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX executable type_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/kingisaac/Github/database-internals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX executable type_tests"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/type_tests.dir/link.txt --verbose=$(VERBOSE)
 	/opt/homebrew/bin/cmake -D TEST_TARGET=type_tests -D TEST_EXECUTABLE=/Users/kingisaac/Github/database-internals/build/type_tests -D TEST_EXECUTOR= -D TEST_WORKING_DIR=/Users/kingisaac/Github/database-internals/build -D TEST_EXTRA_ARGS= -D TEST_PROPERTIES= -D TEST_PREFIX= -D TEST_SUFFIX= -D TEST_FILTER= -D NO_PRETTY_TYPES=FALSE -D NO_PRETTY_VALUES=FALSE -D TEST_LIST=type_tests_TESTS -D CTEST_FILE=/Users/kingisaac/Github/database-internals/build/type_tests[1]_tests.cmake -D TEST_DISCOVERY_TIMEOUT=5 -D TEST_DISCOVERY_EXTRA_ARGS= -D TEST_XML_OUTPUT_DIR= -P /opt/homebrew/share/cmake/Modules/GoogleTestAddTests.cmake
 

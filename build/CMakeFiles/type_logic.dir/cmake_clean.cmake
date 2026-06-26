@@ -1,4 +1,8 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/type_logic.dir/type/column.cpp.o"
+  "CMakeFiles/type_logic.dir/type/column.cpp.o.d"
+  "CMakeFiles/type_logic.dir/type/schema.cpp.o"
+  "CMakeFiles/type_logic.dir/type/schema.cpp.o.d"
   "CMakeFiles/type_logic.dir/type/type.cpp.o"
   "CMakeFiles/type_logic.dir/type/type.cpp.o.d"
   "libtype_logic.a"

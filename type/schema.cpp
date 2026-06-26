@@ -1,110 +1,113 @@
 #include "schema.h"
 
-//psuedocode goal: figure out what schema needs from column and tuple 
-  // Record layout:
-	// [null bitmap: ceil(n/8) bytes]
-	// [fixed section: one slot per field, fixed width per type]
-	//   - NUMERICTYPE:   1/2/4/8 bytes  (or 0 if null)
-	//   - FLOATTYPE:     4/8 bytes (or 0 if null)
-	//   - VARCHAR: 	  2-byte length into variable tail 
-	// [variable tail: varchar data appended in index order]
+#include <cstring>
+#include <sstream>
 
-//schema class data 
-	// std::vector<Column> columns_;
-	// std::vector<uint32_t> fixed_size_columns;
-	// uint32_t fixed_size_{0};
+namespace {
 
-explicit Schema::Schema(const std::vector<Column> &columns): columns_(columns){
-	for(size_t i = 0;i < columns.size();i++){
-		if(!columns[i].IsVariableLength()) fixed_size_columns.push_back(i);
-		fixed_size_ += columns[i].GetLength(); 
+template <typename T>
+auto ReadPod(const uint8_t *buf) -> T {
+	T value{};
+	std::memcpy(&value, buf, sizeof(T));
+	return value;
+}
+
+template <typename T>
+auto WritePod(uint8_t *buf, const T &value) -> void {
+	std::memcpy(buf, &value, sizeof(T));
+}
+
+}  // namespace
+
+Schema::Schema(const std::vector<Column> &columns) : columns_(columns) {
+	for (std::size_t i = 0; i < columns_.size(); ++i) {
+		if (!columns_[i].IsVariableLength()) {
+			fixed_size_columns.push_back(static_cast<uint32_t>(i));
+		}
+		fixed_size_ += columns_[i].GetLength();
 	}
 }
-  /**
-   * Construct a schema that is a subset/projection of another schema.
-   * col_indices specifies which columns to include, in the given order.
-   * Useful for projection operators in query execution.
-   */
-Schema::Schema(const Schema &other, const std::vector<uint32_t> &col_indices){
-	columns_.reserve(col_indices.size()); 
-	for(const auto& index: col_indices){
-		Column &col = other.columns_[index];
+
+Schema::Schema(const Schema &other, const std::vector<uint32_t> &col_indices) {
+	columns_.reserve(col_indices.size());
+	for (const auto &index : col_indices) {
+		const Column &col = other.GetColumn(index);
 		columns_.push_back(col);
-		if(!col.IsVariableLength()) fixed_size_columns.push_back(columns_.size()-1);
-		fixed_size_ += col.GetLength(); 
+		if (!col.IsVariableLength()) {
+			fixed_size_columns.push_back(static_cast<uint32_t>(columns_.size() - 1));
+		}
+		fixed_size_ += col.GetLength();
 	}
 }
-  // -----------------------------------------------------------------------
-  // Lookup / Access
-  // -----------------------------------------------------------------------
+
 auto Schema::GetColumn(uint32_t col_idx) const -> const Column & {
 	return columns_[col_idx];
 }
-auto Schema::GetColIdx(const std::string &col_name) const -> std::optional<uint32_t> { 
-	for(size_t i = 0;i < columns_.size();i++){
-		const Column &col = columns_[i];
-		if(col.GetName() == col_name){
+
+auto Schema::GetColIdx(const std::string &col_name) const -> std::optional<uint32_t> {
+	for (std::size_t i = 0; i < columns_.size(); ++i) {
+		if (columns_[i].GetName() == col_name) {
 			return static_cast<uint32_t>(i);
 		}
 	}
-	return std::nullopt; 
+	return std::nullopt;
 }
+
 auto Schema::GetColumns() const -> const std::vector<Column> & { return columns_; }
-auto Schema::GetColumnCount() const -> uint32_t { return static_cast<uint32_t>(columns_.size()); }
 
-  // -----------------------------------------------------------------------
-  // Size / Layout
-  // -----------------------------------------------------------------------
-auto Schema::GetFixedSize() const -> uint32_t { //varchar columns contribute sizeof(len_prefix), currently equals sizeof(uint16_t)
-	uint32_t ret = 0;
-	for(const auto& col: columns_){
-		ret += col.length_;
-		if(col.type_id_ == TypeID::VARCHAR) ret += sizeof(uint16_t); //length prefix is a uint16_t
-	}
-	return ret; 
+auto Schema::GetColumnCount() const -> uint32_t {
+	return static_cast<uint32_t>(columns_.size());
 }
-// std::vector<Column> columns_;
-	// std::vector<uint32_t> fixed_size_columns;
-	// uint32_t fixed_size_{0};
 
+auto Schema::GetFixedSize() const -> uint32_t {
+	return fixed_size_;
+}
 
-auto Schema::HasVariableLengthColumns() const -> bool { return fixed_size_columns.size() != columns_.size(); }
-auto Schema::IsFixedLength(uint32_t col_idx) const -> bool {return !columns_[col_idx].IsVariableLength(); }
-//logical/in-memory record size, NOT disk size
-auto Schema::RecordSize(const Tuple& record) const -> uint32_t{
-	uint32_t ret = 0;
-	for(uint32_t i = 0;i < columns_.size(); i++){
-		Value curr = record.get(i); 
-		ret += curr.width;
-		if(curr.type_id_ == TypeID::VARCHAR){
-			ret += sizeof(curr.val.varchar.len);
-			ret += curr.val.varchar.len;
+auto Schema::HasVariableLengthColumns() const -> bool {
+	return fixed_size_columns.size() != columns_.size();
+}
+
+auto Schema::IsFixedLength(uint32_t col_idx) const -> bool {
+	return !columns_[col_idx].IsVariableLength();
+}
+
+auto Schema::ToString() const -> std::string {
+	std::ostringstream out;
+	out << "Schema{";
+	for (std::size_t i = 0; i < columns_.size(); ++i) {
+		if (i != 0) {
+			out << ", ";
 		}
+		out << columns_[i].ToString();
 	}
+	out << "}";
+	return out.str();
 }
-// -----------------------------------------------------------------------
-// Debug / Serialization
-// -----------------------------------------------------------------------
-auto Schema::ToString() const -> std::string { //maybe another one for ostream 
-	//maybe use same format as serialize
-	std::string ret{"Size: " + columns_.size() + "\n"}; 
-	for(uint32_t i = 0; i < columns_.size(); i++){
-		const &Column col = columns_[i];
-		ret += "Column " + i + ": " + col.ToString(); 
+
+auto Schema::SerializeSchema(uint8_t *buf) const -> uint32_t {
+	uint8_t *cursor = buf;
+	const auto column_count = static_cast<uint32_t>(columns_.size());
+	WritePod(cursor, column_count);
+	cursor += sizeof(column_count);
+	for (const auto &column : columns_) {
+		cursor += column.Serialize(cursor);
 	}
-	return ret; 
+	return static_cast<uint32_t>(cursor - buf);
 }
-/* format:
- * [uint32_t num_cols] 
- * repeat num_cols times: 
- * 		[serialized_col] mayhaps [uint8_t TypeID] [uint32_t fixed_size]  
- */
-auto SerializeSchema(uint8_t *buf) const -> uint32_t { //serializes this schema
-	
-}
-static auto Deserialize(const uint8_t *buf) -> std::unique_ptr<Schema> {
-	//read num_cols 
-	//for i in range [0, num_cols]: 
-	//	Deserialize col using 
-	//		static auto Deserialize(const uint8_t *buf) -> std::unique_ptr<Column>; 
+
+auto Schema::Deserialize(const uint8_t *buf, std::size_t *consumed) -> Schema {
+	const uint8_t *cursor = buf;
+	const auto column_count = ReadPod<uint32_t>(cursor);
+	cursor += sizeof(column_count);
+	std::vector<Column> columns;
+	columns.reserve(column_count);
+	for (uint32_t i = 0; i < column_count; ++i) {
+		std::size_t column_consumed = 0;
+		columns.push_back(Column::Deserialize(cursor, &column_consumed));
+		cursor += column_consumed;
+	}
+	if (consumed != nullptr) {
+		*consumed = static_cast<std::size_t>(cursor - buf);
+	}
+	return Schema(columns);
 }
