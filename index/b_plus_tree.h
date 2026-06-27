@@ -5,6 +5,8 @@
 #include "storage/disk_manager.h"
 #include "common/config.h"
 #include "index/key.h"
+#include "type/schema.h"
+
 //do I need schema poitner? perhaps I can just have a pagewriter/pagereader for writing onto disk later... 
 //god jesus this is a complicated class
     //decompose into more classes later...
@@ -70,11 +72,13 @@ private:
 		//take stuff in child, give to siblings (sibling pointers!)
 		//remember to update parent keys (strict min-key)
  	DiskManager* disk_manager_;
-	uint32_t root_page_id; 
+	uint32_t root_page_id;
 	TypeId key_type_id_ = TypeId::NUMERIC;
 	uint8_t key_width_ = 8;
+	const Schema* schema_;
+	uint32_t key_col_idx_;
     //pagewriter
-    //pagereader 
+    //pagereader
 };
 
 #endif

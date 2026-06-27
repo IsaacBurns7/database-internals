@@ -51,8 +51,8 @@ TEST_F(SlottedPageTest, InsertAndGetTest) {
     auto res1 = page->getRecord(slot1.value());
     auto res2 = page->getRecord(slot2.value());
 
-    EXPECT_EQ(std::string(res1.data(), res1.size()), record1);
-    EXPECT_EQ(std::string(res2.data(), res2.size()), record2);
+    EXPECT_EQ(std::string(res1.first, res1.second), record1);
+    EXPECT_EQ(std::string(res2.first, res2.second), record2);
 }
 
 // 3. Deletion Test
@@ -66,7 +66,7 @@ TEST_F(SlottedPageTest, DeleteRecordTest) {
     EXPECT_TRUE(page->deleteRecord(slot.value()));
     
     auto res = page->getRecord(slot.value());
-    EXPECT_TRUE(res.empty());
+    EXPECT_EQ(res.first, nullptr);
     
     // Deleting already deleted or OOB should be false
     EXPECT_FALSE(page->deleteRecord(slot.value()));
@@ -85,7 +85,7 @@ TEST_F(SlottedPageTest, UpdateRecordTest) {
     
     EXPECT_TRUE(updated);
     auto res = page->getRecord(slot.value());
-    EXPECT_EQ(std::string(res.data(), res.size()), new_data);
+    EXPECT_EQ(std::string(res.first, res.second), new_data);
 }
 
 // 5. Compaction Test
@@ -112,8 +112,8 @@ TEST_F(SlottedPageTest, CompactionTest) {
     auto res1 = page->getRecord(s1.value());
     auto res3 = page->getRecord(s3.value());
 
-    EXPECT_EQ(std::string(res1.data(), res1.size()), r1);
-    EXPECT_EQ(std::string(res3.data(), res3.size()), r3);
+    EXPECT_EQ(std::string(res1.first, res1.second), r1);
+    EXPECT_EQ(std::string(res3.first, res3.second), r3);
     
     // 5. Contiguous free space should have increased
     EXPECT_GT(page->getFreeSpace(), freeBefore);

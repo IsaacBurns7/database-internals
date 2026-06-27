@@ -1,5 +1,6 @@
 #include "b_plus_tree.h"
 #include "slotted_page.h"
+#include "type/schema.h"
 
 #include <cstring>
 
@@ -11,9 +12,9 @@ has access to:
 	- Schema.read(page_id_t node, uint16_t record_id) -> uint8_t*;
 	SlottedPage
 	- read the pageheader 
-		- if internal, 	
-			- 0, 2, 4, ... -> page_id_t (child) 
-			- 1, 3, 5, ... -> Key(uint8_t*),
+		- if internal,
+			- 0, 2, 4, ... -> Key(uint8_t*)
+			- 1, 3, 5, ... -> page_id_t (child)
 		- if leaf, 
 			- uint8_t* (record)
 			- extract record via extractKey(uint8_t* record);
@@ -55,29 +56,78 @@ Key BPlusTree::extractKey(const uint8_t *record, uint16_t len) const {
 	return Key::FromBytes(key_type_id_, key_width_, record, key_len);
 }
 
+//wait what about dead/live slots in the slottedpage?
+    //dead slots shouldn't exist in internal nodes... ?
+//oh shoot i forgot about the btstack...
 std::pair<page_id_t, uint16_t> BPlusTree::findRecord(Key target){
-	(void)target;
-	//start at root page 
-    char* current_page_data; 
-    disk_manager_->readPage(root_page_id, current_page_data);
-    SlottedPage current_page(current_page_data); 
-    SlottedPageType current_page_type = current_page.getPageType();
-	//loop until page is a leaf page
-    while(current_page_type != SlottedPageType::LEAF_PAGE){
-        page_id_t child_page_id; //holy awful name... 
-        //find first key "x" greater than or equal to record's key via binary search
-		//go to the page_id directly after this key (strict min-key -> all records below strictly less than or equal to "x") 
-			//this page_id must exist
-        
-        //what an ugly ugly pattern... 
-        disk_manager_->readPage(child_page_id, current_page_data); //wow this is awful awful naming...
-        SlottedPage current_page(current_page_data);
-        current_page_type = current_page.getPageType(); 
-    }
-		 
-	//find first key "x" greater than or equal to the record's key via binary search with slot_id "slot_id_x"
-	//return leaf page, slot_id_x, and BTStack 
-	return {INVALID_PAGE_ID, 0};
+	char* current_page_data;
+	disk_manager_->readPage(root_page_id, current_page_data);
+	page_id_t current_page_id = root_page_id;
+
+	while (true) {
+		SlottedPage current_page(current_page_data);
+		if (current_page.getPageType() == SlottedPageType::LEAF_PAGE) break;
+
+		// Binary search over even slots (keys). Layout: key/page_id/key/page_id...
+		// Even slots are keys; odd slots are page_ids.
+		slot_id_t n = current_page.getSlotCount();
+		slot_id_t l = 0, r = n;
+
+		while (l < r) {
+			slot_id_t mid = (l + r) / 2;
+			mid &= ~static_cast<slot_id_t>(1);  // ensure mid is always even (key slot)
+
+			auto [bytes, len] = current_page.getRecord(mid);
+			Key mid_key = Key::FromBytes(key_type_id_, key_width_,
+			                             reinterpret_cast<const uint8_t*>(bytes), len);
+
+			if (mid_key.Compare(target) < 0) {
+				l = static_cast<slot_id_t>(mid + 2);
+			} else {
+				r = mid;
+			}
+		}
+
+		// l is the first even slot where key >= target; page_id follows at l+1.
+		// If all keys < target, descend into the rightmost child (last slot, n-1).
+		slot_id_t page_slot = (l < n) ? static_cast<slot_id_t>(l + 1)
+		                               : static_cast<slot_id_t>(n - 1);
+		auto [page_bytes, page_len] = current_page.getRecord(page_slot);
+		page_id_t child_page_id;
+		std::memcpy(&child_page_id, page_bytes, sizeof(page_id_t));
+
+		disk_manager_->readPage(child_page_id, current_page_data);
+		current_page_id = child_page_id;
+	}
+
+	// Leaf binary search: every slot is a raw serialized tuple.
+	// We read the key bytes directly at schema_->GetColumn(key_col_idx_).GetOffset()
+	// inside the record — no full Tuple::Deserialize, no heap allocations.
+	// Caveat: Column::GetOffset() only matches the serialized layout when no
+	// variable-length column precedes key_col_idx_ (Tuple::Serialize writes columns
+	// sequentially with no fixed/variable split yet, and no null bitmap prefix).
+	SlottedPage leaf(current_page_data);
+	slot_id_t n = leaf.getSlotCount();
+	slot_id_t l = 0, r = n;
+	uint32_t key_offset = schema_->GetColumn(key_col_idx_).GetOffset();
+
+	while (l < r) {
+		slot_id_t mid = (l + r) / 2;
+
+		auto [bytes, len] = leaf.getRecord(mid);
+		Key mid_key = Key::FromBytes(key_type_id_, key_width_,
+		                             reinterpret_cast<const uint8_t*>(bytes) + key_offset,
+		                             key_width_);
+
+		if (mid_key.Compare(target) < 0) {
+			l = static_cast<slot_id_t>(mid + 1);
+		} else {
+			r = mid;
+		}
+	}
+
+	// l is the first leaf slot where key >= target.
+	return {current_page_id, l};
 }
 
 bool BPlusTree::insert(uint8_t* record, uint16_t len){

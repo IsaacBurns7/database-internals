@@ -3,7 +3,7 @@
 #include "common/config.h"
 #include <cstdint>
 #include <optional>
-#include <span>  // C++20; use std::pair<char*,uint16_t> if on C++17
+#include <utility>
 #include <cstring>
 #include <iostream>
 #include <cassert>
@@ -137,7 +137,7 @@ public:
      * must copy it out.
      * Returns an empty span if slot_id is out of range or deleted.
      */
-    std::span<const char> getRecord(slot_id_t slot_id) const;
+    std::pair<const char*, uint16_t> getRecord(slot_id_t slot_id) const;
 
     /*
      * Overwrites the record at `slot_id` with `length` bytes from `record`.

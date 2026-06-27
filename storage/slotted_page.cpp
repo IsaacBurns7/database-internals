@@ -161,10 +161,10 @@ std::optional<slot_id_t> SlottedPage::insertRecord(const char* record, uint16_t 
 /*
  * two options: if GetSlot() returns nullopt, propagate, OR just return an empty span. I'm lazy so I go with empty span, but 
  */
-std::span<const char> SlottedPage::getRecord(slot_id_t slot_id) const{
-	auto slot = GetSlot(slot_id).value_or(nullptr); 
-	if(!slot || slot->offset == 0) return {}; //empty span 
-	return { data_ + slot->offset, slot->size }; 
+std::pair<const char*, uint16_t> SlottedPage::getRecord(slot_id_t slot_id) const{
+	auto slot = GetSlot(slot_id).value_or(nullptr);
+	if(!slot || slot->offset == 0) return {nullptr, 0};
+	return { data_ + slot->offset, slot->size };
 }
 
     /*
