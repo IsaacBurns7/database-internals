@@ -26,6 +26,10 @@ public:
 	//neither of the below functions are sensible because VarcharType does not own the lifetime of its own data 
 		// Value Add(const Value &a, const Value &b) const override 
 		// Value Sub(const Value &a, const Value &b) const override
+
+	uint16_t FixedSize(const Value &v) const override {
+		return sizeof(varchar_len_t);
+	}
 	
 	uint16_t SerializedSize(const Value &v) const override {
         return v.val.varchar.len + sizeof(v.val.varchar.len);

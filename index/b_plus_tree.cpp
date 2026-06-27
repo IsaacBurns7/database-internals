@@ -1,4 +1,7 @@
 #include "b_plus_tree.h"
+#include "slotted_page.h"
+
+#include <cstring>
 
 /*
 has access to:
@@ -31,7 +34,55 @@ has access to:
 		- not sure if I wanna allow varlen keys 
 */
 
-bool BPlusTree::insert(uint8_t* record){
+Key BPlusTree::extractKey(const uint8_t *record, uint16_t len) const {
+	if (record == nullptr || len == 0) {
+		return Key::FromBytes(key_type_id_, key_width_, reinterpret_cast<const uint8_t *>(""), 0);
+	}
+
+    //test this later, for now just dont fucking use varchar as a key... 
+	if (key_type_id_ == TypeId::VARCHAR) {
+		if (len < sizeof(uint16_t)) {
+			return Key::FromBytes(key_type_id_, key_width_, record, len);
+		}
+		uint16_t varchar_len = 0;
+		std::memcpy(&varchar_len, record, sizeof(uint16_t));
+		const uint16_t key_len = static_cast<uint16_t>(sizeof(uint16_t) + varchar_len);
+		const uint16_t clamped_len = key_len <= len ? key_len : len;
+		return Key::FromBytes(key_type_id_, key_width_, record, clamped_len);
+	}
+
+	const uint16_t key_len = key_width_ <= len ? key_width_ : len;
+	return Key::FromBytes(key_type_id_, key_width_, record, key_len);
+}
+
+std::pair<page_id_t, uint16_t> BPlusTree::findRecord(Key target){
+	(void)target;
+	//start at root page 
+    char* current_page_data; 
+    disk_manager_->readPage(root_page_id, current_page_data);
+    SlottedPage current_page(current_page_data); 
+    SlottedPageType current_page_type = current_page.getPageType();
+	//loop until page is a leaf page
+    while(current_page_type != SlottedPageType::LEAF_PAGE){
+        page_id_t child_page_id; //holy awful name... 
+        //find first key "x" greater than or equal to record's key via binary search
+		//go to the page_id directly after this key (strict min-key -> all records below strictly less than or equal to "x") 
+			//this page_id must exist
+        
+        //what an ugly ugly pattern... 
+        disk_manager_->readPage(child_page_id, current_page_data); //wow this is awful awful naming...
+        SlottedPage current_page(current_page_data);
+        current_page_type = current_page.getPageType(); 
+    }
+		 
+	//find first key "x" greater than or equal to the record's key via binary search with slot_id "slot_id_x"
+	//return leaf page, slot_id_x, and BTStack 
+	return {INVALID_PAGE_ID, 0};
+}
+
+bool BPlusTree::insert(uint8_t* record, uint16_t len){
+	Key key = extractKey(record, len);
+	(void)key;
 	//find correct leaf page and slot_id_x 
 	//get page via disk manager 
 	//read page as slottedpage 
@@ -41,8 +92,11 @@ bool BPlusTree::insert(uint8_t* record){
 		//split the current page, giving you a new page_id 
 		//find if you should insert at this page or the new page, and then insert!! 
 	//update keys in ancestral line via BTStack 
+	return false;
 }
-bool BPlusTree::remove(uint8_t* record){
+bool BPlusTree::remove(uint8_t* record, uint16_t len){
+	Key key = extractKey(record, len);
+	(void)key;
 	//find correct leaf page and slot_id_x 
 	//get page via disk manager 
 	//read page as slottedpage 
@@ -50,31 +104,31 @@ bool BPlusTree::remove(uint8_t* record){
 	//if this + sibling (via sibling pointer) can fit in one page, merge 
 		//not so sure if this is a good idea??  
 	//update keys in ancestral line via BTStack 
+	return false;
 }
 uint8_t* BPlusTree::get(Key target){
+	(void)target;
 	//find correct leaf page and slot_id_x 
 	//get page via disk manager 
 	//read page as slottedpage 
 	//return slot_id_x's record as uint8_t* 
+	return nullptr;
 }
 std::vector<uint8_t*> BPlusTree::scan(Key start, Key end){
+	(void)start;
+	(void)end;
 	//find correct start page and record 
 	//find correct end page and record 
 	//iterate from start to end via sibling pointers, scanning uint8_t* into vector
+	return {};
 }
 
-std::pair<page_id_t, uint16_t> BPlusTree::findRecord(Key Target){
-	//start at root page 
-	//loop until page is a leaf page
-		//find first key "x" greater than or equal to record's key via binary search
-		//go to the page_id directly after this key (strict min-key -> all records below strictly less than or equal to "x") 
-			//this page_id must exist 
-	//find first key "x" greater than or equal to the record's key via binary search with slot_id "slot_id_x"
-	//return leaf page, slot_id_x, and BTStack 
-}
+
 //take child, split into two. 
 //remember to add/update key stuff to parent node (strict min-key) 
-void BPlusTree::splitChild(page_id_t parent, slot_id child){ //also needs BTStack
+void BPlusTree::splitChild(page_id_t parent_node, Key child){ //also needs BTStack
+	(void)parent_node;
+	(void)child;
 	//allocate new page 
 	//pick a pivot record in the child - the midpoint is a good heuristic
 	//make right sibling of child newly allocated page 
@@ -87,20 +141,24 @@ void BPlusTree::splitChild(page_id_t parent, slot_id child){ //also needs BTStac
 //take nodes left_child and left_child+1=right_child, and put keys into left_child. destroy right_child
 //remember to delete right_child key, shouldn't affect left_child key(strict min-key) 
 void BPlusTree::merge(page_id_t parent_node, Key left_child){ 
+	(void)parent_node;
+	(void)left_child;
 	//find right child via sibling pointer 
 	//delete right child and separator key from parent 
 	//move all of right child's live slots into left child 
 }
+
+	void BPlusTree::redistribute(page_id_t parent_node, Key child){
+		(void)parent_node;
+		(void)child;
+	}
 	//not doing for now 
 	// void redistribute(page_id_t parent_node, Key child);  
 		//take stuff in child, give to siblings (sibling pointers!)
 		//remember to update parent keys (strict min-key)
 /*
 	DiskManager* disk_manager_;
-	// uint16_t primary_key_index;
 	uint32_t root_page_id; 
-	uint32_t schema_page_id;
-	Schema schema; 
+    pagewriter
+    pagereader
 */
-
-#endif

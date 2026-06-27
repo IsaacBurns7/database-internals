@@ -13,9 +13,10 @@ struct Freelist_Page{
 
 	static constexpr size_t FIXED_SIZE = sizeof(uint32_t) + sizeof(page_id_t);
 	static constexpr size_t MAX_FREE_IDS = (PAGE_SIZE - FIXED_SIZE) / sizeof(page_id_t);
+	static constexpr size_t USED_SIZE = FIXED_SIZE + MAX_FREE_IDS * sizeof(page_id_t);
 
 	page_id_t free_page_ids[MAX_FREE_IDS];
-	uint8_t padding[PAGE_SIZE - FIXED_SIZE - MAX_FREE_IDS * sizeof(page_id_t)];
 } __attribute__((packed));
 
-static_assert(sizeof(Freelist_Page) == PAGE_SIZE, "Freelist page must be size PAGE_SIZE");
+static_assert(Freelist_Page::USED_SIZE <= PAGE_SIZE, "Freelist page layout exceeds PAGE_SIZE");
+static_assert(sizeof(Freelist_Page) == Freelist_Page::USED_SIZE, "Freelist page size mismatch");

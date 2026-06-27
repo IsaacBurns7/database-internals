@@ -38,6 +38,7 @@ class Schema {
   auto GetColumn(uint32_t col_idx) const -> const Column &;
   auto GetColIdx(const std::string &col_name) const -> std::optional<uint32_t>; //returns -1 if column with given col_name doesn't exist 
   auto GetColumns() const -> const std::vector<Column> &;
+  auto GetType(uint32_t colidx) const -> TypeId; 
   auto GetColumnCount() const -> uint32_t;
 
   // -----------------------------------------------------------------------

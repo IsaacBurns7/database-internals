@@ -5,6 +5,11 @@ public:
         assert(a.type_id == TypeId::BOOLEAN && b.type_id == TypeId::BOOLEAN);
         return (int) a.val.boolean - (int)b.val.boolean;
     }
+
+    uint16_t FixedSize(const Value &v) const override {
+        return 1;
+    }
+
     uint16_t SerializedSize(const Value &v) const override {
         return 1;
     }

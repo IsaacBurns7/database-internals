@@ -4,6 +4,10 @@
 
 #include "storage/disk_manager.h"
 #include "common/config.h"
+#include "index/key.h"
+//do I need schema poitner? perhaps I can just have a pagewriter/pagereader for writing onto disk later... 
+//god jesus this is a complicated class
+    //decompose into more classes later...
 
 #include <optional>
 #include <tuple>
@@ -41,13 +45,21 @@ class BPlusTree {
 	//uses sibling pointers + strict min-key 
 		//will implement latch crabbing for concurrency
 	//database overall is IoT (Index Organized Tables)
-	//records stored as uint8_t*, interpreted via "schema" interface
-	bool insert(uint8_t* record);
-	bool remove(uint8_t* record); 
+
+    //constructor needs:
+        //schema_page_id for Schema*, b/c pagewriter and pagereader need it... 
+            //or it's given pagewriter and pagereader 
+        //root_page_id so it can walk for queries 
+        //disk manager class...
+	bool insert(uint8_t* record, uint16_t len);
+	bool remove(uint8_t* record, uint16_t len); 
 	uint8_t* get(Key target); 
     std::vector<uint8_t*> scan(Key start, Key end); 
 		// range scan — returns all values where key is in [start, end]
 private:
+	Key extractKey(const uint8_t *record, uint16_t len) const;
+	std::pair<page_id_t, uint16_t> findRecord(Key target);
+
 	void splitChild(page_id_t parent_node, Key child); 
 		//take child, split into two. 
 		//remember to add/update key stuff to parent node (strict min-key) 
@@ -57,11 +69,12 @@ private:
 	void redistribute(page_id_t parent_node, Key child);  
 		//take stuff in child, give to siblings (sibling pointers!)
 		//remember to update parent keys (strict min-key)
-	DiskManager* disk_manager_;
-	// uint16_t primary_key_index;
+ 	DiskManager* disk_manager_;
 	uint32_t root_page_id; 
-	uint32_t schema_page_id;
-	Schema schema; 
+	TypeId key_type_id_ = TypeId::NUMERIC;
+	uint8_t key_width_ = 8;
+    //pagewriter
+    //pagereader 
 };
 
 #endif

@@ -53,6 +53,10 @@ auto Schema::GetColIdx(const std::string &col_name) const -> std::optional<uint3
 	return std::nullopt;
 }
 
+auto Schema::GetType(uint32_t colidx) const -> TypeId {
+    return columns_[colidx].GetType(); //this is so insanely chud... 
+}
+
 auto Schema::GetColumns() const -> const std::vector<Column> & { return columns_; }
 
 auto Schema::GetColumnCount() const -> uint32_t {
