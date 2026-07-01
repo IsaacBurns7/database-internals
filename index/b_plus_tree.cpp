@@ -35,25 +35,34 @@ has access to:
 		- not sure if I wanna allow varlen keys 
 */
 
+// Assumes `record` is a schema-shaped buffer where the key column sits at
+// schema_->GetColumn(key_col_idx_).GetOffset() — true for leaf slots (full
+// serialized tuples). Internal-node key slots store the key alone with no
+// preceding columns, so this is only correct for them when key_col_idx_ == 0.
 Key BPlusTree::extractKey(const uint8_t *record, uint16_t len) const {
 	if (record == nullptr || len == 0) {
 		return Key::FromBytes(key_type_id_, key_width_, reinterpret_cast<const uint8_t *>(""), 0);
 	}
 
-    //test this later, for now just dont fucking use varchar as a key... 
+	const uint32_t key_offset = schema_->GetColumn(key_col_idx_).GetOffset();
+	const uint16_t offset = key_offset <= len ? static_cast<uint16_t>(key_offset) : len;
+	const uint8_t *key_start = record + offset;
+	const uint16_t remaining = static_cast<uint16_t>(len - offset);
+
+    //test this later, for now just dont fucking use varchar as a key...
 	if (key_type_id_ == TypeId::VARCHAR) {
-		if (len < sizeof(uint16_t)) {
-			return Key::FromBytes(key_type_id_, key_width_, record, len);
+		if (remaining < sizeof(uint16_t)) {
+			return Key::FromBytes(key_type_id_, key_width_, key_start, remaining);
 		}
 		uint16_t varchar_len = 0;
-		std::memcpy(&varchar_len, record, sizeof(uint16_t));
+		std::memcpy(&varchar_len, key_start, sizeof(uint16_t));
 		const uint16_t key_len = static_cast<uint16_t>(sizeof(uint16_t) + varchar_len);
-		const uint16_t clamped_len = key_len <= len ? key_len : len;
-		return Key::FromBytes(key_type_id_, key_width_, record, clamped_len);
+		const uint16_t clamped_len = key_len <= remaining ? key_len : remaining;
+		return Key::FromBytes(key_type_id_, key_width_, key_start, clamped_len);
 	}
 
-	const uint16_t key_len = key_width_ <= len ? key_width_ : len;
-	return Key::FromBytes(key_type_id_, key_width_, record, key_len);
+	const uint16_t key_len = key_width_ <= remaining ? key_width_ : remaining;
+	return Key::FromBytes(key_type_id_, key_width_, key_start, key_len);
 }
 
 //wait what about dead/live slots in the slottedpage?
@@ -86,8 +95,7 @@ FindRecordMetadata BPlusTree::findRecord(Key target){
 			mid &= ~static_cast<slot_id_t>(1);  // ensure mid is always even (key slot)
 
 			auto [bytes, len] = current_page.getRecord(mid);
-			Key mid_key = Key::FromBytes(key_type_id_, key_width_,
-			                             reinterpret_cast<const uint8_t*>(bytes), len);
+			Key mid_key = extractKey(reinterpret_cast<const uint8_t*>(bytes), len);
 
 			if (mid_key.Compare(target) < 0) {
 				l = static_cast<slot_id_t>(mid + 2);
@@ -110,26 +118,23 @@ FindRecordMetadata BPlusTree::findRecord(Key target){
 
     }
 
-	// Leaf binary search: every slot is a raw serialized tuple.
-	// We read the key bytes directly at schema_->GetColumn(key_col_idx_).GetOffset()
+	// Leaf binary search: every slot is a raw serialized tuple. extractKey()
+	// reads the key bytes directly at schema_->GetColumn(key_col_idx_).GetOffset()
 	// inside the record — no full Tuple::Deserialize, no heap allocations.
 	// Caveat: Column::GetOffset() only matches the serialized layout when no
 	// variable-length column precedes key_col_idx_ (Tuple::Serialize writes columns
 	// sequentially with no fixed/variable split yet, and no null bitmap prefix).
 
-    //does the below make any sense at all? 
+    //does the below make any sense at all?
 	SlottedPage leaf(current_page_data);
 	slot_id_t n = leaf.getSlotCount();
 	slot_id_t l = 0, r = n;
-	uint32_t key_offset = schema_->GetColumn(key_col_idx_).GetOffset();
 
 	while (l < r) {
 		slot_id_t mid = (l + r) / 2;
 
 		auto [bytes, len] = leaf.getRecord(mid);
-		Key mid_key = Key::FromBytes(key_type_id_, key_width_,
-		                             reinterpret_cast<const uint8_t*>(bytes) + key_offset,
-		                             key_width_);
+		Key mid_key = extractKey(reinterpret_cast<const uint8_t*>(bytes), len);
 
 		if (mid_key.Compare(target) < 0) {
 			l = static_cast<slot_id_t>(mid + 1);
@@ -162,19 +167,28 @@ bool BPlusTree::insert(uint8_t* record, uint16_t len){
         //find if you should insert at this page or the new page, and then insert!! 
             //look at bt_stack for parent, use slot_id to check if its dead... ? im not quite sure... 
     }
-	return false;
+    //update via diskmanager (no bufferpoolmanager yet... DISGUSTING!!!)
+    //when would this return false? 
+	return true;
 }
-bool BPlusTree::remove(uint8_t* record, uint16_t len){
-	Key key = extractKey(record, len);
-	(void)key;
-	//find correct leaf page and slot_id_x 
-	//get page via disk manager 
-	//read page as slottedpage 
-	//delete slot_id_x 
-	//if this + sibling (via sibling pointer) can fit in one page, merge 
+
+
+bool BPlusTree::remove(Key key){
+//this can be a function (internal)
+	FindRecordMetadata find_record_metadata = findRecord(key);
+    char* page_data; 
+    disk_manager_->readPage(find_record_metadata.leaf_page, page_data);
+    SlottedPage leaf(page_data);
+
+//this can be a function (internal)
+    auto [bytes,len] = leaf.getRecord(find_record_metadata.leaf_slot);
+    Key found_key = extractKey((const uint8_t*) bytes, len); 
+    if(key.Compare(found_key)) return false; //if compare =
+    leaf.deleteRecord(find_record_metadata.leaf_slot);
+    //if this + right sibling (via sibling pointer) can fit in one page, merge 
 		//not so sure if this is a good idea??  
-	//update keys in ancestral line via BTStack 
-	return false;
+        //PLUS!!!! merge updates ancestral keys via BTStack 
+	return true;
 }
 uint8_t* BPlusTree::get(Key target){
 	(void)target;

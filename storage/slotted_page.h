@@ -71,14 +71,17 @@ enum SlottedPageType: uint8_t{
 	// overflow //for like 10KB strings  
 };
 
-struct alignas(4) SlottedPageHeader {
+struct alignas(8) SlottedPageHeader {
     page_id_t page_id;      // 4 bytes - Offset 0
     lsn_t lsn;              // 4 bytes - Offset 4
     uint32_t check_sum;     // 4 bytes - Offset 8
     uint16_t max_slot_id;    // 2 bytes - Offset 12
 	uint16_t free_space_ptr;// 2 bytes - Offset 14, first free space for the next record 
     SlottedPageType page_type;     // 1 byte  - Offset 16
-    uint8_t padding[3];     // 3 bytes - Explicitly pad to 20 bytes (4-byte alignment)
+    page_id_t left_sibling; //4 bytes - offset 17 
+    page_id_t right_sibling; //4 bytes - offset 21
+    char padding[3]; 
+    //does this fill in padding? 
 };
 
 //need size for variable-length records (strings!!!)

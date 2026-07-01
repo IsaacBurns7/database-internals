@@ -83,6 +83,8 @@ void SlottedPage::init(page_id_t assigned_id, SlottedPageType type) {
 	// 2. Set the pointers for the "Tectonic Plate" design
 	// Records grow UP from the end of the page
 	header.free_space_ptr = PAGE_SIZE; 
+    header.left_sibling = INVALID_PAGE_ID; 
+    header.right_sibling = INVALID_PAGE_ID;
 	
 	// 3. Write the header struct into the start of your raw data buffer
 	// (Assuming data is a char[] or uint8_t[] member of your Page class)

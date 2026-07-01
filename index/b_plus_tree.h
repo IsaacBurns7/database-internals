@@ -65,7 +65,7 @@ class BPlusTree {
         //root_page_id so it can walk for queries 
         //disk manager class...
 	bool insert(uint8_t* record, uint16_t len);
-	bool remove(uint8_t* record, uint16_t len); 
+	bool remove(Key key);
 	uint8_t* get(Key target); 
     std::vector<uint8_t*> scan(Key start, Key end); 
 		// range scan — returns all values where key is in [start, end]
