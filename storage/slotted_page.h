@@ -92,103 +92,19 @@ struct Slot{
 
 class SlottedPage {
 public:
-    /*
-     * Wraps the PAGE_SIZE buffer pointed to by `data`.
-     * Does NOT zero-initialise. Caller must call init() on a fresh page
-     * or simply wrap an existing, already-formatted page.
-     * `data` must remain valid for the lifetime of this SlottedPage.
-     */
     explicit SlottedPage(char* data);
-
-    /*
-     * Writes the initial PageHeader into data[] with the given page_type.
-     * Sets slot_count = 0, free_space_ptr = PAGE_SIZE (heap starts at end).
-     * Must be called exactly once on a freshly allocated page before any
-     * insertRecord() call. Calling this on an existing page destroys its data.
-     */
     void init(page_id_t page_id, SlottedPageType page_type);
-
-    /*
-     * Copies `length` bytes from `record` into the record heap, growing it
-     * backward. Allocates a new slot entry at index slot_count, stores the
-     * record's (offset, length), increments slot_count.
-     * Returns the new slot_id (== old slot_count before increment).
-     *
-     * Returns std::nullopt if:
-     *   - There is not enough free space even after compactify() — caller
-     *     must split the page.
-     *   - `length` == 0 (zero-length records are not allowed; use tombstones).
-     *
-     * Does NOT call compactify() automatically — caller decides when to compact.
-     * After a successful insert, caller must mark the Page dirty.
-     */
     std::optional<slot_id_t> insertRecord(const char* record, uint16_t length);
-
-    /*
-     * Marks slot `slot_id` as deleted by setting Slot.length = 0 (tombstone).
-     * The bytes in the heap are not zeroed. Free space does not increase until
-     * compactify() reclaims the gap.
-     * Returns false if slot_id is out of range or already deleted.
-     * After a successful delete, caller must mark the Page dirty.
-     */
     bool deleteRecord(slot_id_t slot_id);
-
-    /*
-     * Returns a span (pointer + length) into data[] for the record at `slot_id`.
-     * The span is valid until the next insertRecord() or compactify() call —
-     * both can shift record positions. Callers that need the data beyond that
-     * must copy it out.
-     * Returns an empty span if slot_id is out of range or deleted.
-     */
     std::pair<const char*, uint16_t> getRecord(slot_id_t slot_id) const;
-
-    /*
-     * Overwrites the record at `slot_id` with `length` bytes from `record`.
-     * Only valid if new length == old length (same-size update, no movement).
-     * For different-size updates, the caller must deleteRecord + insertRecord.
-     * Returns false if slot_id is invalid, deleted, or lengths differ.
-     * After success, caller must mark the Page dirty.
-     */
     bool updateRecord(slot_id_t slot_id, const char* record, uint16_t length);
-
-    /*
-     * Defragments the record heap in-place. Scans all live slots, packs their
-     * records contiguously at the end of the page, updates slot offsets to
-     * match new positions, resets free_space_ptr. Slot indices (slot_ids)
-     * do NOT change — this is the invariant the B+Tree depends on.
-     * Should be called when getFreeSpace() < needed but getTotalFreeSpace()
-     * (including fragmented gaps) >= needed.
-     * After calling this, any previously obtained getRecord() spans are stale.
-     */
     void compactify();
-
-    /*
-     * Returns the number of bytes in the contiguous free gap between the
-     * end of the slot array and free_space_ptr. This is what is immediately
-     * available for a new insert WITHOUT compaction.
-     * Equation: free_space_ptr - (sizeof(Header) + slot_count * sizeof(Slot))
-     */
     uint16_t getFreeSpace() const;
-
-    /*
-     * Returns total reclaimable free bytes: contiguous free space plus the
-     * sum of lengths of all deleted (tombstoned) slots. If this is >= the
-     * needed size but getFreeSpace() is not, compactify() will help.
-     */
     uint16_t getTotalFreeSpace() const;
-
-    /*
-     * Returns the number of slot entries (live + deleted). The last valid
-     * slot_id is getSlotCount() - 1. Does NOT count only live records.
-     */
     uint16_t getSlotCount() const;
-
-    /*
-     * Returns the PageType stored in the header. Used by upper layers
-     * to distinguish leaf pages, internal pages, overflow pages, etc.
-     */
     SlottedPageType getPageType() const;
-
+    page_id_t getRightSibling() const; 
+    page_id_t getLeftSibling() const;
 private:
     char* data_;  // points into Page::data_[] — not owned here
 	

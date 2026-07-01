@@ -289,3 +289,13 @@ SlottedPageType SlottedPage::getPageType() const {
 	const SlottedPageHeader* header = GetHeader();
 	return header->page_type;
 }
+
+page_id_t SlottedPage::getRightSibling() const {
+    const SlottedPageHeader* header = GetHeader();
+	return header->right_sibling;
+}
+
+page_id_t SlottedPage::getLeftSibling() const {
+const SlottedPageHeader* header = GetHeader();
+	return header->left_sibling;
+}

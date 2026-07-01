@@ -172,7 +172,7 @@ bool BPlusTree::insert(uint8_t* record, uint16_t len){
 	return true;
 }
 
-
+//returns whether or not it successfully deleted
 bool BPlusTree::remove(Key key){
 //this can be a function (internal)
 	FindRecordMetadata find_record_metadata = findRecord(key);
@@ -182,23 +182,34 @@ bool BPlusTree::remove(Key key){
 
 //this can be a function (internal)
     auto [bytes,len] = leaf.getRecord(find_record_metadata.leaf_slot);
-    Key found_key = extractKey((const uint8_t*) bytes, len); 
-    if(key.Compare(found_key)) return false; //if compare =
+    Key found_key = extractKey((const uint8_t*)bytes, len); 
+    if(key.Compare(found_key)) return false; //if keys are equal, returns 1, -1 -> coalesces to true 
     leaf.deleteRecord(find_record_metadata.leaf_slot);
     //if this + right sibling (via sibling pointer) can fit in one page, merge 
 		//not so sure if this is a good idea??  
         //PLUS!!!! merge updates ancestral keys via BTStack 
+    //update via diskmanager 
 	return true;
 }
-uint8_t* BPlusTree::get(Key target){
-	(void)target;
-	//find correct leaf page and slot_id_x 
-	//get page via disk manager 
-	//read page as slottedpage 
-	//return slot_id_x's record as uint8_t* 
-	return nullptr;
+
+//returns record that matches target
+std::pair<uint8_t*, uint16_t> BPlusTree::get(Key target){
+ //this can be a function (internal)
+	FindRecordMetadata find_record_metadata = findRecord(target);
+    char* page_data; 
+    disk_manager_->readPage(find_record_metadata.leaf_page, page_data);
+    SlottedPage leaf(page_data);
+
+//this can be a function (internal)
+    auto [bytes,len] = leaf.getRecord(find_record_metadata.leaf_slot);
+    Key found_key = extractKey((const uint8_t*)bytes, len); 
+    if(target.Compare(found_key)) return {nullptr, 0}; //if keys are equal, returns 1, -1 -> coalesces to true   
+
+    return {(uint8_t*)bytes, len};
 }
-std::vector<uint8_t*> BPlusTree::scan(Key start, Key end){
+
+//returns list of pages 
+BPlusTreeIterator BPlusTree::scan(Key start, Key end){
 	(void)start;
 	(void)end;
 	//find correct start page and record 
