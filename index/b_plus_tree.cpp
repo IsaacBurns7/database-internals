@@ -59,11 +59,19 @@ Key BPlusTree::extractKey(const uint8_t *record, uint16_t len) const {
 //wait what about dead/live slots in the slottedpage?
     //dead slots shouldn't exist in internal nodes... ?
 //oh shoot i forgot about the btstack...
-std::pair<page_id_t, uint16_t> BPlusTree::findRecord(Key target){
+
+//returns first leaf slot where key >= target 
+FindRecordMetadata BPlusTree::findRecord(Key target){
+    FindRecordMetadata ret{};
+    BTStack bt_stack{};
 	char* current_page_data;
 	disk_manager_->readPage(root_page_id, current_page_data);
 	page_id_t current_page_id = root_page_id;
 
+    //does this binary search even make sense? 
+        //live/dead slots + the slots are NOT ordered by key are they? 
+            //probably have to kill the dead slots before you run the binary search no? 
+        //i suppose an invariant composed of decisions is an invariant nonetheless enforced by the emergent property of reality 
 	while (true) {
 		SlottedPage current_page(current_page_data);
 		if (current_page.getPageType() == SlottedPageType::LEAF_PAGE) break;
@@ -95,10 +103,12 @@ std::pair<page_id_t, uint16_t> BPlusTree::findRecord(Key target){
 		auto [page_bytes, page_len] = current_page.getRecord(page_slot);
 		page_id_t child_page_id;
 		std::memcpy(&child_page_id, page_bytes, sizeof(page_id_t));
+        bt_stack.push_back({current_page_id, page_slot});
 
 		disk_manager_->readPage(child_page_id, current_page_data);
-		current_page_id = child_page_id;
-	}
+        current_page_id = child_page_id;
+
+    }
 
 	// Leaf binary search: every slot is a raw serialized tuple.
 	// We read the key bytes directly at schema_->GetColumn(key_col_idx_).GetOffset()
@@ -106,6 +116,8 @@ std::pair<page_id_t, uint16_t> BPlusTree::findRecord(Key target){
 	// Caveat: Column::GetOffset() only matches the serialized layout when no
 	// variable-length column precedes key_col_idx_ (Tuple::Serialize writes columns
 	// sequentially with no fixed/variable split yet, and no null bitmap prefix).
+
+    //does the below make any sense at all? 
 	SlottedPage leaf(current_page_data);
 	slot_id_t n = leaf.getSlotCount();
 	slot_id_t l = 0, r = n;
@@ -127,21 +139,29 @@ std::pair<page_id_t, uint16_t> BPlusTree::findRecord(Key target){
 	}
 
 	// l is the first leaf slot where key >= target.
-	return {current_page_id, l};
+    ret.leaf_page = current_page_id;
+    ret.leaf_page = l;
+    ret.bt_stack = std::move(bt_stack);
+    return ret;
 }
 
 bool BPlusTree::insert(uint8_t* record, uint16_t len){
 	Key key = extractKey(record, len);
-	(void)key;
-	//find correct leaf page and slot_id_x 
-	//get page via disk manager 
-	//read page as slottedpage 
-	//if enough space to insert 
+	FindRecordMetadata find_record_metadata = findRecord(key);
+    char* page_data; 
+    disk_manager_->readPage(find_record_metadata.leaf_page, page_data);
+    SlottedPage leaf(page_data);
+    if(leaf.getFreeSpace() >= len || (leaf.compactify(), leaf.getFreeSpace() >= len)){
 		//insert record at slot_id_x - you have to shift the rest of slots through memmove (cheap)
-	//else 
-		//split the current page, giving you a new page_id 
-		//find if you should insert at this page or the new page, and then insert!! 
-	//update keys in ancestral line via BTStack 
+            //what the fuck does this comment mean? 
+        std::optional<slot_id_t> first_available_slot = leaf.insertRecord((const char*)record, len); //page dirty
+            //wait but doesn't the slot id need to be a key itself?? 
+    }else{
+        page_id_t new_child = splitChild(find_record_metadata.leaf_page, find_record_metadata.bt_stack, key); //what does it need key for?? 
+            //updates keys according to strict min-key 
+        //find if you should insert at this page or the new page, and then insert!! 
+            //look at bt_stack for parent, use slot_id to check if its dead... ? im not quite sure... 
+    }
 	return false;
 }
 bool BPlusTree::remove(uint8_t* record, uint16_t len){
@@ -176,7 +196,7 @@ std::vector<uint8_t*> BPlusTree::scan(Key start, Key end){
 
 //take child, split into two. 
 //remember to add/update key stuff to parent node (strict min-key) 
-void BPlusTree::splitChild(page_id_t parent_node, Key child){ //also needs BTStack
+page_id_t BPlusTree::splitChild(page_id_t parent_node, BTStack bt_stack, Key child){ //also needs BTStack
 	(void)parent_node;
 	(void)child;
 	//allocate new page 
@@ -190,7 +210,7 @@ void BPlusTree::splitChild(page_id_t parent_node, Key child){ //also needs BTSta
 }
 //take nodes left_child and left_child+1=right_child, and put keys into left_child. destroy right_child
 //remember to delete right_child key, shouldn't affect left_child key(strict min-key) 
-void BPlusTree::merge(page_id_t parent_node, Key left_child){ 
+void BPlusTree::merge(page_id_t parent_node, BTStack bt_stack, Key left_child){ 
 	(void)parent_node;
 	(void)left_child;
 	//find right child via sibling pointer 
@@ -198,10 +218,10 @@ void BPlusTree::merge(page_id_t parent_node, Key left_child){
 	//move all of right child's live slots into left child 
 }
 
-	void BPlusTree::redistribute(page_id_t parent_node, Key child){
-		(void)parent_node;
-		(void)child;
-	}
+    void BPlusTree::redistribute(page_id_t parent_node, BTStack bt_stack, Key child){
+        (void)parent_node;
+        (void)child;
+    }
 	//not doing for now 
 	// void redistribute(page_id_t parent_node, Key child);  
 		//take stuff in child, give to siblings (sibling pointers!)

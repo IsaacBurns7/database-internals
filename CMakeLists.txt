@@ -32,6 +32,7 @@ add_library(type_logic
 	type/type.cpp
   type/column.cpp
   type/schema.cpp
+  type/tuple.cpp
 )
 
 add_library(index_logic
@@ -63,6 +64,7 @@ add_executable(type_tests
   tests/type/numeric_type.cpp
   tests/type/float_type.cpp
   tests/type/varchar_type.cpp
+  tests/type/tuple.cpp
 )
 
 target_link_libraries(storage_tests 

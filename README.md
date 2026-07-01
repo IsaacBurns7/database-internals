@@ -1,8 +1,8 @@
 test tuple
 test key
 modified so test again... 
-    schema
-    column
+    schema ?? wtf are these... 
+    column ?? wtf are these... 
 
 clean up types 
     - uint8_t vs char

@@ -9,6 +9,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/type_tests.dir/tests/type/numeric_type.cpp.o.d"
   "CMakeFiles/type_tests.dir/tests/type/schema.cpp.o"
   "CMakeFiles/type_tests.dir/tests/type/schema.cpp.o.d"
+  "CMakeFiles/type_tests.dir/tests/type/tuple.cpp.o"
+  "CMakeFiles/type_tests.dir/tests/type/tuple.cpp.o.d"
   "CMakeFiles/type_tests.dir/tests/type/varchar_type.cpp.o"
   "CMakeFiles/type_tests.dir/tests/type/varchar_type.cpp.o.d"
   "type_tests"

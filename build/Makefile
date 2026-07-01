@@ -661,6 +661,30 @@ tests/type/schema.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_tests.dir/build.make CMakeFiles/type_tests.dir/tests/type/schema.cpp.s
 .PHONY : tests/type/schema.cpp.s
 
+tests/type/tuple.o: tests/type/tuple.cpp.o
+.PHONY : tests/type/tuple.o
+
+# target to build an object file
+tests/type/tuple.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_tests.dir/build.make CMakeFiles/type_tests.dir/tests/type/tuple.cpp.o
+.PHONY : tests/type/tuple.cpp.o
+
+tests/type/tuple.i: tests/type/tuple.cpp.i
+.PHONY : tests/type/tuple.i
+
+# target to preprocess a source file
+tests/type/tuple.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_tests.dir/build.make CMakeFiles/type_tests.dir/tests/type/tuple.cpp.i
+.PHONY : tests/type/tuple.cpp.i
+
+tests/type/tuple.s: tests/type/tuple.cpp.s
+.PHONY : tests/type/tuple.s
+
+# target to generate assembly for a file
+tests/type/tuple.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_tests.dir/build.make CMakeFiles/type_tests.dir/tests/type/tuple.cpp.s
+.PHONY : tests/type/tuple.cpp.s
+
 tests/type/varchar_type.o: tests/type/varchar_type.cpp.o
 .PHONY : tests/type/varchar_type.o
 
@@ -732,6 +756,30 @@ type/schema.s: type/schema.cpp.s
 type/schema.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_logic.dir/build.make CMakeFiles/type_logic.dir/type/schema.cpp.s
 .PHONY : type/schema.cpp.s
+
+type/tuple.o: type/tuple.cpp.o
+.PHONY : type/tuple.o
+
+# target to build an object file
+type/tuple.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_logic.dir/build.make CMakeFiles/type_logic.dir/type/tuple.cpp.o
+.PHONY : type/tuple.cpp.o
+
+type/tuple.i: type/tuple.cpp.i
+.PHONY : type/tuple.i
+
+# target to preprocess a source file
+type/tuple.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_logic.dir/build.make CMakeFiles/type_logic.dir/type/tuple.cpp.i
+.PHONY : type/tuple.cpp.i
+
+type/tuple.s: type/tuple.cpp.s
+.PHONY : type/tuple.s
+
+# target to generate assembly for a file
+type/tuple.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/type_logic.dir/build.make CMakeFiles/type_logic.dir/type/tuple.cpp.s
+.PHONY : type/tuple.cpp.s
 
 type/type.o: type/type.cpp.o
 .PHONY : type/type.o
@@ -825,6 +873,9 @@ help:
 	@echo "... tests/type/schema.o"
 	@echo "... tests/type/schema.i"
 	@echo "... tests/type/schema.s"
+	@echo "... tests/type/tuple.o"
+	@echo "... tests/type/tuple.i"
+	@echo "... tests/type/tuple.s"
 	@echo "... tests/type/varchar_type.o"
 	@echo "... tests/type/varchar_type.i"
 	@echo "... tests/type/varchar_type.s"
@@ -834,6 +885,9 @@ help:
 	@echo "... type/schema.o"
 	@echo "... type/schema.i"
 	@echo "... type/schema.s"
+	@echo "... type/tuple.o"
+	@echo "... type/tuple.i"
+	@echo "... type/tuple.s"
 	@echo "... type/type.o"
 	@echo "... type/type.i"
 	@echo "... type/type.s"

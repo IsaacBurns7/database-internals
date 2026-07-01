@@ -42,6 +42,17 @@ has access to:
       // buf is dead after this point (because it will be evicted by the buffer pool manager)
 */
 
+struct Breadcrumb {
+    page_id_t page_id; 
+    slot_id_t child_slot; 
+};
+using BTStack = std::vector<Breadcrumb>;
+struct FindRecordMetadata{
+    page_id_t leaf_page; //because our IOT implementation only stores data in leaf nodes 
+    slot_id_t leaf_slot; //equals -1=2^16 if none is found... ? 
+    BTStack bt_stack;
+};
+
 class BPlusTree { 
     //records are raw uint8_t* and interpreted via "Schema" interface 
 	//uses sibling pointers + strict min-key 
@@ -60,15 +71,15 @@ class BPlusTree {
 		// range scan — returns all values where key is in [start, end]
 private:
 	Key extractKey(const uint8_t *record, uint16_t len) const;
-	std::pair<page_id_t, uint16_t> findRecord(Key target);
+    FindRecordMetadata findRecord(Key target);
+        //use in insert(): needs BTStack 
+        //use in remove(): needs slot_id_x
 
-	void splitChild(page_id_t parent_node, Key child); 
-		//take child, split into two. 
-		//remember to add/update key stuff to parent node (strict min-key) 
-	void merge(page_id_t parent_node, Key left_child); //could also input right child
+	page_id_t splitChild(page_id_t parent_node, BTStack bt_stack, Key child); //returns new child
+	void merge(page_id_t parent_node, BTStack bt_stack, Key left_child); //could also input right child
 		//take nodes left_child and left_child+1=right_child, and put keys into left_child. destroy right_child
 		//remember to delete right_child key, shouldn't affect left_child key(strict min-key) 
-	void redistribute(page_id_t parent_node, Key child);  
+	void redistribute(page_id_t parent_node, BTStack bt_stack, Key child);  
 		//take stuff in child, give to siblings (sibling pointers!)
 		//remember to update parent keys (strict min-key)
  	DiskManager* disk_manager_;

@@ -6,7 +6,7 @@ CXX_DEFINES =
 
 CXX_INCLUDES = -I/Users/kingisaac/Github/database-internals -isystem /Users/kingisaac/Github/database-internals/build/_deps/googletest-src/googletest/include -isystem /Users/kingisaac/Github/database-internals/build/_deps/googletest-src/googletest
 
-CXX_FLAGSarm64 = -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.2.sdk
+CXX_FLAGSarm64 = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.2.sdk
 
-CXX_FLAGS = -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.2.sdk
+CXX_FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.2.sdk
 

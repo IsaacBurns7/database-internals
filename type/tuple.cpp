@@ -51,6 +51,16 @@ uint16_t Tuple::Serialize(uint8_t *buf) const {
     return static_cast<uint16_t>(var_cursor - buf);
 }
 
+// KNOWN BUG: Value (value.h) declares a destructor that delete[]s owning
+// VARCHAR buffers but has no copy/move constructor or assignment operator.
+// `values.push_back(std::move(value))` below therefore shallow-copies the
+// owning pointer; when the loop-local `value` is destroyed at end of scope
+// it frees memory the vector's copy still references, causing use-after-free
+// on read and a double free on later destruction. Fix requires adding a
+// proper copy ctor (deep copy), move ctor (transfer + null out owns_data),
+// and copy/move assignment to Value.
+// Reproduced by tests/type/tuple.cpp:117 (TupleTest.DeserializeVarcharSchemaRoundTrips),
+// which currently fails/crashes until Value's copy/move semantics are fixed.
 Tuple Tuple::Deserialize(const Schema *schema, const uint8_t *buf) {
     std::vector<Value> values;
     values.reserve(schema->GetColumnCount());
