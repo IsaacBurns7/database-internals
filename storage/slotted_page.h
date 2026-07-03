@@ -105,6 +105,8 @@ public:
     SlottedPageType getPageType() const;
     page_id_t getRightSibling() const; 
     page_id_t getLeftSibling() const;
+    void setLeftSibling(page_id_t left_sibling);
+    void setRightSibling(page_id_t right_sibling);
 private:
     char* data_;  // points into Page::data_[] — not owned here
 	

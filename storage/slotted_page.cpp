@@ -296,6 +296,15 @@ page_id_t SlottedPage::getRightSibling() const {
 }
 
 page_id_t SlottedPage::getLeftSibling() const {
-const SlottedPageHeader* header = GetHeader();
+    const SlottedPageHeader* header = GetHeader();
 	return header->left_sibling;
+}
+
+void SlottedPage::setLeftSibling(page_id_t left_sibling){
+    SlottedPageHeader *header = GetHeader();
+    header->left_sibling = left_sibling;
+}
+void SlottedPage::setRightSibling(page_id_t right_sibling){
+    SlottedPageHeader *header = GetHeader();
+    header->right_sibling = right_sibling;
 }

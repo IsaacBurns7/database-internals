@@ -82,7 +82,7 @@ private:
         //use in insert(): needs BTStack
         //use in remove(): needs slot_id_x
 
-	page_id_t splitChild(page_id_t parent_node, BTStack bt_stack, Key child); //returns new child
+	page_id_t splitChild(BTStack bt_stack, Key child); //returns new child
 	void merge(page_id_t parent_node, BTStack bt_stack, Key left_child); //could also input right child
 		//take nodes left_child and left_child+1=right_child, and put keys into left_child. destroy right_child
 		//remember to delete right_child key, shouldn't affect left_child key(strict min-key)
@@ -109,37 +109,51 @@ private:
  */
 class BPlusTreeIterator {
 public:
-    BPlusTreeIterator(BPlusTree *tree, page_id_t start_page, slot_id_t start_slot, Key end): 
-        tree_(tree), page_id_(start_page), slot_id_(start_slot), end_(end);
+    BPlusTreeIterator(BPlusTree *tree, page_id_t start_page, slot_id_t start_slot, Key end):
+        tree_(tree), page_id_(start_page), slot_id_(start_slot), end_(end){
+            data_ = new char[PAGE_SIZE];
+            tree_->disk_manager_->readPage(start_page, data_);
+        }
+    ~BPlusTreeIterator(){ delete[] data_; }
 
     // Returns the record at the cursor's current position and advances past
     // it, crossing into the right-sibling leaf when the current page is
     // exhausted. Returns std::nullopt once the extracted key exceeds end_,
     // or once there is no right sibling left to cross into.
+    //
+    // BE AWARE OF SHIFTS: unlike findRecord (which now does a linear scan per page),
+    // this walk can't just switch to a linear scan and call it fixed. It assumes
+    // ascending key order both WITHIN a page (slot_id_++ visits keys in increasing
+    // order) and ACROSS sibling-linked pages, and it exits as soon as it sees one
+    // key past end_. SlottedPage::insertRecord() only appends in insertion order
+    // (see the BE AWARE comment in insert()), so neither assumption holds today:
+    // a scan can terminate early while later slot_ids still hold in-range records,
+    // or emit rows out of key order within a page. Fixing this needs either the
+    // sorted logical-order index described in findRecord's comment, or scanning a
+    // whole page (no early exit on end_) and sorting its live slots before
+    // emitting them — not implemented yet.
     std::optional<std::pair<uint8_t*, uint16_t>> Next(){
         SlottedPage current_page = SlottedPage(data_);
         slot_id_t max_slot_id = current_page.getSlotCount();
         while(current_page.getRecord(slot_id_).second == 0){ //slot w/ length of 0 -> dead 
-            //check end
-
+            //check end_
+            auto [bytes, len] = current_page.getRecord(slot_id_);
+            Key key = tree_->extractKey((uint8_t*)bytes, len);
+            if(!key.Compare(end_)) return std::nullopt;
             //go to right sibling(next page)
             if(slot_id_ == max_slot_id){
                 page_id_ = current_page.getRightSibling();
-                char *data; 
-                tree_->disk_manager_->readPage(page_id_, data);
-                data_ = data;
-                current_page = SlottedPage(data);
-                slot_id_ = -1; //ATTENTION ERROR PROBLEM: uhm will this wrap around back to 0 if we add 1 more ? :< 
-                max_slot_id = current_page.getSlotCount(); 
+                tree_->disk_manager_->readPage(page_id_, data_);
+                current_page = SlottedPage(data_);
+                slot_id_ = -1; //this will wrap around back to 0 if we add 1 more. :<
+                max_slot_id = current_page.getSlotCount();
             }
             slot_id_++; 
         }
-        std::pair<const char*, uint16_t> slot_char = current_page.getRecord(slot_id_);
+        auto [bytes, len] = current_page.getRecord(slot_id_);
         slot_id_++;
-        std::pair<uint8_t*, uint16_t> slot = std::move(std::pair<uint8_t*, uint16_t>{(uint8_t*)slot_char.first, slot_char.second}); //theres no fucking way that works...
-            //no fucking shot
-        auto ret = std::optional{std::move(slot)};
-        return ret;//what the fuck am i doing...
+        std::pair<uint8_t*, uint16_t> slot{(uint8_t*)bytes, len}; //theres no fucking way that works...
+        return slot;//what the fuck am i doing...
     }
 
 private:
@@ -150,7 +164,6 @@ private:
 
     char *data_; //invariant is this is valid  
         //should this be a Page?
-        //i dont really want to own this... maybe the buffer pool manager will own a list of pages? 
 };
 
 #endif
