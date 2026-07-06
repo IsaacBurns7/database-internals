@@ -69,8 +69,14 @@ Key BPlusTree::extractKey(const uint8_t *record, uint16_t len) const {
     //dead slots shouldn't exist in internal nodes... ?
 //oh shoot i forgot about the btstack...
 
-//returns first leaf slot where key >= target 
-FindRecordMetadata BPlusTree::findRecord(Key target){
+/*
+ * ARCHIVED — findRecordLinear(): the pre-binary-search implementation, kept
+ * only for reference. Superseded by the binary-search findRecord() below
+ * once SlottedPage::insertRecordAt() (see analysis.md Appendix 1) made
+ * physical slot order == key order, which is what a real binary search
+ * requires. Not compiled — this whole block is a comment.
+ *
+FindRecordMetadata BPlusTree::findRecordLinear(Key target){
     FindRecordMetadata ret{};
     BTStack bt_stack{};
 	char* current_page_data = new char[PAGE_SIZE];
@@ -178,7 +184,107 @@ FindRecordMetadata BPlusTree::findRecord(Key target){
 	// l is the first leaf slot where key >= target (or n if none is live and in range).
 	slot_id_t l = best_slot;
     ret.leaf_page = current_page_id;
-    ret.leaf_page = l;
+    ret.leaf_slot = l;
+    ret.bt_stack = std::move(bt_stack);
+    delete[] current_page_data;
+    return ret;
+}
+ *
+ * END ARCHIVED findRecordLinear()
+ */
+
+//returns first leaf slot where key >= target
+FindRecordMetadata BPlusTree::findRecord(Key target){
+    FindRecordMetadata ret{};
+    BTStack bt_stack{};
+	char* current_page_data = new char[PAGE_SIZE];
+	disk_manager_->readPage(root_page_id, current_page_data);
+	page_id_t current_page_id = root_page_id;
+
+	while (true) {
+		SlottedPage current_page(current_page_data);
+		if (current_page.getPageType() == SlottedPageType::LEAF_PAGE) break;
+
+		// Binary search over key-slots. Internal-node layout is pairs:
+		// slot 2*j holds key j, slot 2*j+1 holds the child page_id that
+		// follows it. Valid now that inserts place separator keys at their
+		// sorted position instead of appending (SlottedPage::insertRecordAt,
+		// see analysis.md Appendix 1) — physical slot order == key order.
+		// Internal-node key slots aren't expected to be tombstoned (there's
+		// no internal-node deletion path yet), so unlike the leaf search
+		// below, no dead-slot handling here.
+		slot_id_t n = current_page.getSlotCount();
+		slot_id_t num_keys = static_cast<slot_id_t>(n / 2);
+		slot_id_t lo = 0, hi = num_keys;
+		while (lo < hi) {
+			slot_id_t mid = static_cast<slot_id_t>(lo + (hi - lo) / 2);
+			auto [bytes, len] = current_page.getRecord(static_cast<slot_id_t>(mid * 2));
+			Key key = extractKey(reinterpret_cast<const uint8_t*>(bytes), len);
+			if (key.Compare(target) < 0) lo = static_cast<slot_id_t>(mid + 1);
+			else hi = mid;
+		}
+
+		// lo is the index of the first key >= target, or num_keys if none is.
+		// If none is, descend into the rightmost child — mirrors the old
+		// linear scan's "largest key seen" fallback, which under sorted
+		// order is simply the last key slot's child pointer.
+		slot_id_t page_slot = (lo < num_keys)
+		    ? static_cast<slot_id_t>(lo * 2 + 1)
+		    : static_cast<slot_id_t>(n - 1);
+
+		auto [page_bytes, page_len] = current_page.getRecord(page_slot);
+		page_id_t child_page_id;
+		std::memcpy(&child_page_id, page_bytes, sizeof(page_id_t));
+        bt_stack.push_back({current_page_id, page_slot});
+
+		disk_manager_->readPage(child_page_id, current_page_data);
+        current_page_id = child_page_id;
+
+    }
+
+	// Leaf binary search: every slot is a raw serialized tuple. extractKey()
+	// reads the key bytes directly at schema_->GetColumn(key_col_idx_).GetOffset()
+	// inside the record — no full Tuple::Deserialize, no heap allocations.
+	// Caveat: Column::GetOffset() only matches the serialized layout when no
+	// variable-length column precedes key_col_idx_ (Tuple::Serialize writes columns
+	// sequentially with no fixed/variable split yet, and no null bitmap prefix).
+	//
+	// Unlike the internal-node search above, leaf slots CAN be tombstoned —
+	// remove() calls deleteRecord(), which zeroes Slot.offset without
+	// shifting the array (analysis.md Appendix 1 scopes the fix to ordered
+	// insert only; delete stays tombstone-based). A tombstoned slot has no
+	// recoverable key, so a textbook binary search can't compare against it
+	// directly. When the probed slot is dead, scan forward for the nearest
+	// live slot to stand in for it: if one exists inside the current
+	// [lo, hi) bracket, use its position/key to decide the branch exactly as
+	// the vanilla binary search would; if the whole remaining bracket is
+	// dead, shrink hi to mid (the answer must be to the left). This stays
+	// close to O(log n) in the common case, degrading only near long
+	// tombstone runs.
+	SlottedPage leaf(current_page_data);
+	slot_id_t n = leaf.getSlotCount();
+	slot_id_t lo = 0, hi = n;
+	while (lo < hi) {
+		slot_id_t mid = static_cast<slot_id_t>(lo + (hi - lo) / 2);
+		slot_id_t probe = mid;
+		auto rec = leaf.getRecord(probe);
+		while (rec.second == 0 && probe < hi) {
+			probe = static_cast<slot_id_t>(probe + 1);
+			rec = leaf.getRecord(probe);
+		}
+		if (probe >= hi) {
+			hi = mid;  // [mid, hi) is entirely dead — answer lies left of mid
+			continue;
+		}
+		Key key = extractKey(reinterpret_cast<const uint8_t*>(rec.first), rec.second);
+		if (key.Compare(target) < 0) lo = static_cast<slot_id_t>(probe + 1);
+		else hi = probe;
+	}
+
+	// l is the first leaf slot where key >= target (or n if none is live and in range).
+	slot_id_t l = lo;
+    ret.leaf_page = current_page_id;
+    ret.leaf_slot = l;
     ret.bt_stack = std::move(bt_stack);
     delete[] current_page_data;
     return ret;
@@ -190,17 +296,23 @@ bool BPlusTree::insert(uint8_t* record, uint16_t len){
     char* page_data = new char[PAGE_SIZE];
     disk_manager_->readPage(find_record_metadata.leaf_page, page_data);
     SlottedPage leaf(page_data);
-    if(leaf.getFreeSpace() >= len || (leaf.compactify(), leaf.getFreeSpace() >= len)){
-		//insert record at slot_id_x - you have to shift the rest of slots through memmove (cheap)
-            //what the fuck does this comment mean?
-        // BE AWARE OF SHIFTS: this appends at slot_count, in INSERTION order, not key
-        // order — SlottedPage has no notion of "insert at the sorted position" today.
-        // This is the root cause of why findRecord's per-page searches can't binary
-        // search (see the comment block there) and why BPlusTreeIterator::Next()'s
-        // ascending-order walk/early-exit isn't sound yet either.
-        std::optional<slot_id_t> first_available_slot = leaf.insertRecord((const char*)record, len); //page dirty
-            //wait but doesn't the slot id need to be a key itself??
-    }else{
+    // insert at the sorted position findRecord() already computed —
+    // find_record_metadata.leaf_slot is lower_bound(key) within this leaf,
+    // which is exactly where this record belongs among its siblings.
+    // insertRecordAt() shifts the Slot[] array to open a gap there (see
+    // analysis.md Appendix 1), instead of appending at slot_count like the
+    // old insertRecord() call this replaces.
+    //
+    // No external getFreeSpace()/compactify() pre-check here on purpose:
+    // insertRecordAt() already tries compaction internally (and correctly
+    // re-translates leaf_slot across it — see slotted_page.cpp) before
+    // giving up. Pre-compacting out here would invalidate leaf_slot before
+    // insertRecordAt() ever saw it, since it was computed by findRecord()
+    // against the pre-compaction layout. A nullopt back from insertRecordAt()
+    // means "won't fit even after compaction" — exactly the split case.
+    std::optional<slot_id_t> first_available_slot =
+        leaf.insertRecordAt(find_record_metadata.leaf_slot, (const char*)record, len); //page dirty
+    if(!first_available_slot.has_value()){
         page_id_t new_child = splitChild(find_record_metadata.bt_stack, key); //what does it need key for??
             //updates keys according to strict min-key
         //find if you should insert at this page or the new page, and then insert!!
@@ -332,12 +444,17 @@ page_id_t BPlusTree::splitChild(BTStack bt_stack, Key child){
         //if not enough space
             //splitInternal(parent) -> this shouldnt update... ? 
         //insert key + page_id in parent node slots, first dead slot right after child 
-        //oh my god update... wtf...         
+        //oh my god update... wtf...   
     }
 
     delete[] new_page_data;
     delete[] child_page_data;
     delete[] right_sibling_data;
+}
+
+page_id_t BPlusTree::splitInternal(BTStack bt_stack, Key internal){
+    FindRecordMetadata internal_node_metadata = findRecord(internal);
+    
 }
 
 //take nodes left_child and left_child+1=right_child, and put keys into left_child. destroy right_child

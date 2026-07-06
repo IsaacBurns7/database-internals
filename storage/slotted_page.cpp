@@ -139,6 +139,72 @@ std::optional<slot_id_t> SlottedPage::insertRecord(const char* record, uint16_t 
 }
 
     /*
+     * Inserts a record at an explicit logical slot position, shifting the
+     * Slot[] array to open a gap — unlike insertRecord(), which always
+     * appends (or reuses the first tombstoned slot) regardless of key order.
+     * The caller (BPlusTree) is responsible for computing `logical_pos` via
+     * a key-ordered search; SlottedPage still never inspects the record's
+     * contents, only where it's told to place it.
+     *
+     * Always grows the slot array by one — never reuses a tombstoned slot,
+     * since reuse would require the tombstone to already sit at exactly
+     * logical_pos, which generally isn't true. Every existing entry at
+     * index >= logical_pos has its slot_id shifted up by one: slot rank is
+     * NOT stable across this call (see analysis.md Appendix 1 — "(1a)
+     * ordered insert"). deleteRecord() is untouched by this change and still
+     * tombstones without shifting.
+     *
+     * Returns std::nullopt if length == 0, logical_pos is out of range
+     * (> current slot count), or there isn't enough space even after
+     * compactify().
+     *
+     * NOTE on compactify() interaction: compactify() now also drops dead
+     * (tombstoned) entries from the Slot[] array (see compactify()), which
+     * would silently invalidate logical_pos — it was computed by the caller
+     * against the pre-compaction layout. Before compacting, this counts how
+     * many of the entries strictly before logical_pos are live; that count
+     * is exactly logical_pos's new position once the dead ones ahead of it
+     * are gone, since compaction only ever removes entries and never
+     * reorders the live ones.
+     */
+std::optional<slot_id_t> SlottedPage::insertRecordAt(slot_id_t logical_pos, const char* record, uint16_t length){
+	if(length == 0) return std::nullopt;
+	SlottedPageHeader* header = GetHeader();
+	if(logical_pos > header->max_slot_id) return std::nullopt;
+
+	uint16_t space_needed = length + sizeof(Slot); //always a brand-new slot, never reused
+	if(space_needed > getTotalFreeSpace()) return std::nullopt;
+
+	if(!canInsertContigious(length, /*needs_new_slot=*/true)){
+		slot_id_t live_before = 0;
+		for(slot_id_t i = 0; i < logical_pos; i++){
+			const Slot* s = GetSlot(i).value_or(nullptr);
+			if(s && s->offset != 0) live_before++;
+		}
+		compactify();
+		logical_pos = live_before;
+	}
+
+	//insert record into the heap (identical to insertRecord)
+	header->free_space_ptr -= length;
+	uint16_t new_offset = header->free_space_ptr;
+	std::memcpy(data_ + new_offset, record, length);
+
+	//open a gap at logical_pos by shifting every later slot up by one
+	uint16_t num_to_shift = header->max_slot_id - logical_pos;
+	char* shift_start = data_ + sizeof(SlottedPageHeader) + sizeof(Slot) * logical_pos;
+	std::memmove(shift_start + sizeof(Slot), shift_start, num_to_shift * sizeof(Slot));
+	header->max_slot_id++;
+
+	Slot* new_slot = GetSlot(logical_pos).value_or(nullptr); //now in range: max_slot_id just grew past logical_pos
+	assert(new_slot != nullptr);
+	new_slot->offset = new_offset;
+	new_slot->size = length;
+
+	return logical_pos;
+}
+
+    /*
      * Marks slot `slot_id` as deleted by setting Slot.length = 0 (tombstone).
      * The bytes in the heap are not zeroed. Free space does not increase until
      * compactify() reclaims the gap.
@@ -186,53 +252,69 @@ bool SlottedPage::updateRecord(slot_id_t slot_id, const char* record, uint16_t l
 }	
 
     /*
-     * Defragments the record heap in-place. Scans all live slots, packs their
+     * Defragments the record heap in-place: scans all live slots, packs their
      * records contiguously at the end of the page, updates slot offsets to
-     * match new positions, resets free_space_ptr. Slot indices (slot_ids)
-     * do NOT change — this is the invariant the B+Tree depends on.
+     * match new positions, resets free_space_ptr.
+     *
+     * Also drops dead (tombstoned) entries from the Slot[] array itself,
+     * shrinking max_slot_id to the live count — this used to be considered
+     * unsafe ("would require changing all the references in our B+Tree"),
+     * but BPlusTree never actually holds a slot_id across calls: every
+     * operation re-derives its position fresh via findRecord() rather than
+     * caching a (page_id, slot_id) handle. Without this step, max_slot_id —
+     * and the array's footprint in the page — only ever grows under
+     * insert/delete churn, since insertRecordAt() never reuses a tombstoned
+     * array position (see analysis.md Appendix 1). Relative order of live
+     * slots is preserved, so this cannot disturb key order.
+     *
      * Should be called when getFreeSpace() < needed but getTotalFreeSpace()
      * (including fragmented gaps) >= needed.
-     * After calling this, any previously obtained getRecord() spans are stale.
+     * After calling this, any previously obtained getRecord() spans, AND any
+     * previously computed slot_id/logical position into this page, are
+     * stale — see insertRecordAt()'s internal handling of this for its own
+     * compaction fallback.
      */
 void SlottedPage::compactify(){
 	//sort by offset descending
 	SlottedPageHeader* header = GetHeader();
 	std::vector<Slot*> live_slots;
 	for(uint16_t i = 0;i < header->max_slot_id;i++){
-		Slot* slot = GetSlot(i).value_or(nullptr);  
+		Slot* slot = GetSlot(i).value_or(nullptr);
 		if(slot && slot->offset != 0){
 			live_slots.push_back(slot);
 		}
 	}
-	std::sort(live_slots.begin(), live_slots.end(), 
+	std::sort(live_slots.begin(), live_slots.end(),
 		[](Slot* a, Slot* b){
-			return a->offset > b->offset; 	
+			return a->offset > b->offset;
 		}
 	);
 
-	//compactify records 
+	//compactify records
 	uint16_t current_free_ptr = PAGE_SIZE;
 	for(Slot* slot : live_slots){
-		current_free_ptr -= slot->size; 
+		current_free_ptr -= slot->size;
 		if(slot->offset != current_free_ptr){
 			memmove(data_ + current_free_ptr, data_ + slot->offset, slot->size);
-			slot->offset = current_free_ptr; 
+			slot->offset = current_free_ptr;
 		}
 	}
-	header->free_space_ptr = current_free_ptr; 
-	
-	//slot array trimming - we cant directly compactify slots because that would require changing all the references in our B+ Tree which would be inordinately expensive.
-	uint16_t new_max_slot_id = header->max_slot_id; 
-	for(int i = header->max_slot_id-1;i >= 0;i--){
-		Slot* slot = GetSlot(i).value_or(nullptr); 
-		if(slot && slot->offset != 0){
-			new_max_slot_id = i+1; 
-			break;
+	header->free_space_ptr = current_free_ptr;
+
+	//drop dead entries from the Slot[] array, preserving live relative order
+	//(a stable in-place filter — write_idx never runs ahead of read_idx)
+	uint16_t write_idx = 0;
+	for(uint16_t read_idx = 0; read_idx < header->max_slot_id; read_idx++){
+		Slot* read_slot = GetSlot(read_idx).value_or(nullptr);
+		if(read_slot && read_slot->offset != 0){
+			if(write_idx != read_idx){
+				Slot* write_slot = GetSlot(write_idx).value_or(nullptr);
+				*write_slot = *read_slot;
+			}
+			write_idx++;
 		}
-		//all slots are dead.
-		if(i == 0) new_max_slot_id == 0;
 	}
-	header->max_slot_id = new_max_slot_id; 
+	header->max_slot_id = write_idx;
 }
 
     /*
@@ -248,19 +330,24 @@ uint16_t SlottedPage::getFreeSpace() const {
 }
 
     /*
-     * Returns total reclaimable free bytes: contiguous free space plus the
-     * sum of lengths of all deleted (tombstoned) slots. If this is >= the
-     * needed size but getFreeSpace() is not, compactify() will help.
+     * Returns total reclaimable free bytes: contiguous free space, plus the
+     * heap bytes AND the Slot[] array entry of every deleted (tombstoned)
+     * slot — compactify() now reclaims both (see compactify()), not just
+     * the heap bytes, so both must count here for this to correctly predict
+     * whether compaction will free enough room. If this is >= the needed
+     * size but getFreeSpace() is not, compactify() will help.
      */
 uint16_t SlottedPage::getTotalFreeSpace() const {
 	const SlottedPageHeader* header = GetHeader();
-	//start with gap in the middle 
-	int32_t space = header->free_space_ptr - (sizeof(SlottedPageHeader) + sizeof(Slot) * header->max_slot_id); 
-	//add back space from dead slots - tombstones 
+	//start with gap in the middle
+	int32_t space = header->free_space_ptr - (sizeof(SlottedPageHeader) + sizeof(Slot) * header->max_slot_id);
+	//add back space from dead slots - tombstones: their heap bytes plus the
+	//Slot[] array entry itself
 	for(uint16_t i = 0;i < header->max_slot_id;i++){
 		auto slot = GetSlot(i);
-		if(!slot && (*slot)->offset == 0){
+		if(slot && (*slot)->offset == 0){
 			space += (*slot)->size;
+			space += sizeof(Slot);
 		}
 	}
 	return (space < 0) ? 0 : static_cast<uint16_t>(space);

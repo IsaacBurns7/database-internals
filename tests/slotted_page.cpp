@@ -1,4 +1,4 @@
-#include <gtest/gtest.h>
+#page include <gtest/gtest.h>
 #include <vector>
 #include <string>
 #include <cstring>
@@ -101,6 +101,12 @@ TEST_F(SlottedPageTest, CompactionTest) {
     auto s2 = page->insertRecord(r2.data(), r2.length());
     auto s3 = page->insertRecord(r3.data(), r3.length());
 
+    // Only asserting insertion succeeded here — not "and s1/s3 stay valid
+    // handles after later mutations," which is exactly the assumption this
+    // test is no longer allowed to make (see below).
+    ASSERT_TRUE(s1.has_value());
+    ASSERT_TRUE(s3.has_value());
+
     // 2. Delete the middle record to create a gap
     page->deleteRecord(s2.value());
     uint16_t freeBefore = page->getFreeSpace();
@@ -108,13 +114,31 @@ TEST_F(SlottedPageTest, CompactionTest) {
     // 3. Force compaction
     page->compactify();
 
-    // 4. Verify data integrity of remaining records
-    auto res1 = page->getRecord(s1.value());
-    auto res3 = page->getRecord(s3.value());
+    // 4. Verify data integrity of remaining records.
+    //
+    // Deliberately does NOT reuse s1.value()/s3.value() here: those slot_ids
+    // were captured BEFORE the delete + compactify() mutation above, and
+    // this test must not assume a slot_id retains its meaning across a
+    // mutation of the page. (compactify() only relocates heap bytes today,
+    // so s1/s3 happen to still resolve correctly — but a design that also
+    // shifts the Slot[] array on delete/compaction, per Appendix 1's
+    // "shift-on-delete" direction, would move r3 to a different slot_id
+    // without this test being any less correct.) Instead, scan every
+    // currently-live slot and check by content.
+    bool found_r1 = false, found_r2 = false, found_r3 = false;
+    for (uint16_t i = 0; i < page->getSlotCount(); ++i) {
+        auto rec = page->getRecord(i);
+        if (rec.first == nullptr) continue;  // dead/tombstoned slot
+        std::string content(rec.first, rec.second);
+        if (content == r1) found_r1 = true;
+        if (content == r2) found_r2 = true;
+        if (content == r3) found_r3 = true;
+    }
 
-    EXPECT_EQ(std::string(res1.first, res1.second), r1);
-    EXPECT_EQ(std::string(res3.first, res3.second), r3);
-    
+    EXPECT_TRUE(found_r1);
+    EXPECT_TRUE(found_r3);
+    EXPECT_FALSE(found_r2);  // deleted before compaction — must not reappear
+
     // 5. Contiguous free space should have increased
     EXPECT_GT(page->getFreeSpace(), freeBefore);
 }

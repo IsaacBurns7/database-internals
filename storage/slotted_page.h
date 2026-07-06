@@ -95,6 +95,7 @@ public:
     explicit SlottedPage(char* data);
     void init(page_id_t page_id, SlottedPageType page_type);
     std::optional<slot_id_t> insertRecord(const char* record, uint16_t length);
+    std::optional<slot_id_t> insertRecordAt(slot_id_t logical_pos, const char* record, uint16_t length);
     bool deleteRecord(slot_id_t slot_id);
     std::pair<const char*, uint16_t> getRecord(slot_id_t slot_id) const;
     bool updateRecord(slot_id_t slot_id, const char* record, uint16_t length);
@@ -144,3 +145,93 @@ private:
 		return header->max_slot_id;
 	}
 };
+
+/*
+ * ============================================================================
+ * REFACTORING DIRECTIONS — candidate designs for fixing the insertion-order
+ * problem (insertRecord() currently appends at find_first_free_slot_id(),
+ * i.e. insertion order, not key order — see the FIX_SLOT_ID discussion).
+ * None of these are implemented. Each entry states: the core change, the
+ * invariant it establishes (what becomes true/false about slot identity and
+ * order after adopting it), and why that invariant is useful to have.
+ * ============================================================================
+ *
+ * (1) IN-PLACE SORTED SHIFT — insertRecordAt(logical_pos, record, len)
+ *     Change: caller (BPlusTree) computes the sorted position; SlottedPage
+ *       memmove's the Slot[] array to open a gap at that index, writes the
+ *       new slot there, max_slot_id++. Same idea applies to delete: shift
+ *       the array down instead of tombstoning.
+ *     Invariant: physical slot order == key order, always. Slot rank is
+ *       NOT stable — inserting/deleting anywhere before an entry changes
+ *       every later entry's index. No external structure may hold onto a
+ *       slot index across a mutation of the same page.
+ *     Why useful: this is the minimum change that makes findRecord's binary
+ *       search valid and BPlusTreeIterator::Next()'s ascending-walk
+ *       assumption true. Cheapest to implement, cheapest to reason about,
+ *       and matches how Postgres's nbtree (B-tree index) pages behave —
+ *       see FIX_SLOT_ID appendix in analysis.md for the full comparison.
+ *
+ * (2) LOGICAL-ORDER INDIRECTION ARRAY (the design sketched in the original
+ *     findRecord() comments, kept here for contrast)
+ *     Change: physical Slot[] stays append-only/stable forever (today's
+ *       behavior, untouched). A second small array of slot indices, kept
+ *       sorted by key, is maintained alongside it; binary search walks the
+ *       order array, not the physical array. Insert/delete only ever
+ *       memmove entries within the (tiny, index-sized) order array.
+ *     Invariant: physical slot_id is a permanent handle — once assigned, it
+ *       never changes for the lifetime of the page. Order is enforced by a
+ *       second structure, not by physical position.
+ *     Why useful: matters only if something outside the page will someday
+ *       store (page_id, slot_id) as a durable pointer — e.g. a future
+ *       secondary index pointing into these pages the way Postgres TIDs
+ *       point into heap pages. Not needed for this project today (no
+ *       secondary indexes exist), so this is strictly more bookkeeping
+ *       (an extra array, an extra indirection on every lookup) for an
+ *       invariant nothing currently relies on. Worth revisiting only if
+ *       secondary indexes get planned.
+ *
+ * (3) REDIRECT-ON-DEMAND (hybrid of 1 and 2, modeled on Postgres HOT /
+ *     LP_REDIRECT line pointers)
+ *     Change: default to (1) — slots shift freely. But the moment some
+ *       external structure needs a durable handle to a specific record, that
+ *       slot is converted to a permanent "redirect" stub (never moves again,
+ *       never reused) whose payload is just "the record actually lives at
+ *       slot X now" — updated whenever the real entry's position changes.
+ *     Invariant: slot stability is opt-in and paid for only by the records
+ *       that need it, not by every record in the page.
+ *     Why useful: gets you (2)'s external-pointer durability without (2)'s
+ *       blanket overhead. Meaningfully more complex to implement/test than
+ *       either (1) or (2) alone — only worth it if most records never need a
+ *       durable external handle but a few do.
+ *
+ * (4) SPLIT INTO TWO PAGE CONTRACTS — HeapPage vs IndexPage
+ *     Change: factor today's SlottedPage into a shared low-level "physical
+ *       slot array + record heap" primitive, then layer two distinct
+ *       policies on top: a Heap policy (append/reuse-first-free, slot_id
+ *       stable forever, no order guarantee — today's actual behavior) and an
+ *       Index policy (sorted insert/delete via (1), rank not stable). Pick
+ *       the policy per page based on SlottedPageType.
+ *     Invariant: each page type gets an honest, distinct contract instead of
+ *       one class trying to satisfy both at once.
+ *     Why useful: this codebase already has heap_organized_table.cpp and
+ *       index_organized_table.cpp under ch1/, i.e. heap-organized tables are
+ *       an explicit future direction, not a hypothetical. The current bug is
+ *       exactly "a heap-page policy (find_first_free_slot_id) applied to a
+ *       page that's actually playing an index-page role" — splitting the
+ *       contract now means this exact confusion can't recur when a real heap
+ *       table gets built later.
+ *
+ * (5) BULK/APPEND-SORTED FAST PATH for splitChild()
+ *     Change: add an insertSortedRange()-style bulk op for the specific case
+ *       of populating a freshly-initialized (empty) page with records already
+ *       known to be in ascending key order — e.g. the right half of a split.
+ *       On an empty page, "append in order" and "insert in sorted position"
+ *       are the same operation, so no per-record shifting is needed at all.
+ *     Invariant: none new — this is a fast path for a case (1) already
+ *       handles correctly, not a new ordering guarantee.
+ *     Why useful: splitChild() today does per-record delete+insert in a loop;
+ *       once (1) makes every insert a potential O(n) shift, splitting a full
+ *       page one record at a time becomes O(n^2). A bulk path restores O(n)
+ *       for the one place this actually matters — worth flagging even though
+ *       it's a performance refactor, not a correctness one.
+ */

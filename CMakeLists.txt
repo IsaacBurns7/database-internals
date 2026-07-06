@@ -43,7 +43,7 @@ add_library(index_logic
 # is where searches for "common/..." or "storage/..." should start.
 target_include_directories(storage_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(type_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_include_directories(index_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(index_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/storage)
 # --- 3. Main Executable ---
 add_executable(storage_viz tests/storage_viz.cpp)
 target_link_libraries(storage_viz PRIVATE storage_logic)

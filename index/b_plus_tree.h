@@ -3,6 +3,7 @@
 #define INDEX_TREE
 
 #include "storage/disk_manager.h"
+#include "storage/slotted_page.h"
 #include "common/config.h"
 #include "index/key.h"
 #include "type/schema.h"
@@ -83,6 +84,7 @@ private:
         //use in remove(): needs slot_id_x
 
 	page_id_t splitChild(BTStack bt_stack, Key child); //returns new child
+    page_id_t splitInternal(BTStack bt_stack, Key internal); //returns new internal 
 	void merge(page_id_t parent_node, BTStack bt_stack, Key left_child); //could also input right child
 		//take nodes left_child and left_child+1=right_child, and put keys into left_child. destroy right_child
 		//remember to delete right_child key, shouldn't affect left_child key(strict min-key)
@@ -107,10 +109,59 @@ private:
  * slot-by-slot and across sibling pointers instead of a single lookup.
  * NOT YET IMPLEMENTED — declarations only.
  */
+
+/*
+ * ============================================================================
+ * ITERATOR DESIGN — Next() and the slot_id-shifts-under-mutation problem
+ * ============================================================================
+ * SlottedPage::insertRecordAt() (analysis.md Appendix 1) makes physical slot
+ * order == key order WITHIN a page, but slot_id itself is not a stable
+ * handle across mutations: an insert anywhere before a cached slot_id shifts
+ * it forward, and compactify() (which now also drops tombstoned entries from
+ * Slot[], see slotted_page.cpp) can shift it backward or invalidate it
+ * outright. Next() below no longer caches slot_id_ across calls — see
+ * DIRECTION (A), implemented below. (B) and (C) are documented but not
+ * implemented — both depend on infrastructure that doesn't exist yet.
+ *
+ * (A) RE-SEEK BY KEY — IMPLEMENTED
+ *     Next() caches last_key_ (the last key emitted) instead of a slot_id.
+ *     Every call re-runs a binary search (seekFirstAfter(), the same
+ *     tombstone-aware shape as BPlusTree::findRecord()'s leaf search) against
+ *     the CURRENT state of the page to relocate the next record, rather than
+ *     trusting a stored index. The only slot_id ever held onto is
+ *     start_slot_, and only until the first call sets last_key_ — after
+ *     that, no slot_id is cached again. Costs an extra O(log n) search per
+ *     Next() instead of an O(1) increment, in exchange for never trusting a
+ *     position across a mutation boundary.
+ *
+ * (B) LATCH THE PAGE FOR THE ITERATOR'S LIFETIME ON IT — FUTURE, needs latch
+ *     crabbing. Once real page-level latching exists (see the "will
+ *     implement latch crabbing for concurrency" note on BPlusTree), Next()
+ *     could take a read latch on page_id_ on arrival and hold it until
+ *     crossing to the right sibling — at which point slot_id_++ becomes
+ *     valid again and (A)'s per-call search cost goes away, because
+ *     concurrent mutation of a latched page is externally forbidden rather
+ *     than defended against by re-deriving position. Not worth building
+ *     before latch crabbing lands — there is nothing yet to latch against,
+ *     and there is no mutex anywhere in this codebase today (per
+ *     analysis.md).
+ *
+ * (C) MATERIALIZE THE PAGE ONCE PER CROSSING — FUTURE, needs MVCC. Once
+ *     multi-version reads exist, the iterator could copy every version-
+ *     visible live slot's (key, record) into a local buffer once per sibling
+ *     crossing and walk that local copy instead of re-deriving position from
+ *     the live page on every Next() call. This is the natural home for
+ *     snapshot isolation: "what this iterator sees" would already need to be
+ *     pinned to a read timestamp/snapshot, so materializing at that
+ *     snapshot once per page is a natural side effect of MVCC rather than an
+ *     ad hoc, undocumented staleness window the way it would be without
+ *     version tracking. Revisit once MVCC scoping starts.
+ * ============================================================================
+ */
 class BPlusTreeIterator {
 public:
     BPlusTreeIterator(BPlusTree *tree, page_id_t start_page, slot_id_t start_slot, Key end):
-        tree_(tree), page_id_(start_page), slot_id_(start_slot), end_(end){
+        tree_(tree), page_id_(start_page), start_slot_(start_slot), end_(end){
             data_ = new char[PAGE_SIZE];
             tree_->disk_manager_->readPage(start_page, data_);
         }
@@ -121,48 +172,66 @@ public:
     // exhausted. Returns std::nullopt once the extracted key exceeds end_,
     // or once there is no right sibling left to cross into.
     //
-    // BE AWARE OF SHIFTS: unlike findRecord (which now does a linear scan per page),
-    // this walk can't just switch to a linear scan and call it fixed. It assumes
-    // ascending key order both WITHIN a page (slot_id_++ visits keys in increasing
-    // order) and ACROSS sibling-linked pages, and it exits as soon as it sees one
-    // key past end_. SlottedPage::insertRecord() only appends in insertion order
-    // (see the BE AWARE comment in insert()), so neither assumption holds today:
-    // a scan can terminate early while later slot_ids still hold in-range records,
-    // or emit rows out of key order within a page. Fixing this needs either the
-    // sorted logical-order index described in findRecord's comment, or scanning a
-    // whole page (no early exit on end_) and sorting its live slots before
-    // emitting them — not implemented yet.
+    // Implements DIRECTION (A) above: position is re-derived from last_key_
+    // via seekFirstAfter() every call, never trusted as a cached slot_id.
     std::optional<std::pair<uint8_t*, uint16_t>> Next(){
         SlottedPage current_page = SlottedPage(data_);
-        slot_id_t max_slot_id = current_page.getSlotCount();
-        while(current_page.getRecord(slot_id_).second == 0){ //slot w/ length of 0 -> dead 
-            //check end_
-            auto [bytes, len] = current_page.getRecord(slot_id_);
-            Key key = tree_->extractKey((uint8_t*)bytes, len);
-            if(!key.Compare(end_)) return std::nullopt;
-            //go to right sibling(next page)
-            if(slot_id_ == max_slot_id){
-                page_id_ = current_page.getRightSibling();
-                tree_->disk_manager_->readPage(page_id_, data_);
-                current_page = SlottedPage(data_);
-                slot_id_ = -1; //this will wrap around back to 0 if we add 1 more. :<
-                max_slot_id = current_page.getSlotCount();
+        slot_id_t pos = last_key_.has_value()
+            ? seekFirstAfter(current_page, *last_key_)
+            : start_slot_;
+
+        while(true){
+            slot_id_t n = current_page.getSlotCount();
+            while(pos < n && current_page.getRecord(pos).second == 0) pos++; //skip tombstones
+
+            if(pos < n){
+                auto [bytes, len] = current_page.getRecord(pos);
+                Key key = tree_->extractKey(reinterpret_cast<const uint8_t*>(bytes), len);
+                if(key.Compare(end_) > 0) return std::nullopt; //past the range
+                last_key_ = key;
+                return std::pair<uint8_t*, uint16_t>{(uint8_t*)bytes, len};
             }
-            slot_id_++; 
+
+            //page exhausted — cross to right sibling and resume from its start
+            page_id_t right = current_page.getRightSibling();
+            if(right == INVALID_PAGE_ID) return std::nullopt;
+            page_id_ = right;
+            tree_->disk_manager_->readPage(page_id_, data_);
+            current_page = SlottedPage(data_);
+            pos = 0;
         }
-        auto [bytes, len] = current_page.getRecord(slot_id_);
-        slot_id_++;
-        std::pair<uint8_t*, uint16_t> slot{(uint8_t*)bytes, len}; //theres no fucking way that works...
-        return slot;//what the fuck am i doing...
     }
 
 private:
+    // Tombstone-aware strict upper_bound: first live slot whose key is
+    // greater than `key`. Mirrors BPlusTree::findRecord()'s leaf-level
+    // binary search, just with a strict-greater comparator instead of >=,
+    // since we want the record AFTER the last one already emitted.
+    slot_id_t seekFirstAfter(SlottedPage& page, const Key& key) const {
+        slot_id_t lo = 0, hi = page.getSlotCount();
+        while(lo < hi){
+            slot_id_t mid = static_cast<slot_id_t>(lo + (hi - lo) / 2);
+            slot_id_t probe = mid;
+            auto rec = page.getRecord(probe);
+            while(rec.second == 0 && probe < hi){
+                probe = static_cast<slot_id_t>(probe + 1);
+                rec = page.getRecord(probe);
+            }
+            if(probe >= hi){ hi = mid; continue; } //[mid, hi) entirely dead — answer lies left
+            Key probe_key = tree_->extractKey(reinterpret_cast<const uint8_t*>(rec.first), rec.second);
+            if(probe_key.Compare(key) <= 0) lo = static_cast<slot_id_t>(probe + 1);
+            else hi = probe;
+        }
+        return lo;
+    }
+
 	BPlusTree *tree_;
 	page_id_t page_id_;
-	slot_id_t slot_id_;
+	slot_id_t start_slot_;          // only consulted before last_key_ is set (the very first call)
+	std::optional<Key> last_key_;   // last key emitted; drives seekFirstAfter() on every later call
     Key end_;
 
-    char *data_; //invariant is this is valid  
+    char *data_; //invariant is this is valid
         //should this be a Page?
 };
 
