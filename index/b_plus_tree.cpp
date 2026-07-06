@@ -439,22 +439,208 @@ page_id_t BPlusTree::splitChild(BTStack bt_stack, Key child){
     }
     child_page.compactify();
 
-    for(size_t i = bt_stack.size()-1; i > 0; --i){
-        auto [parent_page_id, child_slot] = bt_stack[i];
-        //if not enough space
-            //splitInternal(parent) -> this shouldnt update... ? 
-        //insert key + page_id in parent node slots, first dead slot right after child 
-        //oh my god update... wtf...   
+    // Deriving the new separator: the pivot's key was COPIED into new_page
+    // (see the KEY PROMOTION vs KEY COPY-UP comment above), so a stable copy
+    // of it lives at new_page slot 0 — read it from there instead of from
+    // child_page, whose copy of it is about to be reclaimed by the
+    // compactify() call below (it was tombstoned by the move loop).
+    auto [pivot_bytes, pivot_len] = new_page.getRecord(0);
+    Key pivot_key = extractKey(reinterpret_cast<const uint8_t*>(pivot_bytes), pivot_len);
+
+    if(bt_stack.empty()){
+        // child_metadata.leaf_page had no parent — it WAS the root. Build a
+        // fresh internal root over {it, fresh_page_id} instead of inserting
+        // a separator into a parent that doesn't exist. See splitRoot().
+        splitRoot(child_metadata.leaf_page, pivot_key, fresh_page_id);
+    } else {
+        insertIntoParent(bt_stack, pivot_key, fresh_page_id);
     }
 
     delete[] new_page_data;
     delete[] child_page_data;
     delete[] right_sibling_data;
+    return fresh_page_id;
 }
 
+// Inserts a new (separator_key, new_right_page_id) separator pair into the
+// correct ancestor, recursively splitting that ancestor first if it's full.
+// Shared by splitChild() and splitInternal() — both arrive here having
+// already built their new right sibling and just need it wired into the
+// tree above. bt_stack.back().page_id must be the DIRECT parent to insert
+// into (same contract splitInternal() itself expects of its own bt_stack).
+void BPlusTree::insertIntoParent(BTStack bt_stack, Key separator_key, page_id_t new_right_page_id){
+    page_id_t parent_page_id = bt_stack.back().page_id;
+    char* parent_page_data = new char[PAGE_SIZE];
+    disk_manager_->readPage(parent_page_id, parent_page_data);
+    SlottedPage parent_page(parent_page_data);
+    uint16_t needed_space = separator_key.GetSize() + sizeof(page_id_t) + sizeof(Slot) * 2; //[key, page_id] slot pair
+
+    if(parent_page.getFreeSpace() < needed_space){
+        parent_page.compactify();
+        // Internal-node key slots are never tombstoned (no internal-node
+        // delete path exists yet), so compactify() never drops an entry
+        // here — logical slot positions are unaffected, nothing to reform.
+    }
+    if(parent_page.getFreeSpace() < needed_space){
+        // Still doesn't fit — parent_page itself must split first.
+        // bt_stack.back().page_id already IS parent_page_id, which is
+        // exactly what splitInternal expects (see its doc comment), so it's
+        // passed through unmodified rather than trimmed.
+        page_id_t new_candidate_parent = splitInternal(bt_stack, separator_key);
+
+        char* new_parent_page_data = new char[PAGE_SIZE];
+        disk_manager_->readPage(new_candidate_parent, new_parent_page_data);
+        SlottedPage new_parent_page(new_parent_page_data);
+
+        // First slot should always exist — splitInternal never returns an
+        // empty right node. Keys can't tie (would imply a duplicate key),
+        // so this comparison always picks a side.
+        auto [first_key_bytes, first_key_len] = new_parent_page.getRecord(0);
+        Key first_key = extractKey(reinterpret_cast<const uint8_t*>(first_key_bytes), first_key_len);
+        if(first_key.Compare(separator_key) < 0){
+            // new node's smallest key is still <= separator_key —
+            // separator_key belongs in the new right node, not the original.
+            parent_page_id = new_candidate_parent;
+        }
+        delete[] new_parent_page_data;
+
+        // parent_page_id's on-disk contents changed under splitInternal —
+        // re-read so parent_page reflects the post-split state rather than
+        // the pre-split copy taken above.
+        disk_manager_->readPage(parent_page_id, parent_page_data);
+        parent_page = SlottedPage(parent_page_data);
+    }
+
+    // parent_page/parent_page_id are now the correct direct parent.
+    // Binary search for separator_key among its (key, child) slot pairs —
+    // same shape as findRecord()'s internal-node search — to find where the
+    // new separator pair belongs.
+    slot_id_t n = parent_page.getSlotCount();
+    slot_id_t num_keys = static_cast<slot_id_t>(n / 2);
+    slot_id_t lo = 0, hi = num_keys;
+    while(lo < hi){
+        slot_id_t mid = static_cast<slot_id_t>(lo + (hi - lo) / 2);
+        auto [bytes, len] = parent_page.getRecord(static_cast<slot_id_t>(mid * 2));
+        Key key = extractKey(reinterpret_cast<const uint8_t*>(bytes), len);
+        if(key.Compare(separator_key) < 0) lo = static_cast<slot_id_t>(mid + 1);
+        else hi = mid;
+    }
+    slot_id_t logical_pos = static_cast<slot_id_t>(lo * 2);
+    parent_page.insertRecordAt(logical_pos, reinterpret_cast<const char*>(separator_key.GetData()), separator_key.GetSize());
+    parent_page.insertRecordAt(static_cast<slot_id_t>(logical_pos + 1),
+                                reinterpret_cast<const char*>(&new_right_page_id), sizeof(new_right_page_id));
+    //update via diskmanager (no bufferpoolmanager yet)
+
+    delete[] parent_page_data;
+}
+
+// Splits an internal node, mirroring splitChild()'s shape:
+//   - splitChild locates its leaf via findRecord(child) because findRecord()
+//     naturally walks down TO a leaf. That trick doesn't work here — findRecord()
+//     always descends past internal nodes, it can never stop at one. The node
+//     being split is already known without it: it's the one the caller is
+//     splitting because inserting into it failed, i.e. bt_stack.back().page_id.
+//     So `internal` goes unused, same as `child` in splitChild is only ever
+//     used for that same lookup and nothing else.
+//   - Layout is uniform (key, child) pairs (slot 2j/2j+1), chosen so every
+//     child — including slot 0 — carries its own explicit min-key (see the
+//     internal-node-layout discussion). That means, unlike the leaf-split
+//     comment above about promotion vs copy-up: under THIS layout the pivot
+//     pair's key is copied up to the parent as the new separator (once the
+//     ancestor-update loop below is filled in) but ALSO travels with its
+//     child into the new right node, exactly like splitChild's leaf pivot.
+//     Nothing is "spent" — the redundancy is the whole point of this layout.
+//   - pivot is chosen key-index-first (num_keys/2) then doubled to land on a
+//     slot boundary, so it always lands exactly on a (key, child) pair —
+//     never splits one down the middle. No tombstone-walk like splitChild's
+//     leaf pivot needs: internal key slots are never tombstoned (no
+//     internal-node deletion path exists yet — see findRecord()'s comment).
+//   - internal nodes don't participate in sibling-linked range scans (only
+//     leaves do), so no left/right sibling bookkeeping — SlottedPage::init()
+//     already defaults both to INVALID_PAGE_ID.
 page_id_t BPlusTree::splitInternal(BTStack bt_stack, Key internal){
-    FindRecordMetadata internal_node_metadata = findRecord(internal);
-    
+    page_id_t node_page_id = bt_stack.back().page_id;
+    char* new_page_data = new char[PAGE_SIZE];
+    char* node_page_data = new char[PAGE_SIZE];
+    page_id_t fresh_page_id = disk_manager_->allocatePage();
+    disk_manager_->readPage(fresh_page_id, new_page_data);
+    disk_manager_->readPage(node_page_id, node_page_data);
+
+    SlottedPage node_page(node_page_data);
+    slot_id_t slot_count = node_page.getSlotCount();       // n = 2 * num_keys
+    slot_id_t num_keys = static_cast<slot_id_t>(slot_count / 2);
+    slot_id_t pivot_key = static_cast<slot_id_t>(num_keys / 2);
+    slot_id_t pivot = static_cast<slot_id_t>(pivot_key * 2); // always pair-aligned
+
+    SlottedPage new_page(new_page_data);
+    new_page.init(fresh_page_id, SlottedPageType::INTERNAL_PAGE);
+
+    //move [pivot, end] into new right node — same loop shape as splitChild,
+    //just without sibling-pointer bookkeeping
+    for(slot_id_t slot = pivot; slot < slot_count; ++slot){
+        auto [bytes, len] = node_page.getRecord(slot);
+        new_page.insertRecord(bytes, len);
+        node_page.deleteRecord(slot);
+    }
+    node_page.compactify();
+
+    // Pivot pair is copied up, not promoted (see the comment above this
+    // function) — it also travels with its child into new_page, landing at
+    // new_page's own slot 0.
+    auto [separator_bytes, separator_len] = new_page.getRecord(0);
+    Key separator_key = extractKey(reinterpret_cast<const uint8_t*>(separator_bytes), separator_len);
+
+    BTStack parent_stack = bt_stack;
+    parent_stack.pop_back(); // node_page_id's own parent, one level up from node_page_id itself
+    if(parent_stack.empty()){
+        // node_page_id had no parent — it WAS the root.
+        splitRoot(node_page_id, separator_key, fresh_page_id);
+    } else {
+        insertIntoParent(parent_stack, separator_key, fresh_page_id);
+    }
+
+    delete[] new_page_data;
+    delete[] node_page_data;
+    return fresh_page_id;
+}
+
+// Called once the node that just split (leaf or internal) turns out to have
+// had no parent — bt_stack was empty, meaning that node WAS root_page_id.
+// Builds a fresh two-child internal root over {left_child_id, right_child_id}
+// and repoints the tree at it.
+//
+// left_child_id's own min-key doesn't need a walk down to the leftmost leaf:
+// under strict min-key with the explicit-min-key-per-child layout, whatever
+// key already sits at left_child_id's own slot 0 (raw key slot if it's an
+// internal page, first tuple if it's a leaf) IS the subtree's true minimum,
+// by induction over that same invariant one level down. So a single read of
+// left_child_id suffices regardless of its page type.
+page_id_t BPlusTree::splitRoot(page_id_t left_child_id, Key separator_key, page_id_t right_child_id){
+    char* left_page_data = new char[PAGE_SIZE];
+    disk_manager_->readPage(left_child_id, left_page_data);
+    SlottedPage left_page(left_page_data);
+    auto [min_bytes, min_len] = left_page.getRecord(0);
+    Key left_min_key = extractKey(reinterpret_cast<const uint8_t*>(min_bytes), min_len);
+
+    page_id_t new_root_id = disk_manager_->allocatePage();
+    char* new_root_data = new char[PAGE_SIZE];
+    SlottedPage new_root(new_root_data);
+    new_root.init(new_root_id, SlottedPageType::INTERNAL_PAGE);
+
+    // Fresh empty page, records inserted in already-ascending order — append
+    // is equivalent to a sorted insert here, no Slot[] shifting needed (see
+    // SlottedPage's BULK/APPEND-SORTED FAST PATH note).
+    new_root.insertRecord(reinterpret_cast<const char*>(left_min_key.GetData()), left_min_key.GetSize());
+    new_root.insertRecord(reinterpret_cast<const char*>(&left_child_id), sizeof(left_child_id));
+    new_root.insertRecord(reinterpret_cast<const char*>(separator_key.GetData()), separator_key.GetSize());
+    new_root.insertRecord(reinterpret_cast<const char*>(&right_child_id), sizeof(right_child_id));
+
+    root_page_id = new_root_id;
+    //update via diskmanager (no bufferpoolmanager yet)
+
+    delete[] left_page_data;
+    delete[] new_root_data;
+    return new_root_id;
 }
 
 //take nodes left_child and left_child+1=right_child, and put keys into left_child. destroy right_child

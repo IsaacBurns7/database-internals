@@ -84,7 +84,13 @@ private:
         //use in remove(): needs slot_id_x
 
 	page_id_t splitChild(BTStack bt_stack, Key child); //returns new child
-    page_id_t splitInternal(BTStack bt_stack, Key internal); //returns new internal 
+    page_id_t splitInternal(BTStack bt_stack, Key internal); //returns new internal
+    void insertIntoParent(BTStack bt_stack, Key separator_key, page_id_t new_right_page_id);
+        //shared tail of splitChild/splitInternal: wires (separator_key, new_right_page_id)
+        //into bt_stack.back()'s page, recursively splitting it first if needed
+    page_id_t splitRoot(page_id_t left_child_id, Key separator_key, page_id_t right_child_id);
+        //called when bt_stack was empty — left_child_id (leaf or internal) WAS root_page_id.
+        //builds a fresh 2-child internal root and repoints root_page_id at it
 	void merge(page_id_t parent_node, BTStack bt_stack, Key left_child); //could also input right child
 		//take nodes left_child and left_child+1=right_child, and put keys into left_child. destroy right_child
 		//remember to delete right_child key, shouldn't affect left_child key(strict min-key)
