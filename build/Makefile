@@ -250,6 +250,19 @@ type_tests/fast:
 .PHONY : type_tests/fast
 
 #=============================================================================
+# Target rules for targets named index_tests
+
+# Build rule for target.
+index_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 index_tests
+.PHONY : index_tests
+
+# fast build rule for target.
+index_tests/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/index_tests.dir/build.make CMakeFiles/index_tests.dir/build
+.PHONY : index_tests/fast
+
+#=============================================================================
 # Target rules for targets named gmock
 
 # Build rule for target.
@@ -444,6 +457,54 @@ tests/disk_manager.s: tests/disk_manager.cpp.s
 tests/disk_manager.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_tests.dir/build.make CMakeFiles/storage_tests.dir/tests/disk_manager.cpp.s
 .PHONY : tests/disk_manager.cpp.s
+
+tests/index/b_plus_tree.o: tests/index/b_plus_tree.cpp.o
+.PHONY : tests/index/b_plus_tree.o
+
+# target to build an object file
+tests/index/b_plus_tree.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/index_tests.dir/build.make CMakeFiles/index_tests.dir/tests/index/b_plus_tree.cpp.o
+.PHONY : tests/index/b_plus_tree.cpp.o
+
+tests/index/b_plus_tree.i: tests/index/b_plus_tree.cpp.i
+.PHONY : tests/index/b_plus_tree.i
+
+# target to preprocess a source file
+tests/index/b_plus_tree.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/index_tests.dir/build.make CMakeFiles/index_tests.dir/tests/index/b_plus_tree.cpp.i
+.PHONY : tests/index/b_plus_tree.cpp.i
+
+tests/index/b_plus_tree.s: tests/index/b_plus_tree.cpp.s
+.PHONY : tests/index/b_plus_tree.s
+
+# target to generate assembly for a file
+tests/index/b_plus_tree.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/index_tests.dir/build.make CMakeFiles/index_tests.dir/tests/index/b_plus_tree.cpp.s
+.PHONY : tests/index/b_plus_tree.cpp.s
+
+tests/index/b_plus_tree_splits.o: tests/index/b_plus_tree_splits.cpp.o
+.PHONY : tests/index/b_plus_tree_splits.o
+
+# target to build an object file
+tests/index/b_plus_tree_splits.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/index_tests.dir/build.make CMakeFiles/index_tests.dir/tests/index/b_plus_tree_splits.cpp.o
+.PHONY : tests/index/b_plus_tree_splits.cpp.o
+
+tests/index/b_plus_tree_splits.i: tests/index/b_plus_tree_splits.cpp.i
+.PHONY : tests/index/b_plus_tree_splits.i
+
+# target to preprocess a source file
+tests/index/b_plus_tree_splits.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/index_tests.dir/build.make CMakeFiles/index_tests.dir/tests/index/b_plus_tree_splits.cpp.i
+.PHONY : tests/index/b_plus_tree_splits.cpp.i
+
+tests/index/b_plus_tree_splits.s: tests/index/b_plus_tree_splits.cpp.s
+.PHONY : tests/index/b_plus_tree_splits.s
+
+# target to generate assembly for a file
+tests/index/b_plus_tree_splits.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/index_tests.dir/build.make CMakeFiles/index_tests.dir/tests/index/b_plus_tree_splits.cpp.s
+.PHONY : tests/index/b_plus_tree_splits.cpp.s
 
 tests/page.o: tests/page.cpp.o
 .PHONY : tests/page.o
@@ -823,6 +884,7 @@ help:
 	@echo "... gtest"
 	@echo "... gtest_main"
 	@echo "... index_logic"
+	@echo "... index_tests"
 	@echo "... storage_logic"
 	@echo "... storage_tests"
 	@echo "... storage_viz"
@@ -846,6 +908,12 @@ help:
 	@echo "... tests/disk_manager.o"
 	@echo "... tests/disk_manager.i"
 	@echo "... tests/disk_manager.s"
+	@echo "... tests/index/b_plus_tree.o"
+	@echo "... tests/index/b_plus_tree.i"
+	@echo "... tests/index/b_plus_tree.s"
+	@echo "... tests/index/b_plus_tree_splits.o"
+	@echo "... tests/index/b_plus_tree_splits.i"
+	@echo "... tests/index/b_plus_tree_splits.s"
 	@echo "... tests/page.o"
 	@echo "... tests/page.i"
 	@echo "... tests/page.s"

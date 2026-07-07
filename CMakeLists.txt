@@ -67,9 +67,14 @@ add_executable(type_tests
   tests/type/tuple.cpp
 )
 
-target_link_libraries(storage_tests 
-    PRIVATE 
-    gtest_main 
+add_executable(index_tests
+  tests/index/b_plus_tree.cpp
+  tests/index/b_plus_tree_splits.cpp
+)
+
+target_link_libraries(storage_tests
+    PRIVATE
+    gtest_main
     storage_logic
 )
 
@@ -79,6 +84,15 @@ target_link_libraries(type_tests
   type_logic
 )
 
+target_link_libraries(index_tests
+  PRIVATE
+  gtest_main
+  index_logic
+  storage_logic
+  type_logic
+)
+
 include(GoogleTest)
 gtest_discover_tests(storage_tests)
 gtest_discover_tests(type_tests)
+gtest_discover_tests(index_tests)

@@ -67,6 +67,12 @@ class BPlusTree {
             //or it's given pagewriter and pagereader
         //root_page_id so it can walk for queries
         //disk manager class...
+public:
+	BPlusTree(DiskManager* disk_manager, page_id_t root_page_id, const Schema* schema,
+	          uint32_t key_col_idx, TypeId key_type_id = TypeId::NUMERIC, uint8_t key_width = 8)
+	    : disk_manager_(disk_manager), root_page_id(root_page_id), key_type_id_(key_type_id),
+	      key_width_(key_width), schema_(schema), key_col_idx_(key_col_idx) {}
+
 	bool insert(uint8_t* record, uint16_t len);
 	bool remove(Key key);
 	std::pair<uint8_t*, uint16_t> get(Key target);
@@ -77,6 +83,11 @@ class BPlusTree {
 		// buffer pool (POOL_SIZE in common/config.h).
 private:
 	friend class BPlusTreeIterator;
+	// TEST_F generates a fresh subclass per test case, and friendship isn't
+	// inherited — a single dedicated accessor struct (defined in
+	// tests/index/b_plus_tree.cpp) lets every test reach extractKey/findRecord
+	// through one friend declaration instead of one FRIEND_TEST per test case.
+	friend struct BPlusTreeTestAccess;
 
 	Key extractKey(const uint8_t *record, uint16_t len) const;
     FindRecordMetadata findRecord(Key target);
