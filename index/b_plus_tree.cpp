@@ -36,7 +36,7 @@
 */
 
 /*
-Extracts the key utilizing internal 
+Extracts the key from the record by utilizing internal schema_, key_type_id_, key_col_idx_, and key_width_  
 */
 Key BPlusTree::extractKey(const uint8_t *record, uint16_t len) const {
 	if (record == nullptr || len == 0) {
@@ -203,23 +203,12 @@ FindRecordMetadata BPlusTree::findRecord(Key target){
 	while (true) {
 		SlottedPage current_page(current_page_data);
 		if (current_page.getPageType() == SlottedPageType::LEAF_PAGE) break;
-
-		// Binary search over key-slots. Internal-node layout is pairs:
-		// slot 2*j holds key j, slot 2*j+1 holds the child page_id that
-		// follows it. Valid now that inserts place separator keys at their
-		// sorted position instead of appending (SlottedPage::insertRecordAt,
-		// see analysis.md Appendix 1) — physical slot order == key order.
-		// Internal-node key slots aren't expected to be tombstoned (there's
-		// no internal-node deletion path yet), so unlike the leaf search
-		// below, no dead-slot handling here.
-		//
-		// Strict min-key means the correct child for `target` is the one
-		// whose key is the LARGEST key <= target (the floor/predecessor),
-		// not the smallest key >= target (a plain lower_bound) — those only
-		// coincide on an exact match. So this binary-searches an upper_bound
-		// instead: lo ends up as the first index whose key is strictly
-		// greater than target (or num_keys if every key is <= target), and
-		// the floor child is therefore at lo - 1.
+        
+        //internal node layout
+            //slot 2*j holds key j, slot 2*j+1 holds child page_id, where all keys in child >= key j
+        //binary search
+            //lo = first index > target 
+            //floor child = lo - 1
 		slot_id_t n = current_page.getSlotCount();
 		slot_id_t num_keys = static_cast<slot_id_t>(n / 2);
 		slot_id_t lo = 0, hi = num_keys;
@@ -231,11 +220,9 @@ FindRecordMetadata BPlusTree::findRecord(Key target){
 			else hi = mid;
 		}
 
-		// lo == 0 means even the first key is > target (target smaller than
-		// everything in this subtree) — there's no valid floor, so fall back
-		// to child 0, the closest thing to a "smallest" child available.
-		// Otherwise the floor child is at index lo - 1.
-		slot_id_t floor_idx = (lo > 0) ? static_cast<slot_id_t>(lo - 1) : 0;
+        //lo == 0 -> lo-1 doesn't exist, fallback to floor_child = 0
+            //would it possible to walk backwards through the left sibling pointers... ? 
+        slot_id_t floor_idx = (lo > 0) ? static_cast<slot_id_t>(lo - 1) : 0;
 		slot_id_t page_slot = static_cast<slot_id_t>(floor_idx * 2 + 1);
 
 		auto [page_bytes, page_len] = current_page.getRecord(page_slot);
@@ -283,6 +270,7 @@ FindRecordMetadata BPlusTree::findRecord(Key target){
 	slot_id_t n = leaf.getSlotCount();
 	slot_id_t lo = 0, hi = n;
 	slot_id_t best = n;  // n means "no live match found yet"
+    //what is this ugly ass code... 
 	while (lo < hi) {
 		slot_id_t mid = static_cast<slot_id_t>(lo + (hi - lo) / 2);
 		slot_id_t probe = mid;
