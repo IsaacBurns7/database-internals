@@ -9,8 +9,6 @@
 //if "assert" asserts, print msg 
 #define ASSERT_WITH_MESSAGE(expr, message) assert((expr) && (message))
 
-namespace internal{ 
-
 class LogFatalStream{
 public:
 	LogFatalStream(const char *file, int line): file_(file), line_(line) {} 
