@@ -27,8 +27,6 @@ private:
 	std::ostringstream log_stream_;
 };
 
-}
-
 //some NOLINTs not added for DISALLOW_COPY and DISALLOW_MOVE
 
 //same as ASSERT_WITH_MESSAGE but with stream style params 

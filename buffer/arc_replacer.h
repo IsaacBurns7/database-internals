@@ -20,6 +20,9 @@ struct FrameStatus {
   frame_id_t frame_id_;
   bool evictable_;
   ArcStatus arc_status_;
+  //POSSIBLE std::list<frame_id_t>::iterator
+    //in RecordAccess, we need to delete frame from A -> place in B, 
+        //A,B in {MRU, MFU, MRU_ghost, MFU_ghost}, A != B
   FrameStatus(page_id_t pid, frame_id_t fid, bool ev, ArcStatus st)
       : page_id_(pid), frame_id_(fid), evictable_(ev), arc_status_(st) {}
 };
@@ -52,6 +55,12 @@ class ArcReplacer {
   std::list<frame_id_t> mfu_;
   std::list<page_id_t> mru_ghost_;
   std::list<page_id_t> mfu_ghost_;
+  size_t mru_size_; 
+  size_t mfu_size_; 
+  size_t mru_ghost_size_; 
+  size_t mfu_ghost_size_; 
+
+    //we need size, 
 
   /* record entries in mru_ and mfu_
    * this uses frame_id_t to guarantee no duplicate records for the same

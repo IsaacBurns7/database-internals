@@ -211,6 +211,19 @@ index_logic/fast:
 .PHONY : index_logic/fast
 
 #=============================================================================
+# Target rules for targets named buffer_logic
+
+# Build rule for target.
+buffer_logic: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 buffer_logic
+.PHONY : buffer_logic
+
+# fast build rule for target.
+buffer_logic/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/buffer_logic.dir/build.make CMakeFiles/buffer_logic.dir/build
+.PHONY : buffer_logic/fast
+
+#=============================================================================
 # Target rules for targets named storage_viz
 
 # Build rule for target.
@@ -263,6 +276,19 @@ index_tests/fast:
 .PHONY : index_tests/fast
 
 #=============================================================================
+# Target rules for targets named buffer_tests
+
+# Build rule for target.
+buffer_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 buffer_tests
+.PHONY : buffer_tests
+
+# fast build rule for target.
+buffer_tests/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/buffer_tests.dir/build.make CMakeFiles/buffer_tests.dir/build
+.PHONY : buffer_tests/fast
+
+#=============================================================================
 # Target rules for targets named gmock
 
 # Build rule for target.
@@ -313,6 +339,30 @@ gtest_main: cmake_check_build_system
 gtest_main/fast:
 	$(MAKE) $(MAKESILENT) -f _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/build.make _deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/build
 .PHONY : gtest_main/fast
+
+buffer/arc_replacer.o: buffer/arc_replacer.cpp.o
+.PHONY : buffer/arc_replacer.o
+
+# target to build an object file
+buffer/arc_replacer.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/buffer_logic.dir/build.make CMakeFiles/buffer_logic.dir/buffer/arc_replacer.cpp.o
+.PHONY : buffer/arc_replacer.cpp.o
+
+buffer/arc_replacer.i: buffer/arc_replacer.cpp.i
+.PHONY : buffer/arc_replacer.i
+
+# target to preprocess a source file
+buffer/arc_replacer.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/buffer_logic.dir/build.make CMakeFiles/buffer_logic.dir/buffer/arc_replacer.cpp.i
+.PHONY : buffer/arc_replacer.cpp.i
+
+buffer/arc_replacer.s: buffer/arc_replacer.cpp.s
+.PHONY : buffer/arc_replacer.s
+
+# target to generate assembly for a file
+buffer/arc_replacer.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/buffer_logic.dir/build.make CMakeFiles/buffer_logic.dir/buffer/arc_replacer.cpp.s
+.PHONY : buffer/arc_replacer.cpp.s
 
 index/b_plus_tree.o: index/b_plus_tree.cpp.o
 .PHONY : index/b_plus_tree.o
@@ -433,6 +483,30 @@ storage/slotted_page.s: storage/slotted_page.cpp.s
 storage/slotted_page.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_logic.dir/build.make CMakeFiles/storage_logic.dir/storage/slotted_page.cpp.s
 .PHONY : storage/slotted_page.cpp.s
+
+tests/buffer/arc_replacer.o: tests/buffer/arc_replacer.cpp.o
+.PHONY : tests/buffer/arc_replacer.o
+
+# target to build an object file
+tests/buffer/arc_replacer.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/buffer_tests.dir/build.make CMakeFiles/buffer_tests.dir/tests/buffer/arc_replacer.cpp.o
+.PHONY : tests/buffer/arc_replacer.cpp.o
+
+tests/buffer/arc_replacer.i: tests/buffer/arc_replacer.cpp.i
+.PHONY : tests/buffer/arc_replacer.i
+
+# target to preprocess a source file
+tests/buffer/arc_replacer.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/buffer_tests.dir/build.make CMakeFiles/buffer_tests.dir/tests/buffer/arc_replacer.cpp.i
+.PHONY : tests/buffer/arc_replacer.cpp.i
+
+tests/buffer/arc_replacer.s: tests/buffer/arc_replacer.cpp.s
+.PHONY : tests/buffer/arc_replacer.s
+
+# target to generate assembly for a file
+tests/buffer/arc_replacer.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/buffer_tests.dir/build.make CMakeFiles/buffer_tests.dir/tests/buffer/arc_replacer.cpp.s
+.PHONY : tests/buffer/arc_replacer.cpp.s
 
 tests/disk_manager.o: tests/disk_manager.cpp.o
 .PHONY : tests/disk_manager.o
@@ -879,6 +953,8 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... test"
+	@echo "... buffer_logic"
+	@echo "... buffer_tests"
 	@echo "... gmock"
 	@echo "... gmock_main"
 	@echo "... gtest"
@@ -890,6 +966,9 @@ help:
 	@echo "... storage_viz"
 	@echo "... type_logic"
 	@echo "... type_tests"
+	@echo "... buffer/arc_replacer.o"
+	@echo "... buffer/arc_replacer.i"
+	@echo "... buffer/arc_replacer.s"
 	@echo "... index/b_plus_tree.o"
 	@echo "... index/b_plus_tree.i"
 	@echo "... index/b_plus_tree.s"
@@ -905,6 +984,9 @@ help:
 	@echo "... storage/slotted_page.o"
 	@echo "... storage/slotted_page.i"
 	@echo "... storage/slotted_page.s"
+	@echo "... tests/buffer/arc_replacer.o"
+	@echo "... tests/buffer/arc_replacer.i"
+	@echo "... tests/buffer/arc_replacer.s"
 	@echo "... tests/disk_manager.o"
 	@echo "... tests/disk_manager.i"
 	@echo "... tests/disk_manager.s"

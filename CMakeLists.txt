@@ -39,11 +39,16 @@ add_library(index_logic
 	index/b_plus_tree.cpp
 )
 
+add_library(buffer_logic
+    buffer/arc_replacer.cpp
+)
+
 # This is the "Magic Fix": It tells CMake that the project root 
 # is where searches for "common/..." or "storage/..." should start.
 target_include_directories(storage_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(type_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(index_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/storage)
+target_include_directories(buffer_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 # --- 3. Main Executable ---
 add_executable(storage_viz tests/storage_viz.cpp)
 target_link_libraries(storage_viz PRIVATE storage_logic)
@@ -72,6 +77,10 @@ add_executable(index_tests
   tests/index/b_plus_tree_splits.cpp
 )
 
+add_executable(buffer_tests
+  tests/buffer/arc_replacer.cpp
+)
+
 target_link_libraries(storage_tests
     PRIVATE
     gtest_main
@@ -92,7 +101,14 @@ target_link_libraries(index_tests
   type_logic
 )
 
+target_link_libraries(buffer_tests
+  PRIVATE
+  gtest_main
+  buffer_logic
+)
+
 include(GoogleTest)
 gtest_discover_tests(storage_tests)
 gtest_discover_tests(type_tests)
 gtest_discover_tests(index_tests)
+gtest_discover_tests(buffer_tests)
