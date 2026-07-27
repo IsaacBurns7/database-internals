@@ -1,2 +1,2 @@
-/Library/Developer/CommandLineTools/usr/bin/ar qc libstorage_logic.a CMakeFiles/storage_logic.dir/storage/page.cpp.o CMakeFiles/storage_logic.dir/storage/disk_manager.cpp.o CMakeFiles/storage_logic.dir/storage/slotted_page.cpp.o CMakeFiles/storage_logic.dir/storage/freelist_page.cpp.o
+/Library/Developer/CommandLineTools/usr/bin/ar qc libstorage_logic.a CMakeFiles/storage_logic.dir/storage/page.cpp.o CMakeFiles/storage_logic.dir/storage/disk_manager.cpp.o CMakeFiles/storage_logic.dir/storage/slotted_page.cpp.o CMakeFiles/storage_logic.dir/storage/freelist_page.cpp.o CMakeFiles/storage_logic.dir/storage/disk_scheduler.cpp.o
 /Library/Developer/CommandLineTools/usr/bin/ranlib libstorage_logic.a

@@ -412,6 +412,30 @@ storage/disk_manager.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_logic.dir/build.make CMakeFiles/storage_logic.dir/storage/disk_manager.cpp.s
 .PHONY : storage/disk_manager.cpp.s
 
+storage/disk_scheduler.o: storage/disk_scheduler.cpp.o
+.PHONY : storage/disk_scheduler.o
+
+# target to build an object file
+storage/disk_scheduler.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_logic.dir/build.make CMakeFiles/storage_logic.dir/storage/disk_scheduler.cpp.o
+.PHONY : storage/disk_scheduler.cpp.o
+
+storage/disk_scheduler.i: storage/disk_scheduler.cpp.i
+.PHONY : storage/disk_scheduler.i
+
+# target to preprocess a source file
+storage/disk_scheduler.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_logic.dir/build.make CMakeFiles/storage_logic.dir/storage/disk_scheduler.cpp.i
+.PHONY : storage/disk_scheduler.cpp.i
+
+storage/disk_scheduler.s: storage/disk_scheduler.cpp.s
+.PHONY : storage/disk_scheduler.s
+
+# target to generate assembly for a file
+storage/disk_scheduler.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_logic.dir/build.make CMakeFiles/storage_logic.dir/storage/disk_scheduler.cpp.s
+.PHONY : storage/disk_scheduler.cpp.s
+
 storage/freelist_page.o: storage/freelist_page.cpp.o
 .PHONY : storage/freelist_page.o
 
@@ -627,6 +651,30 @@ tests/slotted_page.s: tests/slotted_page.cpp.s
 tests/slotted_page.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_tests.dir/build.make CMakeFiles/storage_tests.dir/tests/slotted_page.cpp.s
 .PHONY : tests/slotted_page.cpp.s
+
+tests/storage/disk_scheduler.o: tests/storage/disk_scheduler.cpp.o
+.PHONY : tests/storage/disk_scheduler.o
+
+# target to build an object file
+tests/storage/disk_scheduler.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_tests.dir/build.make CMakeFiles/storage_tests.dir/tests/storage/disk_scheduler.cpp.o
+.PHONY : tests/storage/disk_scheduler.cpp.o
+
+tests/storage/disk_scheduler.i: tests/storage/disk_scheduler.cpp.i
+.PHONY : tests/storage/disk_scheduler.i
+
+# target to preprocess a source file
+tests/storage/disk_scheduler.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_tests.dir/build.make CMakeFiles/storage_tests.dir/tests/storage/disk_scheduler.cpp.i
+.PHONY : tests/storage/disk_scheduler.cpp.i
+
+tests/storage/disk_scheduler.s: tests/storage/disk_scheduler.cpp.s
+.PHONY : tests/storage/disk_scheduler.s
+
+# target to generate assembly for a file
+tests/storage/disk_scheduler.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_tests.dir/build.make CMakeFiles/storage_tests.dir/tests/storage/disk_scheduler.cpp.s
+.PHONY : tests/storage/disk_scheduler.cpp.s
 
 tests/storage_test.o: tests/storage_test.cpp.o
 .PHONY : tests/storage_test.o
@@ -975,6 +1023,9 @@ help:
 	@echo "... storage/disk_manager.o"
 	@echo "... storage/disk_manager.i"
 	@echo "... storage/disk_manager.s"
+	@echo "... storage/disk_scheduler.o"
+	@echo "... storage/disk_scheduler.i"
+	@echo "... storage/disk_scheduler.s"
 	@echo "... storage/freelist_page.o"
 	@echo "... storage/freelist_page.i"
 	@echo "... storage/freelist_page.s"
@@ -1002,6 +1053,9 @@ help:
 	@echo "... tests/slotted_page.o"
 	@echo "... tests/slotted_page.i"
 	@echo "... tests/slotted_page.s"
+	@echo "... tests/storage/disk_scheduler.o"
+	@echo "... tests/storage/disk_scheduler.i"
+	@echo "... tests/storage/disk_scheduler.s"
 	@echo "... tests/storage_test.o"
 	@echo "... tests/storage_test.i"
 	@echo "... tests/storage_test.s"

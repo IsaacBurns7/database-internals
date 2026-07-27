@@ -26,6 +26,7 @@ add_library(storage_logic
     storage/disk_manager.cpp
     storage/slotted_page.cpp
     storage/freelist_page.cpp
+    storage/disk_scheduler.cpp
 )
 
 add_library(type_logic
@@ -55,11 +56,12 @@ target_link_libraries(storage_viz PRIVATE storage_logic)
 
 # --- 4. Testing Setup ---
 enable_testing()
-add_executable(storage_tests 
-	tests/storage_test.cpp 
+add_executable(storage_tests
+	tests/storage_test.cpp
 	tests/page.cpp
     tests/slotted_page.cpp
     tests/disk_manager.cpp
+    tests/storage/disk_scheduler.cpp
 )
 
 add_executable(type_tests

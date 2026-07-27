@@ -9,6 +9,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/Users/kingisaac/Github/database-internals/storage/disk_manager.cpp" "CMakeFiles/storage_logic.dir/storage/disk_manager.cpp.o" "gcc" "CMakeFiles/storage_logic.dir/storage/disk_manager.cpp.o.d"
+  "/Users/kingisaac/Github/database-internals/storage/disk_scheduler.cpp" "CMakeFiles/storage_logic.dir/storage/disk_scheduler.cpp.o" "gcc" "CMakeFiles/storage_logic.dir/storage/disk_scheduler.cpp.o.d"
   "/Users/kingisaac/Github/database-internals/storage/freelist_page.cpp" "CMakeFiles/storage_logic.dir/storage/freelist_page.cpp.o" "gcc" "CMakeFiles/storage_logic.dir/storage/freelist_page.cpp.o.d"
   "/Users/kingisaac/Github/database-internals/storage/page.cpp" "CMakeFiles/storage_logic.dir/storage/page.cpp.o" "gcc" "CMakeFiles/storage_logic.dir/storage/page.cpp.o.d"
   "/Users/kingisaac/Github/database-internals/storage/slotted_page.cpp" "CMakeFiles/storage_logic.dir/storage/slotted_page.cpp.o" "gcc" "CMakeFiles/storage_logic.dir/storage/slotted_page.cpp.o.d"

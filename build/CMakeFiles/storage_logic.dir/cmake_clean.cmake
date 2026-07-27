@@ -1,6 +1,8 @@
 file(REMOVE_RECURSE
   "CMakeFiles/storage_logic.dir/storage/disk_manager.cpp.o"
   "CMakeFiles/storage_logic.dir/storage/disk_manager.cpp.o.d"
+  "CMakeFiles/storage_logic.dir/storage/disk_scheduler.cpp.o"
+  "CMakeFiles/storage_logic.dir/storage/disk_scheduler.cpp.o.d"
   "CMakeFiles/storage_logic.dir/storage/freelist_page.cpp.o"
   "CMakeFiles/storage_logic.dir/storage/freelist_page.cpp.o.d"
   "CMakeFiles/storage_logic.dir/storage/page.cpp.o"

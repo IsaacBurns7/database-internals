@@ -128,12 +128,27 @@ CMakeFiles/storage_logic.dir/storage/freelist_page.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/storage_logic.dir/storage/freelist_page.cpp.s"
 	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/kingisaac/Github/database-internals/storage/freelist_page.cpp -o CMakeFiles/storage_logic.dir/storage/freelist_page.cpp.s
 
+CMakeFiles/storage_logic.dir/storage/disk_scheduler.cpp.o: CMakeFiles/storage_logic.dir/flags.make
+CMakeFiles/storage_logic.dir/storage/disk_scheduler.cpp.o: /Users/kingisaac/Github/database-internals/storage/disk_scheduler.cpp
+CMakeFiles/storage_logic.dir/storage/disk_scheduler.cpp.o: CMakeFiles/storage_logic.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/kingisaac/Github/database-internals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/storage_logic.dir/storage/disk_scheduler.cpp.o"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/storage_logic.dir/storage/disk_scheduler.cpp.o -MF CMakeFiles/storage_logic.dir/storage/disk_scheduler.cpp.o.d -o CMakeFiles/storage_logic.dir/storage/disk_scheduler.cpp.o -c /Users/kingisaac/Github/database-internals/storage/disk_scheduler.cpp
+
+CMakeFiles/storage_logic.dir/storage/disk_scheduler.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/storage_logic.dir/storage/disk_scheduler.cpp.i"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/kingisaac/Github/database-internals/storage/disk_scheduler.cpp > CMakeFiles/storage_logic.dir/storage/disk_scheduler.cpp.i
+
+CMakeFiles/storage_logic.dir/storage/disk_scheduler.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/storage_logic.dir/storage/disk_scheduler.cpp.s"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/kingisaac/Github/database-internals/storage/disk_scheduler.cpp -o CMakeFiles/storage_logic.dir/storage/disk_scheduler.cpp.s
+
 # Object files for target storage_logic
 storage_logic_OBJECTS = \
 "CMakeFiles/storage_logic.dir/storage/page.cpp.o" \
 "CMakeFiles/storage_logic.dir/storage/disk_manager.cpp.o" \
 "CMakeFiles/storage_logic.dir/storage/slotted_page.cpp.o" \
-"CMakeFiles/storage_logic.dir/storage/freelist_page.cpp.o"
+"CMakeFiles/storage_logic.dir/storage/freelist_page.cpp.o" \
+"CMakeFiles/storage_logic.dir/storage/disk_scheduler.cpp.o"
 
 # External object files for target storage_logic
 storage_logic_EXTERNAL_OBJECTS =
@@ -142,9 +157,10 @@ libstorage_logic.a: CMakeFiles/storage_logic.dir/storage/page.cpp.o
 libstorage_logic.a: CMakeFiles/storage_logic.dir/storage/disk_manager.cpp.o
 libstorage_logic.a: CMakeFiles/storage_logic.dir/storage/slotted_page.cpp.o
 libstorage_logic.a: CMakeFiles/storage_logic.dir/storage/freelist_page.cpp.o
+libstorage_logic.a: CMakeFiles/storage_logic.dir/storage/disk_scheduler.cpp.o
 libstorage_logic.a: CMakeFiles/storage_logic.dir/build.make
 libstorage_logic.a: CMakeFiles/storage_logic.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/kingisaac/Github/database-internals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX static library libstorage_logic.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/kingisaac/Github/database-internals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Linking CXX static library libstorage_logic.a"
 	$(CMAKE_COMMAND) -P CMakeFiles/storage_logic.dir/cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/storage_logic.dir/link.txt --verbose=$(VERBOSE)
 

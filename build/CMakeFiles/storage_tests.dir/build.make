@@ -128,12 +128,27 @@ CMakeFiles/storage_tests.dir/tests/disk_manager.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/storage_tests.dir/tests/disk_manager.cpp.s"
 	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/kingisaac/Github/database-internals/tests/disk_manager.cpp -o CMakeFiles/storage_tests.dir/tests/disk_manager.cpp.s
 
+CMakeFiles/storage_tests.dir/tests/storage/disk_scheduler.cpp.o: CMakeFiles/storage_tests.dir/flags.make
+CMakeFiles/storage_tests.dir/tests/storage/disk_scheduler.cpp.o: /Users/kingisaac/Github/database-internals/tests/storage/disk_scheduler.cpp
+CMakeFiles/storage_tests.dir/tests/storage/disk_scheduler.cpp.o: CMakeFiles/storage_tests.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/kingisaac/Github/database-internals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/storage_tests.dir/tests/storage/disk_scheduler.cpp.o"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/storage_tests.dir/tests/storage/disk_scheduler.cpp.o -MF CMakeFiles/storage_tests.dir/tests/storage/disk_scheduler.cpp.o.d -o CMakeFiles/storage_tests.dir/tests/storage/disk_scheduler.cpp.o -c /Users/kingisaac/Github/database-internals/tests/storage/disk_scheduler.cpp
+
+CMakeFiles/storage_tests.dir/tests/storage/disk_scheduler.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/storage_tests.dir/tests/storage/disk_scheduler.cpp.i"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/kingisaac/Github/database-internals/tests/storage/disk_scheduler.cpp > CMakeFiles/storage_tests.dir/tests/storage/disk_scheduler.cpp.i
+
+CMakeFiles/storage_tests.dir/tests/storage/disk_scheduler.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/storage_tests.dir/tests/storage/disk_scheduler.cpp.s"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/kingisaac/Github/database-internals/tests/storage/disk_scheduler.cpp -o CMakeFiles/storage_tests.dir/tests/storage/disk_scheduler.cpp.s
+
 # Object files for target storage_tests
 storage_tests_OBJECTS = \
 "CMakeFiles/storage_tests.dir/tests/storage_test.cpp.o" \
 "CMakeFiles/storage_tests.dir/tests/page.cpp.o" \
 "CMakeFiles/storage_tests.dir/tests/slotted_page.cpp.o" \
-"CMakeFiles/storage_tests.dir/tests/disk_manager.cpp.o"
+"CMakeFiles/storage_tests.dir/tests/disk_manager.cpp.o" \
+"CMakeFiles/storage_tests.dir/tests/storage/disk_scheduler.cpp.o"
 
 # External object files for target storage_tests
 storage_tests_EXTERNAL_OBJECTS =
@@ -142,12 +157,13 @@ storage_tests: CMakeFiles/storage_tests.dir/tests/storage_test.cpp.o
 storage_tests: CMakeFiles/storage_tests.dir/tests/page.cpp.o
 storage_tests: CMakeFiles/storage_tests.dir/tests/slotted_page.cpp.o
 storage_tests: CMakeFiles/storage_tests.dir/tests/disk_manager.cpp.o
+storage_tests: CMakeFiles/storage_tests.dir/tests/storage/disk_scheduler.cpp.o
 storage_tests: CMakeFiles/storage_tests.dir/build.make
 storage_tests: lib/libgtest_main.a
 storage_tests: libstorage_logic.a
 storage_tests: lib/libgtest.a
 storage_tests: CMakeFiles/storage_tests.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/kingisaac/Github/database-internals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX executable storage_tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/kingisaac/Github/database-internals/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Linking CXX executable storage_tests"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/storage_tests.dir/link.txt --verbose=$(VERBOSE)
 	/opt/homebrew/bin/cmake -D TEST_TARGET=storage_tests -D TEST_EXECUTABLE=/Users/kingisaac/Github/database-internals/build/storage_tests -D TEST_EXECUTOR= -D TEST_WORKING_DIR=/Users/kingisaac/Github/database-internals/build -D TEST_EXTRA_ARGS= -D TEST_PROPERTIES= -D TEST_PREFIX= -D TEST_SUFFIX= -D TEST_FILTER= -D NO_PRETTY_TYPES=FALSE -D NO_PRETTY_VALUES=FALSE -D TEST_LIST=storage_tests_TESTS -D CTEST_FILE=/Users/kingisaac/Github/database-internals/build/storage_tests[1]_tests.cmake -D TEST_DISCOVERY_TIMEOUT=5 -D TEST_DISCOVERY_EXTRA_ARGS= -D TEST_XML_OUTPUT_DIR= -P /opt/homebrew/share/cmake/Modules/GoogleTestAddTests.cmake
 
