@@ -43,9 +43,17 @@ has access to:
       // buf is dead after this point (because it will be evicted by the buffer pool manager)
 */
 
+// PENDING (VPID/PPID directory, see storage/disk_manager.h design notes):
+// Breadcrumb::page_id does NOT need to become (page_id, generation). It's
+// only ever held from findRecord() down through the same synchronous
+// call that consumes bt_stack (insert/remove/splitChild/insertIntoParent) —
+// never cached across a gap where something else could deallocate the page
+// out from under it. Contrast with BPlusTreeIterator::page_id_ below, which
+// IS held across caller-controlled gaps (separate Next() calls) and is the
+// one place in this file the generation-check machinery would actually apply.
 struct Breadcrumb {
-    page_id_t page_id; 
-    slot_id_t child_slot; 
+    page_id_t page_id;
+    slot_id_t child_slot;
 };
 using BTStack = std::vector<Breadcrumb>;
 struct FindRecordMetadata{
@@ -109,6 +117,10 @@ private:
 		//take stuff in child, give to siblings (sibling pointers!)
 		//remember to update parent keys (strict min-key)
  	DiskManager* disk_manager_;
+	// PENDING (VPID/PPID directory): stays a bare page_id_t (VPID once the
+	// directory lands) — same reasoning as Breadcrumb above. root_page_id is
+	// re-read fresh at the top of every findRecord() walk, never trusted
+	// across a gap, so no generation tag needed here either.
 	uint32_t root_page_id;
 	TypeId key_type_id_ = TypeId::NUMERIC;
 	uint8_t key_width_ = 8;
@@ -211,6 +223,16 @@ public:
 
             //page exhausted — cross to right sibling and resume from its start
             page_id_t right = current_page.getRightSibling();
+            // NOTE: `right` is a page_id read out of an on-disk sibling pointer and
+            // dereferenced below with no check that it's still the same logical page —
+            // e.g. a remove()-triggered merge running while this iterator is alive
+            // could deallocate `right` and have it recycled for something else before
+            // we get here. This is the concrete stale-physical-page-id case behind the
+            // VPID/PPID directory design in disk_manager.h. Once DiskManager exposes
+            // getGeneration()/isStillValid(), this iterator should capture a generation
+            // per page (see page_id_ below) and validate `right` against it here rather
+            // than trusting it blindly. Not yet implemented — today's single-threaded,
+            // non-interleaved usage happens to avoid triggering it.
             if(right == INVALID_PAGE_ID) return std::nullopt;
             page_id_ = right;
             tree_->disk_manager_->readPage(page_id_, data_);
@@ -243,7 +265,7 @@ private:
     }
 
 	BPlusTree *tree_;
-	page_id_t page_id_;
+	page_id_t page_id_;              // cached across Next() calls — see stale-reference note above
 	slot_id_t start_slot_;          // only consulted before last_key_ is set (the very first call)
 	std::optional<Key> last_key_;   // last key emitted; drives seekFirstAfter() on every later call
     Key end_;

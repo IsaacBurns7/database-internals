@@ -4,6 +4,7 @@
 #include <optional>
 #include <thread>  // NOLINT
 #include <vector>
+#include <variant>
 
 #include "common/channel.h"
 #include "storage/disk_manager.h"
@@ -11,24 +12,48 @@
 /**
  * @brief Represents a Write or Read request for the DiskManager to execute.
  */
-struct DiskRequest {
-  /** Flag indicating whether the request is a write or a read. */
-  bool is_write_;
+// PENDING (thread-safety, not the VPID/PPID directory — separate discussion):
+// this struct only models Read/Write today (is_write_ as a bool). If
+// AllocatePage/DeallocatePage get routed through the same queue as Read/Write
+// (see the note on DeallocatePage() below for why that's worth doing), this
+// probably needs to become an enum request kind (Read/Write/Allocate/
+// Deallocate) instead of a bool, since Allocate doesn't fit "write true/false"
+// and its result is a page_id_t, not a bool — callback_ would need to become
+// a variant/second promise type for that case (std::promise<page_id_t>),
+// since std::promise<bool> can't carry an allocated id back to the caller.
+// enum RequestKind{
+//     read,
+//     write, 
+//     allocate, //returns VPID 
+//     deallocate //returns true or false 
+// };
+// struct DiskRequest {
+//     RequestKind request_kind_; 
+//     char *data_;
+//     page_id_t page_id_;
+//     std::promise<bool> callback_;
+//         /** Callback used to signal to the request issuer when the request has been completed. */
+// };
 
-  /**
-   *  Pointer to the start of the memory location where a page is either:
-   *   1. being read into from disk (on a read).
-   *   2. being written out to disk (on a write).
-   */
-  char *data_;
-
-  /** ID of the page being read from / written to disk. */
-  page_id_t page_id_;
-
-  /** Callback used to signal to the request issuer when the request has been completed. */
-  std::promise<bool> callback_;
+struct ReadRequest{
+    page_id_t page_id;
+    char *data;
+    std::promise<void> done; //wtf is a std::promise<void>
 };
-
+struct WriteRequest{
+    page_id_t page_id;
+    const char *data; 
+    std::promise<void> done;
+};
+struct AllocateRequest{
+    std::promise<page_id_t> done;
+};
+struct DeallocateRequest{
+    page_id_t page_id;
+    std::promise<void> done;
+};
+using DiskRequest = std::variant<ReadRequest, WriteRequest,
+                                 AllocateRequest, DeallocateRequest>;            
 /**
  * @brief The DiskScheduler schedules disk read and write operations.
  *
@@ -62,7 +87,31 @@ class DiskScheduler {
    *
    * @param page_id The page ID of the page to deallocate from disk.
    */
-  void DeallocatePage(page_id_t page_id) { disk_manager_->deallocatePage(page_id); }
+  // PENDING (thread-safety): two separate things worth keeping straight here.
+  //
+  // 1. Pin-count gating (from the earlier findRecord()/staleness discussion —
+  //    see b_plus_tree.cpp's findRecord() note) is NOT this function's job.
+  //    "Don't free a page anyone still has pinned" has to be checked in
+  //    BufferPoolManager::DeletePage() (buffer_pool_manager.cpp) BEFORE it
+  //    ever calls this method — that doc comment above already points there.
+  //    By the time DeallocatePage() runs, the pin check has already passed;
+  //    this function doesn't need to know pins exist.
+  //
+  // 2. What this function SHOULD be doing but isn't: it calls
+  //    disk_manager_->deallocatePage(page_id) directly on the caller's
+  //    thread, bypassing request_queue_ entirely — unlike ReadPage/WritePage,
+  //    which only ever touch disk_manager_ from the single background thread
+  //    (see StartWorkerThread() in disk_scheduler.cpp). DiskManager itself
+  //    has no internal locking (see its class doc comment), so a caller
+  //    thread calling this while the background thread is mid readPage/
+  //    writePage is an unsynchronized concurrent access to global_metadata_
+  //    and fd_ — a real race, independent of anything about pins. Fix: build
+  //    a Deallocate DiskRequest (see the struct's note above) and Schedule()
+  //    it like a read/write, so every disk_manager_ access is serialized
+  //    through the one worker thread. Same reasoning applies to allocation —
+  //    BufferPoolManager::NewPage() currently doesn't call through here at
+  //    all (see its own note in buffer_pool_manager.cpp), which is a related
+  //    but distinct bug.
 
  private:
   /** Pointer to the disk manager. */

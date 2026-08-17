@@ -27,6 +27,7 @@ add_library(storage_logic
     storage/slotted_page.cpp
     storage/freelist_page.cpp
     storage/disk_scheduler.cpp
+    storage/page_guard.cpp
 )
 
 add_library(type_logic
@@ -42,6 +43,7 @@ add_library(index_logic
 
 add_library(buffer_logic
     buffer/arc_replacer.cpp
+    buffer/buffer_pool_manager.cpp
 )
 
 # This is the "Magic Fix": It tells CMake that the project root 
@@ -62,6 +64,7 @@ add_executable(storage_tests
     tests/slotted_page.cpp
     tests/disk_manager.cpp
     tests/storage/disk_scheduler.cpp
+    tests/storage/page_guard.cpp
 )
 
 add_executable(type_tests
@@ -87,6 +90,7 @@ target_link_libraries(storage_tests
     PRIVATE
     gtest_main
     storage_logic
+    buffer_logic
 )
 
 target_link_libraries(type_tests

@@ -37,6 +37,12 @@ void DiskScheduler::Schedule(std::vector<DiskRequest> &requests) {
  * The background thread needs to process requests while the DiskScheduler exists, i.e., this function should not
  * return until ~DiskScheduler() is called. At that point you need to make sure that the function does return.
  */
+// PENDING (thread-safety): once DiskRequest grows an Allocate/Deallocate
+// kind (see the struct's note in disk_scheduler.h), this loop needs a branch
+// for them too, calling disk_manager_->allocatePage()/deallocatePage() from
+// here instead of DeallocatePage() (and a future NewPage-equivalent) calling
+// disk_manager_ directly off the queue. That's what actually gets alloc/
+// dealloc onto the same single-threaded serialization Read/Write already get.
 void DiskScheduler::StartWorkerThread() {
     while(true){
         auto req = request_queue_.Get();
@@ -44,10 +50,13 @@ void DiskScheduler::StartWorkerThread() {
             return;
         }
         try{
-            if(req->is_write_){
-                disk_manager_->writePage(req->page_id_, req->data_);
-            }else{
-                disk_manager_->readPage(req->page_id_, req->data_);
+            switch(req->request_kind_){
+                case RequestKind::write:
+                    disk_manager_->writePage(req->page_id_, req->data_);
+                    break;
+                case RequestKind::read:
+                    disk_manager_->readPage(req->page_id_, req->data_);
+                    break;
             }
             req->callback_.set_value(true);
         }catch(...){

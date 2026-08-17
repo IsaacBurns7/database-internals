@@ -1,6 +1,8 @@
 file(REMOVE_RECURSE
   "CMakeFiles/buffer_logic.dir/buffer/arc_replacer.cpp.o"
   "CMakeFiles/buffer_logic.dir/buffer/arc_replacer.cpp.o.d"
+  "CMakeFiles/buffer_logic.dir/buffer/buffer_pool_manager.cpp.o"
+  "CMakeFiles/buffer_logic.dir/buffer/buffer_pool_manager.cpp.o.d"
   "libbuffer_logic.a"
   "libbuffer_logic.pdb"
 )

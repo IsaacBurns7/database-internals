@@ -192,6 +192,100 @@ FindRecordMetadata BPlusTree::findRecordLinear(Key target){
  * END ARCHIVED findRecordLinear()
  */
 
+// PENDING (VPID/PPID directory, see storage/disk_manager.h design notes):
+// every page_id_t in this file (root_page_id, child_page_id, bt_stack
+// entries, disk_manager_->readPage/writePage calls throughout this whole
+// file) is unaffected by that design and needs NO changes here. They all
+// stay opaque page_id_t handles passed straight through to disk_manager_;
+// once DiskManager starts treating them as VPIDs and translating to PPIDs
+// internally, this file doesn't need to know or care. The one exception is
+// BPlusTreeIterator (b_plus_tree.h), which caches a page_id_ ACROSS separate
+// Next() calls rather than within one synchronous walk like everything here —
+// see its note for why that's the one place generation-checking would apply.
+    //why would this walk be synchronous?
+    //why couldnt it be the case that you read page_id, then a merge + split (deallocate->reallocate) happens, within the same actual VPID
+        //now your reference to the VPID is still stale... 
+        //it seems like the only way to fix this is to tell the disk manager that you have a reference to a certain page, 
+            //and to only allow pages to be deallocated once all references (through a semaphore) have been closed
+            //perhaps schedule deallocation... ? 
+            //if this was the case, could we skip the page dir and just use physical page ids again, and keep 
+            //write and read guards over the page ??
+                //how does mvcc allow 1 writer, many readers to access the same page while allowing something like findRecord 
+                //to actually work...?
+    //more than anything, im just confused why the pages that this function is walking through are expected to not
+    //be shifting sands in a multithreaded system... ?
+    //
+    // ANSWERING THE ABOVE:
+    //
+    // "synchronous" above meant "single-threaded, no yield point" — nothing
+    // else gets to run between reading child_page_id and dereferencing it,
+    // because nothing else is running at all. That claim is TRUE today and
+    // FALSE the instant a second thread exists. You're right to push on it:
+    // it was never a property of findRecord()'s logic, just a property of
+    // this codebase not having concurrency yet (see the "will implement
+    // latch crabbing for concurrency" note on the BPlusTree class above).
+    //
+    // Your race is real: thread A reads child_page_id=X from the parent,
+    // thread B's remove()-triggered merge deallocates X and its VPID gets
+    // recycled for an unrelated page, thread A then calls
+    // disk_manager_->readPage(X, ...) and silently gets the wrong subtree.
+    // Generation tags (as sketched in disk_manager.h) do NOT fix this case,
+    // and it's worth being precise about why: a generation check only works
+    // if you capture "the generation at the moment this pointer was
+    // published" and compare it right before dereferencing. But
+    // child_page_id here is a raw 4-byte page_id_t sitting in the parent's
+    // on-disk slot — there's no generation stored alongside it to capture in
+    // the first place, and by the time findRecord() gets around to checking
+    // one, thread B's race may have already resolved. Generation tags are an
+    // optimistic, AFTER-THE-FACT detector for references held across a gap
+    // where the holder is willing to retry (BPlusTreeIterator's Next() can
+    // re-seek — see its note). They were never meant to protect an in-flight
+    // dereference like this one.
+    //
+    // What actually fixes this race is what you already landed on:
+    // pin/refcount the page for the duration anything might dereference it,
+    // and don't let DiskManager free a page while its pin count is nonzero
+    // ("scheduled deallocation" is exactly right — defer the free until the
+    // last pin drops). This isn't hypothetical machinery to invent from
+    // scratch: FrameHeader::pin_count_ (buffer/buffer_pool_manager.h) already
+    // exists for exactly this purpose in the buffer pool. What's missing is
+    // wiring it so DiskManager::deallocatePage()/the merge path refuses (or
+    // defers) freeing a page whose pin count is still nonzero, and so
+    // findRecord() pins child_page_id BEFORE releasing its pin on the parent
+    // (hand-over-hand / "latch crabbing" — pin the child, then unpin the
+    // parent, never the reverse order) instead of pinning nothing at all
+    // during the walk, as it does today.
+    //
+    // And yes — for THIS specific bug, pinning makes the VPID/PPID directory
+    // unnecessary: if a page can never be deallocated while anyone holds a
+    // pin on it, raw PPIDs are just as safe as VPIDs, pinned or not. The
+    // directory earns its keep for a DIFFERENT, adjacent problem: references
+    // that are deliberately held ACROSS a gap where continuously holding a
+    // pin would be impractical (BPlusTreeIterator sitting idle between
+    // Next() calls — pinning a frame across arbitrary caller-controlled
+    // pauses risks starving the buffer pool) — there, generation-tag-and-
+    // retry is the fallback precisely because pinning isn't an option. Pin
+    // ing and generation-tagging are complementary, not competing, fixes:
+    // pin for synchronous in-flight dereferences (this function), generation
+    // for asynchronous cross-gap references (the iterator). The directory
+    // also incidentally buys page relocation/compaction, which pinning alone
+    // never would.
+    //
+    // On MVCC specifically: it's a third, different strategy from both of
+    // the above — not "block recycling while referenced" (pinning) and not
+    // "detect recycling after the fact" (generation tags), but "never
+    // recycle a version any active reader's snapshot could still need."
+    // Writers create new physical copies instead of mutating in place;
+    // readers keep walking the version that was current as of their
+    // snapshot; old versions only get reclaimed once no live snapshot could
+    // possibly still reach them (Postgres ties this to the oldest active
+    // transaction's xmin horizon and reclaims via VACUUM; LMDB tracks the
+    // oldest open reader transaction the same way). That sidesteps needing
+    // latch crabbing for readers entirely, at the cost of real machinery
+    // this codebase doesn't have yet (transaction IDs, snapshots, deferred
+    // GC). Given latch crabbing is already the stated direction here, that's
+    // the (a)-pin/refcount path, not the (c)-MVCC path — worth knowing MVCC
+    // exists as an alternative, not necessarily worth building instead.
 //returns first leaf slot where key >= target
 FindRecordMetadata BPlusTree::findRecord(Key target){
     FindRecordMetadata ret{};

@@ -38,7 +38,7 @@ private:
 #define ENSURE(expr, message) 								\
 	if(!(expr)){ 											\
 		std::cerr << "ERROR: " << (message) << std::endl; 	\
-		std::terminate(); 									\ 
+		std::terminate(); 									\
 	}
 #define UNREACHABLE(message) throw std::logic_error(message)
 #define DISALLOW_COPY(cname) 		\

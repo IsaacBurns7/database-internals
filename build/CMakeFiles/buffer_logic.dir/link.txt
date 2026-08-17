@@ -1,2 +1,2 @@
-/Library/Developer/CommandLineTools/usr/bin/ar qc libbuffer_logic.a CMakeFiles/buffer_logic.dir/buffer/arc_replacer.cpp.o
+/Library/Developer/CommandLineTools/usr/bin/ar qc libbuffer_logic.a CMakeFiles/buffer_logic.dir/buffer/arc_replacer.cpp.o CMakeFiles/buffer_logic.dir/buffer/buffer_pool_manager.cpp.o
 /Library/Developer/CommandLineTools/usr/bin/ranlib libbuffer_logic.a

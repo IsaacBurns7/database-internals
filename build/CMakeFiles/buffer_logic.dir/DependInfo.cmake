@@ -9,6 +9,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/Users/kingisaac/Github/database-internals/buffer/arc_replacer.cpp" "CMakeFiles/buffer_logic.dir/buffer/arc_replacer.cpp.o" "gcc" "CMakeFiles/buffer_logic.dir/buffer/arc_replacer.cpp.o.d"
+  "/Users/kingisaac/Github/database-internals/buffer/buffer_pool_manager.cpp" "CMakeFiles/buffer_logic.dir/buffer/buffer_pool_manager.cpp.o" "gcc" "CMakeFiles/buffer_logic.dir/buffer/buffer_pool_manager.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

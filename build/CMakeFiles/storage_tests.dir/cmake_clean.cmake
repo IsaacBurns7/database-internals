@@ -7,6 +7,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/storage_tests.dir/tests/slotted_page.cpp.o.d"
   "CMakeFiles/storage_tests.dir/tests/storage/disk_scheduler.cpp.o"
   "CMakeFiles/storage_tests.dir/tests/storage/disk_scheduler.cpp.o.d"
+  "CMakeFiles/storage_tests.dir/tests/storage/page_guard.cpp.o"
+  "CMakeFiles/storage_tests.dir/tests/storage/page_guard.cpp.o.d"
   "CMakeFiles/storage_tests.dir/tests/storage_test.cpp.o"
   "CMakeFiles/storage_tests.dir/tests/storage_test.cpp.o.d"
   "storage_tests"

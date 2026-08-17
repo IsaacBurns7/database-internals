@@ -1,0 +1,137 @@
+Running main() from /Users/kingisaac/Github/database-internals/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 42 tests from 5 test suites.
+[----------] Global test environment set-up.
+[----------] 5 tests from PageTest
+[ RUN      ] PageTest.InitialState
+[       OK ] PageTest.InitialState (0 ms)
+[ RUN      ] PageTest.DataBufferAccess
+[       OK ] PageTest.DataBufferAccess (0 ms)
+[ RUN      ] PageTest.SettersAndGetters
+[       OK ] PageTest.SettersAndGetters (0 ms)
+[ RUN      ] PageTest.ResetTest
+[       OK ] PageTest.ResetTest (0 ms)
+[ RUN      ] PageTest.BasicSetup
+[       OK ] PageTest.BasicSetup (0 ms)
+[----------] 5 tests from PageTest (0 ms total)
+
+[----------] 6 tests from SlottedPageTest
+[ RUN      ] SlottedPageTest.InitializationTest
+[       OK ] SlottedPageTest.InitializationTest (0 ms)
+[ RUN      ] SlottedPageTest.InsertAndGetTest
+Attempting to fetch slot_ptr w/ id: 0 returning 0x14a009228
+Fetched slot as: 0x14a009228 with attributes... (offset=4080,size=16
+Fetched slot as: 0x14a009228 with attributes... (offset=4080,size=16
+Attempting to fetch slot_ptr w/ id: 1 returning 0x14a00922c
+Fetched slot as: 0x14a009228 with attributes... (offset=4080,size=16
+Fetched slot as: 0x14a00922c with attributes... (offset=4057,size=23
+[       OK ] SlottedPageTest.InsertAndGetTest (0 ms)
+[ RUN      ] SlottedPageTest.DeleteRecordTest
+Attempting to fetch slot_ptr w/ id: 0 returning 0x14a009228
+Fetched slot as: 0x14a009228 with attributes... (offset=0,size=9
+[       OK ] SlottedPageTest.DeleteRecordTest (0 ms)
+[ RUN      ] SlottedPageTest.UpdateRecordTest
+Attempting to fetch slot_ptr w/ id: 0 returning 0x14a009228
+Fetched slot as: 0x14a009228 with attributes... (offset=4088,size=8
+[       OK ] SlottedPageTest.UpdateRecordTest (0 ms)
+[ RUN      ] SlottedPageTest.CompactionTest
+Attempting to fetch slot_ptr w/ id: 0 returning 0x14a009228
+Fetched slot as: 0x14a009228 with attributes... (offset=4085,size=11
+Fetched slot as: 0x14a009228 with attributes... (offset=4085,size=11
+Attempting to fetch slot_ptr w/ id: 1 returning 0x14a00922c
+Fetched slot as: 0x14a009228 with attributes... (offset=4085,size=11
+Fetched slot as: 0x14a00922c with attributes... (offset=4062,size=23
+Fetched slot as: 0x14a009228 with attributes... (offset=4085,size=11
+Fetched slot as: 0x14a00922c with attributes... (offset=4062,size=23
+Attempting to fetch slot_ptr w/ id: 2 returning 0x14a009230
+Fetched slot as: 0x14a009228 with attributes... (offset=4085,size=11
+Fetched slot as: 0x14a00922c with attributes... (offset=4074,size=11
+[       OK ] SlottedPageTest.CompactionTest (0 ms)
+[ RUN      ] SlottedPageTest.PageFullTest
+[       OK ] SlottedPageTest.PageFullTest (0 ms)
+[----------] 6 tests from SlottedPageTest (0 ms total)
+
+[----------] 5 tests from DiskManagerTest
+[ RUN      ] DiskManagerTest.ConstructorDestroysExistingFile
+[EXPECTED ERROR CAUGHT]: File is too small to be a valid database!
+[       OK ] DiskManagerTest.ConstructorDestroysExistingFile (0 ms)
+[ RUN      ] DiskManagerTest.InitializesNewFileCorrectly
+[       OK ] DiskManagerTest.InitializesNewFileCorrectly (0 ms)
+[ RUN      ] DiskManagerTest.StrictAllocationAndWriteTest
+[       OK ] DiskManagerTest.StrictAllocationAndWriteTest (0 ms)
+[ RUN      ] DiskManagerTest.DeallocateAndReallocate
+[       OK ] DiskManagerTest.DeallocateAndReallocate (0 ms)
+[ RUN      ] DiskManagerTest.ReadOutOfBounds
+[       OK ] DiskManagerTest.ReadOutOfBounds (0 ms)
+[----------] 5 tests from DiskManagerTest (1 ms total)
+
+[----------] 5 tests from DiskSchedulerTest
+[ RUN      ] DiskSchedulerTest.ConstructAndDestroyDoesNotHang
+[       OK ] DiskSchedulerTest.ConstructAndDestroyDoesNotHang (0 ms)
+[ RUN      ] DiskSchedulerTest.ScheduleWritesThenReadsBackSamePage
+[       OK ] DiskSchedulerTest.ScheduleWritesThenReadsBackSamePage (0 ms)
+[ RUN      ] DiskSchedulerTest.ScheduleBatchOfRequestsInOneCall
+[       OK ] DiskSchedulerTest.ScheduleBatchOfRequestsInOneCall (0 ms)
+[ RUN      ] DiskSchedulerTest.ReadOfUnallocatedPagePropagatesExceptionThroughFuture
+[       OK ] DiskSchedulerTest.ReadOfUnallocatedPagePropagatesExceptionThroughFuture (0 ms)
+[ RUN      ] DiskSchedulerTest.DeallocatePageDelegatesToDiskManager
+[       OK ] DiskSchedulerTest.DeallocatePageDelegatesToDiskManager (0 ms)
+[----------] 5 tests from DiskSchedulerTest (1 ms total)
+
+[----------] 21 tests from PageGuardTest
+[ RUN      ] PageGuardTest.ReadGuardExposesPageId
+[       OK ] PageGuardTest.ReadGuardExposesPageId (0 ms)
+[ RUN      ] PageGuardTest.WriteGuardExposesPageId
+[       OK ] PageGuardTest.WriteGuardExposesPageId (0 ms)
+[ RUN      ] PageGuardTest.WriteGuardMutationIsVisibleThroughReadGuardOnSameFrame
+[       OK ] PageGuardTest.WriteGuardMutationIsVisibleThroughReadGuardOnSameFrame (0 ms)
+[ RUN      ] PageGuardTest.IsDirtyReflectsFrameState
+[       OK ] PageGuardTest.IsDirtyReflectsFrameState (0 ms)
+[ RUN      ] PageGuardTest.MultipleReadGuardsCanCoexistOnSameFrame
+[       OK ] PageGuardTest.MultipleReadGuardsCanCoexistOnSameFrame (0 ms)
+[ RUN      ] PageGuardTest.WriteGuardBlocksConcurrentWriteGuardOnSameFrame
+[       OK ] PageGuardTest.WriteGuardBlocksConcurrentWriteGuardOnSameFrame (155 ms)
+[ RUN      ] PageGuardTest.MoveConstructorInvalidatesSource
+Running main() from /Users/kingisaac/Github/database-internals/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[       OK ] PageGuardTest.MoveConstructorInvalidatesSource (26 ms)
+[ RUN      ] PageGuardTest.WriteGuardMoveConstructorInvalidatesSource
+Running main() from /Users/kingisaac/Github/database-internals/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[       OK ] PageGuardTest.WriteGuardMoveConstructorInvalidatesSource (35 ms)
+[ RUN      ] PageGuardTest.MoveAssignmentDropsPreviousResource
+[       OK ] PageGuardTest.MoveAssignmentDropsPreviousResource (0 ms)
+[ RUN      ] PageGuardTest.SelfMoveAssignmentIsSafe
+[       OK ] PageGuardTest.SelfMoveAssignmentIsSafe (0 ms)
+[ RUN      ] PageGuardTest.DropDecrementsPinCountAndMarksEvictableWhenLastPin
+[       OK ] PageGuardTest.DropDecrementsPinCountAndMarksEvictableWhenLastPin (0 ms)
+[ RUN      ] PageGuardTest.DropDoesNotMarkEvictableWhileOtherPinsRemain
+[       OK ] PageGuardTest.DropDoesNotMarkEvictableWhileOtherPinsRemain (0 ms)
+[ RUN      ] PageGuardTest.DoubleDropIsIdempotent
+[       OK ] PageGuardTest.DoubleDropIsIdempotent (0 ms)
+[ RUN      ] PageGuardTest.DestructorDropsTheGuard
+[       OK ] PageGuardTest.DestructorDropsTheGuard (0 ms)
+[ RUN      ] PageGuardTest.WriteGuardDropDecrementsPinCountAndMarksEvictable
+[       OK ] PageGuardTest.WriteGuardDropDecrementsPinCountAndMarksEvictable (0 ms)
+[ RUN      ] PageGuardTest.UsingDroppedReadGuardAborts
+Running main() from /Users/kingisaac/Github/database-internals/build/_deps/googletest-src/googletest/src/gtest_main.cc
+Running main() from /Users/kingisaac/Github/database-internals/build/_deps/googletest-src/googletest/src/gtest_main.cc
+Running main() from /Users/kingisaac/Github/database-internals/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[       OK ] PageGuardTest.UsingDroppedReadGuardAborts (146 ms)
+[ RUN      ] PageGuardTest.UsingDroppedWriteGuardAborts
+Running main() from /Users/kingisaac/Github/database-internals/build/_deps/googletest-src/googletest/src/gtest_main.cc
+Running main() from /Users/kingisaac/Github/database-internals/build/_deps/googletest-src/googletest/src/gtest_main.cc
+Running main() from /Users/kingisaac/Github/database-internals/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[       OK ] PageGuardTest.UsingDroppedWriteGuardAborts (131 ms)
+[ RUN      ] PageGuardTest.DefaultConstructedGuardsAreInvalid
+Running main() from /Users/kingisaac/Github/database-internals/build/_deps/googletest-src/googletest/src/gtest_main.cc
+Running main() from /Users/kingisaac/Github/database-internals/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[       OK ] PageGuardTest.DefaultConstructedGuardsAreInvalid (82 ms)
+[ RUN      ] PageGuardTest.WriteGuardFlushWritesDataAndClearsDirtyFlag
+[       OK ] PageGuardTest.WriteGuardFlushWritesDataAndClearsDirtyFlag (0 ms)
+[ RUN      ] PageGuardTest.ReadGuardFlushWritesUnderlyingFrameData
+[       OK ] PageGuardTest.ReadGuardFlushWritesUnderlyingFrameData (0 ms)
+[ RUN      ] PageGuardTest.ConcurrentReadGuardFlushDoesNotCrash
+[       OK ] PageGuardTest.ConcurrentReadGuardFlushDoesNotCrash (0 ms)
+[----------] 21 tests from PageGuardTest (584 ms total)
+
+[----------] Global test environment tear-down
+[==========] 42 tests from 5 test suites ran. (587 ms total)
+[  PASSED  ] 42 tests.

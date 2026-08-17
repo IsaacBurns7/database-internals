@@ -7,6 +7,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/storage_logic.dir/storage/freelist_page.cpp.o.d"
   "CMakeFiles/storage_logic.dir/storage/page.cpp.o"
   "CMakeFiles/storage_logic.dir/storage/page.cpp.o.d"
+  "CMakeFiles/storage_logic.dir/storage/page_guard.cpp.o"
+  "CMakeFiles/storage_logic.dir/storage/page_guard.cpp.o.d"
   "CMakeFiles/storage_logic.dir/storage/slotted_page.cpp.o"
   "CMakeFiles/storage_logic.dir/storage/slotted_page.cpp.o.d"
   "libstorage_logic.a"

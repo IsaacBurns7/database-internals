@@ -364,6 +364,30 @@ buffer/arc_replacer.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/buffer_logic.dir/build.make CMakeFiles/buffer_logic.dir/buffer/arc_replacer.cpp.s
 .PHONY : buffer/arc_replacer.cpp.s
 
+buffer/buffer_pool_manager.o: buffer/buffer_pool_manager.cpp.o
+.PHONY : buffer/buffer_pool_manager.o
+
+# target to build an object file
+buffer/buffer_pool_manager.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/buffer_logic.dir/build.make CMakeFiles/buffer_logic.dir/buffer/buffer_pool_manager.cpp.o
+.PHONY : buffer/buffer_pool_manager.cpp.o
+
+buffer/buffer_pool_manager.i: buffer/buffer_pool_manager.cpp.i
+.PHONY : buffer/buffer_pool_manager.i
+
+# target to preprocess a source file
+buffer/buffer_pool_manager.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/buffer_logic.dir/build.make CMakeFiles/buffer_logic.dir/buffer/buffer_pool_manager.cpp.i
+.PHONY : buffer/buffer_pool_manager.cpp.i
+
+buffer/buffer_pool_manager.s: buffer/buffer_pool_manager.cpp.s
+.PHONY : buffer/buffer_pool_manager.s
+
+# target to generate assembly for a file
+buffer/buffer_pool_manager.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/buffer_logic.dir/build.make CMakeFiles/buffer_logic.dir/buffer/buffer_pool_manager.cpp.s
+.PHONY : buffer/buffer_pool_manager.cpp.s
+
 index/b_plus_tree.o: index/b_plus_tree.cpp.o
 .PHONY : index/b_plus_tree.o
 
@@ -483,6 +507,30 @@ storage/page.s: storage/page.cpp.s
 storage/page.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_logic.dir/build.make CMakeFiles/storage_logic.dir/storage/page.cpp.s
 .PHONY : storage/page.cpp.s
+
+storage/page_guard.o: storage/page_guard.cpp.o
+.PHONY : storage/page_guard.o
+
+# target to build an object file
+storage/page_guard.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_logic.dir/build.make CMakeFiles/storage_logic.dir/storage/page_guard.cpp.o
+.PHONY : storage/page_guard.cpp.o
+
+storage/page_guard.i: storage/page_guard.cpp.i
+.PHONY : storage/page_guard.i
+
+# target to preprocess a source file
+storage/page_guard.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_logic.dir/build.make CMakeFiles/storage_logic.dir/storage/page_guard.cpp.i
+.PHONY : storage/page_guard.cpp.i
+
+storage/page_guard.s: storage/page_guard.cpp.s
+.PHONY : storage/page_guard.s
+
+# target to generate assembly for a file
+storage/page_guard.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_logic.dir/build.make CMakeFiles/storage_logic.dir/storage/page_guard.cpp.s
+.PHONY : storage/page_guard.cpp.s
 
 storage/slotted_page.o: storage/slotted_page.cpp.o
 .PHONY : storage/slotted_page.o
@@ -675,6 +723,30 @@ tests/storage/disk_scheduler.s: tests/storage/disk_scheduler.cpp.s
 tests/storage/disk_scheduler.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_tests.dir/build.make CMakeFiles/storage_tests.dir/tests/storage/disk_scheduler.cpp.s
 .PHONY : tests/storage/disk_scheduler.cpp.s
+
+tests/storage/page_guard.o: tests/storage/page_guard.cpp.o
+.PHONY : tests/storage/page_guard.o
+
+# target to build an object file
+tests/storage/page_guard.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_tests.dir/build.make CMakeFiles/storage_tests.dir/tests/storage/page_guard.cpp.o
+.PHONY : tests/storage/page_guard.cpp.o
+
+tests/storage/page_guard.i: tests/storage/page_guard.cpp.i
+.PHONY : tests/storage/page_guard.i
+
+# target to preprocess a source file
+tests/storage/page_guard.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_tests.dir/build.make CMakeFiles/storage_tests.dir/tests/storage/page_guard.cpp.i
+.PHONY : tests/storage/page_guard.cpp.i
+
+tests/storage/page_guard.s: tests/storage/page_guard.cpp.s
+.PHONY : tests/storage/page_guard.s
+
+# target to generate assembly for a file
+tests/storage/page_guard.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_tests.dir/build.make CMakeFiles/storage_tests.dir/tests/storage/page_guard.cpp.s
+.PHONY : tests/storage/page_guard.cpp.s
 
 tests/storage_test.o: tests/storage_test.cpp.o
 .PHONY : tests/storage_test.o
@@ -1017,6 +1089,9 @@ help:
 	@echo "... buffer/arc_replacer.o"
 	@echo "... buffer/arc_replacer.i"
 	@echo "... buffer/arc_replacer.s"
+	@echo "... buffer/buffer_pool_manager.o"
+	@echo "... buffer/buffer_pool_manager.i"
+	@echo "... buffer/buffer_pool_manager.s"
 	@echo "... index/b_plus_tree.o"
 	@echo "... index/b_plus_tree.i"
 	@echo "... index/b_plus_tree.s"
@@ -1032,6 +1107,9 @@ help:
 	@echo "... storage/page.o"
 	@echo "... storage/page.i"
 	@echo "... storage/page.s"
+	@echo "... storage/page_guard.o"
+	@echo "... storage/page_guard.i"
+	@echo "... storage/page_guard.s"
 	@echo "... storage/slotted_page.o"
 	@echo "... storage/slotted_page.i"
 	@echo "... storage/slotted_page.s"
@@ -1056,6 +1134,9 @@ help:
 	@echo "... tests/storage/disk_scheduler.o"
 	@echo "... tests/storage/disk_scheduler.i"
 	@echo "... tests/storage/disk_scheduler.s"
+	@echo "... tests/storage/page_guard.o"
+	@echo "... tests/storage/page_guard.i"
+	@echo "... tests/storage/page_guard.s"
 	@echo "... tests/storage_test.o"
 	@echo "... tests/storage_test.i"
 	@echo "... tests/storage_test.s"
