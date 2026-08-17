@@ -11,26 +11,16 @@
 	//column is typeid, name, length, offset 
 //what should it be able to do .... 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #pragma once
 
+#include <cstddef>
+#include <optional>
 #include <string>
 #include <vector>
 
 #include "column.h"  // assumed to define Column, TypeId, etc.
+
+struct Tuple;
 
 class Schema {
  public:
@@ -42,43 +32,33 @@ class Schema {
    * Useful for projection operators in query execution.
    */
   Schema(const Schema &other, const std::vector<uint32_t> &col_indices);
-
   // -----------------------------------------------------------------------
   // Lookup / Access
   // -----------------------------------------------------------------------
   auto GetColumn(uint32_t col_idx) const -> const Column &;
-  auto GetColIdx(const std::string &col_name) const -> uint32_t; //returns -1 if column with given col_name doesn't exist 
+  auto GetColIdx(const std::string &col_name) const -> std::optional<uint32_t>; //returns -1 if column with given col_name doesn't exist 
   auto GetColumns() const -> const std::vector<Column> &;
+  auto GetType(uint32_t colidx) const -> TypeId; 
   auto GetColumnCount() const -> uint32_t;
 
   // -----------------------------------------------------------------------
   // Size / Layout
   // -----------------------------------------------------------------------
   auto GetFixedSize() const -> uint32_t; //varchar columns contribute sizeof(len_prefix), currently equals sizeof(uint16_t)
+  auto IsFixedLength(uint32_t col_idx) const -> bool; 
   auto HasVariableLengthColumns() const -> bool;
-  auto GetVariableLengthColumns() const -> const std::vector<uint32_t> &;
+  // auto GetVariableLengthColumns() const -> const std::vector<uint32_t> &;
   
-  // -----------------------------------------------------------------------
-  // Runtime size resolution
-  // -----------------------------------------------------------------------
-  auto RecordSize(const Tuple& record) const -> uint32_t; 
+  //NOTE: runtime size resolution for Tuple is done... by Tuple 
+
   // -----------------------------------------------------------------------
   // Debug / Serialization
   // -----------------------------------------------------------------------
   auto ToString() const -> std::string; //maybe another one for ostream 
-  auto SerializeSchema(uint8_t *buf) const -> uint32_t; //serializes this schema 
-  static auto DeserializeSchema(uint8_t *schema) -> Schema; //deserializes into this schema - should this be a constructor ? 
-	
-  // Record layout:
-	// [null bitmap: ceil(n/8) bytes]
-	// [fixed section: one slot per field, fixed width per type]
-	//   - NUMERICTYPE:   1/2/4/8 bytes  (or 0 if null)
-	//   - FLOATTYPE:     4/8 bytes (or 0 if null)
-	//   - VARCHAR: 	  2-byte length into variable tail 
-	// [variable tail: varchar data appended in index order]
-  auto SerializeRecord(const Tuple& record, uint8_t *buf) const -> uint32_t; //returns # of bytes written
-  auto DeserializeRecord(const uint8_t *buf) const -> Tuple; 
- private:
+  auto SerializeSchema(uint8_t *buf) const -> uint32_t; //serializes this schema into buf
+  static auto Deserialize(const uint8_t *buf, std::size_t *consumed) -> Schema;
+
+   private:
   /** Ordered list of columns. */
   std::vector<Column> columns_;
   std::vector<uint32_t> fixed_size_columns;

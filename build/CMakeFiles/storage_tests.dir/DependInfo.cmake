@@ -8,10 +8,12 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/home/isaac/database-internals/tests/disk_manager.cpp" "CMakeFiles/storage_tests.dir/tests/disk_manager.cpp.o" "gcc" "CMakeFiles/storage_tests.dir/tests/disk_manager.cpp.o.d"
-  "/home/isaac/database-internals/tests/page.cpp" "CMakeFiles/storage_tests.dir/tests/page.cpp.o" "gcc" "CMakeFiles/storage_tests.dir/tests/page.cpp.o.d"
-  "/home/isaac/database-internals/tests/slotted_page.cpp" "CMakeFiles/storage_tests.dir/tests/slotted_page.cpp.o" "gcc" "CMakeFiles/storage_tests.dir/tests/slotted_page.cpp.o.d"
-  "/home/isaac/database-internals/tests/storage_test.cpp" "CMakeFiles/storage_tests.dir/tests/storage_test.cpp.o" "gcc" "CMakeFiles/storage_tests.dir/tests/storage_test.cpp.o.d"
+  "/Users/kingisaac/Github/database-internals/tests/disk_manager.cpp" "CMakeFiles/storage_tests.dir/tests/disk_manager.cpp.o" "gcc" "CMakeFiles/storage_tests.dir/tests/disk_manager.cpp.o.d"
+  "/Users/kingisaac/Github/database-internals/tests/page.cpp" "CMakeFiles/storage_tests.dir/tests/page.cpp.o" "gcc" "CMakeFiles/storage_tests.dir/tests/page.cpp.o.d"
+  "/Users/kingisaac/Github/database-internals/tests/slotted_page.cpp" "CMakeFiles/storage_tests.dir/tests/slotted_page.cpp.o" "gcc" "CMakeFiles/storage_tests.dir/tests/slotted_page.cpp.o.d"
+  "/Users/kingisaac/Github/database-internals/tests/storage/disk_scheduler.cpp" "CMakeFiles/storage_tests.dir/tests/storage/disk_scheduler.cpp.o" "gcc" "CMakeFiles/storage_tests.dir/tests/storage/disk_scheduler.cpp.o.d"
+  "/Users/kingisaac/Github/database-internals/tests/storage/page_guard.cpp" "CMakeFiles/storage_tests.dir/tests/storage/page_guard.cpp.o" "gcc" "CMakeFiles/storage_tests.dir/tests/storage/page_guard.cpp.o.d"
+  "/Users/kingisaac/Github/database-internals/tests/storage_test.cpp" "CMakeFiles/storage_tests.dir/tests/storage_test.cpp.o" "gcc" "CMakeFiles/storage_tests.dir/tests/storage_test.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

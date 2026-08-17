@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <string>
 
 #include "type.h"  
@@ -39,10 +40,11 @@ class Column {
   auto IsVariableLength() const -> bool; //if its varchar (or vector, when vector is added) 
   /** Returns a human-readable string describing this column. */
   auto ToString() const -> std::string;
-
+  auto Serialize(uint8_t *buf) const -> uint16_t; //returns bytes written 
+  static auto Deserialize(const uint8_t *buf, std::size_t *consumed) -> Column; 
  private:
   std::string name_;
   TypeId type_id_;
-  uint32_t length_{0}; //VARCHAR columns store sizeof(uint16_t) here; variable data is elsewhere.
+  uint32_t length_{0}; //VARCHAR columns store sizeof(uint16_t) here; variable data is elsewhere. -- the same as value.width 
   uint32_t offset_{0}; //offset in record's fixed region does not consider VARCHAR column's data section
 };

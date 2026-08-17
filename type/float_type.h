@@ -19,6 +19,11 @@ public:
         uint8_t w = a.width > b.width ? a.width : b.width;
         return Value::make_float(a.val.fp - b.val.fp, w);
     }
+
+    uint16_t FixedSize(const Value &v) const override {
+        return v.width;
+    }
+
     uint16_t SerializedSize(const Value &v) const override {
         return v.width;
     }

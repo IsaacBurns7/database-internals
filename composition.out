@@ -1,0 +1,47 @@
+measure: 26 columns, 210 components
+
+SimpleCompositor (greedy first-fit)  --  10 lines
+    +--------------------------+
+    |Strategy      lets      an|
+    |algorithm             vary|
+    |independently   from   the|
+    |clients  that use  it. The|
+    |paragraph below  is broken|
+    |into lines  three separate|
+    |ways,    and    not    one|
+    |component     knows    the|
+    |difference.    Only    the|
+    |compositor        changes.|
+    +--------------------------+
+    slack per line (ems): 10 12 4 2 1 1 9 7 6 7
+
+TeXCompositor (global optimum)  --  9 lines
+    +--------------------------+
+    |Strategy lets an algorithm|
+    |vary   independently  from|
+    |the   clients   that   use|
+    |it.  The  paragraph  below|
+    |is   broken   into   lines|
+    |three  separate ways,  and|
+    |not  one  component  knows|
+    |the  difference. Only  the|
+    |compositor        changes.|
+    +--------------------------+
+    slack per line (ems): 0 3 6 3 6 2 3 2 7
+
+ArrayCompositor (fixed interval)  --  12 lines
+    +--------------------------+
+    |Strategy    lets   an    a|
+    |lgorithm     vary     inde|
+    |pendently     from     the|
+    |clients      that      use|
+    |it.      The     paragraph|
+    |below    is   broken    in|
+    |to    lines   three    sep|
+    |arate    ways,   and    no|
+    |t    one   component    kn|
+    |ows     the     difference|
+    |.    Only   the    composi|
+    |tor               changes.|
+    +--------------------------+
+    slack per line (ems): 8 8 8 10 9 8 8 8 8 8 8 14

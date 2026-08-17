@@ -1,0 +1,1 @@
+/Library/Developer/CommandLineTools/usr/bin/c++ -g -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.2.sdk -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/buffer_tests.dir/tests/buffer/arc_replacer.cpp.o -o buffer_tests  lib/libgtest_main.a libbuffer_logic.a lib/libgtest.a

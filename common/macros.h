@@ -9,8 +9,6 @@
 //if "assert" asserts, print msg 
 #define ASSERT_WITH_MESSAGE(expr, message) assert((expr) && (message))
 
-namespace internal{ 
-
 class LogFatalStream{
 public:
 	LogFatalStream(const char *file, int line): file_(file), line_(line) {} 
@@ -29,8 +27,6 @@ private:
 	std::ostringstream log_stream_;
 };
 
-}
-
 //some NOLINTs not added for DISALLOW_COPY and DISALLOW_MOVE
 
 //same as ASSERT_WITH_MESSAGE but with stream style params 
@@ -42,7 +38,7 @@ private:
 #define ENSURE(expr, message) 								\
 	if(!(expr)){ 											\
 		std::cerr << "ERROR: " << (message) << std::endl; 	\
-		std::terminate(); 									\ 
+		std::terminate(); 									\
 	}
 #define UNREACHABLE(message) throw std::logic_error(message)
 #define DISALLOW_COPY(cname) 		\

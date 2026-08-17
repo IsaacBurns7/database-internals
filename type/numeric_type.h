@@ -23,6 +23,10 @@ public:
         return Value::make_int(a.val.integer - b.val.integer, w);
     }
 
+    uint16_t FixedSize(const Value &v) const override {
+        return v.width;
+    }
+
     uint16_t SerializedSize(const Value &v) const override {
         return v.width;   // just the width — 1, 2, 4, or 8 bytes
     }

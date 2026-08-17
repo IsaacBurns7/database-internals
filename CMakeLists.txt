@@ -26,34 +26,95 @@ add_library(storage_logic
     storage/disk_manager.cpp
     storage/slotted_page.cpp
     storage/freelist_page.cpp
+    storage/disk_scheduler.cpp
+    storage/page_guard.cpp
+)
+
+add_library(type_logic
+	type/type.cpp
+  type/column.cpp
+  type/schema.cpp
+  type/tuple.cpp
 )
 
 add_library(index_logic
 	index/b_plus_tree.cpp
 )
 
+add_library(buffer_logic
+    buffer/arc_replacer.cpp
+    buffer/buffer_pool_manager.cpp
+)
+
 # This is the "Magic Fix": It tells CMake that the project root 
 # is where searches for "common/..." or "storage/..." should start.
 target_include_directories(storage_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_include_directories(index_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(type_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(index_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/storage)
+target_include_directories(buffer_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 # --- 3. Main Executable ---
-add_executable(storage_viz tests/storage_viz.cpp)
-target_link_libraries(storage_viz PRIVATE storage_logic)
+# add_executable(storage_viz tests/storage_viz.cpp)
+# target_link_libraries(storage_viz PRIVATE storage_logic)
 
 # --- 4. Testing Setup ---
 enable_testing()
-add_executable(storage_tests 
-	tests/storage_test.cpp 
+add_executable(storage_tests
+	tests/storage_test.cpp
 	tests/page.cpp
     tests/slotted_page.cpp
     tests/disk_manager.cpp
+    tests/storage/disk_scheduler.cpp
+    tests/storage/page_guard.cpp
 )
 
-target_link_libraries(storage_tests 
-    PRIVATE 
-    gtest_main 
+add_executable(type_tests
+  tests/type/boolean_type.cpp
+  tests/type/column.cpp
+  tests/type/schema.cpp
+  tests/type/numeric_type.cpp
+  tests/type/float_type.cpp
+  tests/type/varchar_type.cpp
+  tests/type/tuple.cpp
+)
+
+add_executable(index_tests
+  tests/index/b_plus_tree.cpp
+  tests/index/b_plus_tree_splits.cpp
+)
+
+add_executable(buffer_tests
+  tests/buffer/arc_replacer.cpp
+)
+
+target_link_libraries(storage_tests
+    PRIVATE
+    gtest_main
     storage_logic
+    buffer_logic
+)
+
+target_link_libraries(type_tests
+  PRIVATE
+  gtest_main
+  type_logic
+)
+
+target_link_libraries(index_tests
+  PRIVATE
+  gtest_main
+  index_logic
+  storage_logic
+  type_logic
+)
+
+target_link_libraries(buffer_tests
+  PRIVATE
+  gtest_main
+  buffer_logic
 )
 
 include(GoogleTest)
 gtest_discover_tests(storage_tests)
+gtest_discover_tests(type_tests)
+gtest_discover_tests(index_tests)
+gtest_discover_tests(buffer_tests)

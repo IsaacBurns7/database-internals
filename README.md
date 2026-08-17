@@ -1,0 +1,9 @@
+test tuple
+test key
+modified so test again... 
+    schema ?? wtf are these... 
+    column ?? wtf are these... 
+
+clean up types 
+    - uint8_t vs char
+    - uint16_t vs uint32_t 

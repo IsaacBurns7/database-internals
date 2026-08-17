@@ -76,6 +76,14 @@ DiskManager::DiskManager(const std::string& file_path){
 		}
 	}
 
+	// PENDING (VPID/PPID directory — see disk_manager.h): the directory rebuild
+	// scan goes here, after global_metadata_ is known-good (need next_page_id
+	// and freelist_head to walk the file). Algorithm: walk the freelist chain
+	// rooted at global_metadata_.freelist_head to collect free PPIDs, then for
+	// every PPID in [1, next_page_id) not in that set, pread its
+	// SlottedPageHeader-sized prefix and populate directory_[header.page_id]
+	// = {ppid, header.generation}. Skipped entirely on brand-new files (st_size
+	// == 0 branch above) since there's nothing to scan yet.
 
 }
 
@@ -144,6 +152,12 @@ void DiskManager::readPage(page_id_t page_id, char* data){
 	 *
 	 *   CURRENTLY USES MANUAL BUFFER, REFACTOR WHEN BUFFERPOOL IS CREATED
      */
+// PENDING (VPID/PPID directory): everything below allocates/returns a PPID
+// directly. Once PageDirectory exists, wrap this whole function's result:
+// `page_id_t ppid = /* this function's current body, unchanged */;
+//  return directory_.Allocate(ppid);` — directory_.Allocate() binds ppid to
+// a fresh (or recycled) VPID, bumps that slot's generation, and it's the
+// VPID that gets returned to the caller instead of ppid.
 page_id_t DiskManager::allocatePage(){
 	if(global_metadata_.freelist_head == INVALID_PAGE_ID){
 		//no freelist, just make new id manually 
@@ -177,6 +191,12 @@ page_id_t DiskManager::allocatePage(){
      * reallocation. Caller must ensure no live references remain before
      * calling this (BufferPoolManager must have evicted the page first).
      */
+// PENDING (VPID/PPID directory): `page_id` here will be a VPID, not a PPID.
+// Add at the top: `page_id_t page_id = directory_.Translate(vpid);
+// directory_.Deallocate(vpid);` (translate first, then free the VPID slot —
+// deallocating bumps its generation, which is what makes a stale cached vpid
+// detectable later) — then the rest of this function's body runs unchanged,
+// pushing the PPID onto the physical freelist exactly as today.
 void DiskManager::deallocatePage(page_id_t page_id){
 	page_id_t head_id = global_metadata_.freelist_head;
 	if(head_id == INVALID_PAGE_ID){

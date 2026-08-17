@@ -3,7 +3,7 @@
 #include "common/config.h"
 #include <cstdint>
 #include <optional>
-#include <span>  // C++20; use std::pair<char*,uint16_t> if on C++17
+#include <utility>
 #include <cstring>
 #include <iostream>
 #include <cassert>
@@ -71,14 +71,30 @@ enum SlottedPageType: uint8_t{
 	// overflow //for like 10KB strings  
 };
 
-struct alignas(4) SlottedPageHeader {
+struct alignas(8) SlottedPageHeader {
     page_id_t page_id;      // 4 bytes - Offset 0
     lsn_t lsn;              // 4 bytes - Offset 4
     uint32_t check_sum;     // 4 bytes - Offset 8
     uint16_t max_slot_id;    // 2 bytes - Offset 12
-	uint16_t free_space_ptr;// 2 bytes - Offset 14, first free space for the next record 
+	uint16_t free_space_ptr;// 2 bytes - Offset 14, first free space for the next record
     SlottedPageType page_type;     // 1 byte  - Offset 16
-    uint8_t padding[3];     // 3 bytes - Explicitly pad to 20 bytes (4-byte alignment)
+    page_id_t left_sibling; //4 bytes - offset 17
+    page_id_t right_sibling; //4 bytes - offset 21
+    char padding[3];
+    //does this fill in padding?
+
+	// PENDING (VPID/PPID directory, see storage/disk_manager.h design notes):
+	// this is what makes a page "self-describing" and is the whole reason
+	// DiskManager can rebuild its VPID->PPID directory by scanning the file
+	// on startup instead of persisting the directory itself — page_id here
+	// is what gets read back out during that scan. Under the directory
+	// design, page_id semantically becomes the page's VPID (stable identity)
+	// rather than tracking its physical offset. Also needs a `uint32_t
+	// generation` field added alongside it (bumped whenever this page's VPID
+	// slot gets recycled) so the rebuilt directory can detect stale cached
+	// references — see BPlusTreeIterator's note in b_plus_tree.h for the one
+	// place in this codebase that would consume it. No spare bytes left in
+	// `padding` for it (need 4, have 3) — this grows the struct.
 };
 
 //need size for variable-length records (strings!!!)
@@ -89,103 +105,22 @@ struct Slot{
 
 class SlottedPage {
 public:
-    /*
-     * Wraps the PAGE_SIZE buffer pointed to by `data`.
-     * Does NOT zero-initialise. Caller must call init() on a fresh page
-     * or simply wrap an existing, already-formatted page.
-     * `data` must remain valid for the lifetime of this SlottedPage.
-     */
     explicit SlottedPage(char* data);
-
-    /*
-     * Writes the initial PageHeader into data[] with the given page_type.
-     * Sets slot_count = 0, free_space_ptr = PAGE_SIZE (heap starts at end).
-     * Must be called exactly once on a freshly allocated page before any
-     * insertRecord() call. Calling this on an existing page destroys its data.
-     */
     void init(page_id_t page_id, SlottedPageType page_type);
-
-    /*
-     * Copies `length` bytes from `record` into the record heap, growing it
-     * backward. Allocates a new slot entry at index slot_count, stores the
-     * record's (offset, length), increments slot_count.
-     * Returns the new slot_id (== old slot_count before increment).
-     *
-     * Returns std::nullopt if:
-     *   - There is not enough free space even after compactify() — caller
-     *     must split the page.
-     *   - `length` == 0 (zero-length records are not allowed; use tombstones).
-     *
-     * Does NOT call compactify() automatically — caller decides when to compact.
-     * After a successful insert, caller must mark the Page dirty.
-     */
     std::optional<slot_id_t> insertRecord(const char* record, uint16_t length);
-
-    /*
-     * Marks slot `slot_id` as deleted by setting Slot.length = 0 (tombstone).
-     * The bytes in the heap are not zeroed. Free space does not increase until
-     * compactify() reclaims the gap.
-     * Returns false if slot_id is out of range or already deleted.
-     * After a successful delete, caller must mark the Page dirty.
-     */
+    std::optional<slot_id_t> insertRecordAt(slot_id_t logical_pos, const char* record, uint16_t length);
     bool deleteRecord(slot_id_t slot_id);
-
-    /*
-     * Returns a span (pointer + length) into data[] for the record at `slot_id`.
-     * The span is valid until the next insertRecord() or compactify() call —
-     * both can shift record positions. Callers that need the data beyond that
-     * must copy it out.
-     * Returns an empty span if slot_id is out of range or deleted.
-     */
-    std::span<const char> getRecord(slot_id_t slot_id) const;
-
-    /*
-     * Overwrites the record at `slot_id` with `length` bytes from `record`.
-     * Only valid if new length == old length (same-size update, no movement).
-     * For different-size updates, the caller must deleteRecord + insertRecord.
-     * Returns false if slot_id is invalid, deleted, or lengths differ.
-     * After success, caller must mark the Page dirty.
-     */
+    std::pair<const char*, uint16_t> getRecord(slot_id_t slot_id) const;
     bool updateRecord(slot_id_t slot_id, const char* record, uint16_t length);
-
-    /*
-     * Defragments the record heap in-place. Scans all live slots, packs their
-     * records contiguously at the end of the page, updates slot offsets to
-     * match new positions, resets free_space_ptr. Slot indices (slot_ids)
-     * do NOT change — this is the invariant the B+Tree depends on.
-     * Should be called when getFreeSpace() < needed but getTotalFreeSpace()
-     * (including fragmented gaps) >= needed.
-     * After calling this, any previously obtained getRecord() spans are stale.
-     */
     void compactify();
-
-    /*
-     * Returns the number of bytes in the contiguous free gap between the
-     * end of the slot array and free_space_ptr. This is what is immediately
-     * available for a new insert WITHOUT compaction.
-     * Equation: free_space_ptr - (sizeof(Header) + slot_count * sizeof(Slot))
-     */
     uint16_t getFreeSpace() const;
-
-    /*
-     * Returns total reclaimable free bytes: contiguous free space plus the
-     * sum of lengths of all deleted (tombstoned) slots. If this is >= the
-     * needed size but getFreeSpace() is not, compactify() will help.
-     */
     uint16_t getTotalFreeSpace() const;
-
-    /*
-     * Returns the number of slot entries (live + deleted). The last valid
-     * slot_id is getSlotCount() - 1. Does NOT count only live records.
-     */
     uint16_t getSlotCount() const;
-
-    /*
-     * Returns the PageType stored in the header. Used by upper layers
-     * to distinguish leaf pages, internal pages, overflow pages, etc.
-     */
     SlottedPageType getPageType() const;
-
+    page_id_t getRightSibling() const; 
+    page_id_t getLeftSibling() const;
+    void setLeftSibling(page_id_t left_sibling);
+    void setRightSibling(page_id_t right_sibling);
 private:
     char* data_;  // points into Page::data_[] — not owned here
 	
@@ -223,3 +158,93 @@ private:
 		return header->max_slot_id;
 	}
 };
+
+/*
+ * ============================================================================
+ * REFACTORING DIRECTIONS — candidate designs for fixing the insertion-order
+ * problem (insertRecord() currently appends at find_first_free_slot_id(),
+ * i.e. insertion order, not key order — see the FIX_SLOT_ID discussion).
+ * None of these are implemented. Each entry states: the core change, the
+ * invariant it establishes (what becomes true/false about slot identity and
+ * order after adopting it), and why that invariant is useful to have.
+ * ============================================================================
+ *
+ * (1) IN-PLACE SORTED SHIFT — insertRecordAt(logical_pos, record, len)
+ *     Change: caller (BPlusTree) computes the sorted position; SlottedPage
+ *       memmove's the Slot[] array to open a gap at that index, writes the
+ *       new slot there, max_slot_id++. Same idea applies to delete: shift
+ *       the array down instead of tombstoning.
+ *     Invariant: physical slot order == key order, always. Slot rank is
+ *       NOT stable — inserting/deleting anywhere before an entry changes
+ *       every later entry's index. No external structure may hold onto a
+ *       slot index across a mutation of the same page.
+ *     Why useful: this is the minimum change that makes findRecord's binary
+ *       search valid and BPlusTreeIterator::Next()'s ascending-walk
+ *       assumption true. Cheapest to implement, cheapest to reason about,
+ *       and matches how Postgres's nbtree (B-tree index) pages behave —
+ *       see FIX_SLOT_ID appendix in analysis.md for the full comparison.
+ *
+ * (2) LOGICAL-ORDER INDIRECTION ARRAY (the design sketched in the original
+ *     findRecord() comments, kept here for contrast)
+ *     Change: physical Slot[] stays append-only/stable forever (today's
+ *       behavior, untouched). A second small array of slot indices, kept
+ *       sorted by key, is maintained alongside it; binary search walks the
+ *       order array, not the physical array. Insert/delete only ever
+ *       memmove entries within the (tiny, index-sized) order array.
+ *     Invariant: physical slot_id is a permanent handle — once assigned, it
+ *       never changes for the lifetime of the page. Order is enforced by a
+ *       second structure, not by physical position.
+ *     Why useful: matters only if something outside the page will someday
+ *       store (page_id, slot_id) as a durable pointer — e.g. a future
+ *       secondary index pointing into these pages the way Postgres TIDs
+ *       point into heap pages. Not needed for this project today (no
+ *       secondary indexes exist), so this is strictly more bookkeeping
+ *       (an extra array, an extra indirection on every lookup) for an
+ *       invariant nothing currently relies on. Worth revisiting only if
+ *       secondary indexes get planned.
+ *
+ * (3) REDIRECT-ON-DEMAND (hybrid of 1 and 2, modeled on Postgres HOT /
+ *     LP_REDIRECT line pointers)
+ *     Change: default to (1) — slots shift freely. But the moment some
+ *       external structure needs a durable handle to a specific record, that
+ *       slot is converted to a permanent "redirect" stub (never moves again,
+ *       never reused) whose payload is just "the record actually lives at
+ *       slot X now" — updated whenever the real entry's position changes.
+ *     Invariant: slot stability is opt-in and paid for only by the records
+ *       that need it, not by every record in the page.
+ *     Why useful: gets you (2)'s external-pointer durability without (2)'s
+ *       blanket overhead. Meaningfully more complex to implement/test than
+ *       either (1) or (2) alone — only worth it if most records never need a
+ *       durable external handle but a few do.
+ *
+ * (4) SPLIT INTO TWO PAGE CONTRACTS — HeapPage vs IndexPage
+ *     Change: factor today's SlottedPage into a shared low-level "physical
+ *       slot array + record heap" primitive, then layer two distinct
+ *       policies on top: a Heap policy (append/reuse-first-free, slot_id
+ *       stable forever, no order guarantee — today's actual behavior) and an
+ *       Index policy (sorted insert/delete via (1), rank not stable). Pick
+ *       the policy per page based on SlottedPageType.
+ *     Invariant: each page type gets an honest, distinct contract instead of
+ *       one class trying to satisfy both at once.
+ *     Why useful: this codebase already has heap_organized_table.cpp and
+ *       index_organized_table.cpp under ch1/, i.e. heap-organized tables are
+ *       an explicit future direction, not a hypothetical. The current bug is
+ *       exactly "a heap-page policy (find_first_free_slot_id) applied to a
+ *       page that's actually playing an index-page role" — splitting the
+ *       contract now means this exact confusion can't recur when a real heap
+ *       table gets built later.
+ *
+ * (5) BULK/APPEND-SORTED FAST PATH for splitChild()
+ *     Change: add an insertSortedRange()-style bulk op for the specific case
+ *       of populating a freshly-initialized (empty) page with records already
+ *       known to be in ascending key order — e.g. the right half of a split.
+ *       On an empty page, "append in order" and "insert in sorted position"
+ *       are the same operation, so no per-record shifting is needed at all.
+ *     Invariant: none new — this is a fast path for a case (1) already
+ *       handles correctly, not a new ordering guarantee.
+ *     Why useful: splitChild() today does per-record delete+insert in a loop;
+ *       once (1) makes every insert a potential O(n) shift, splitting a full
+ *       page one record at a time becomes O(n^2). A bulk path restores O(n)
+ *       for the one place this actually matters — worth flagging even though
+ *       it's a performance refactor, not a correctness one.
+ */

@@ -20,8 +20,10 @@ public:
 
     // Serialization
     virtual uint16_t SerializedSize(const Value &v) const = 0;
+    virtual uint16_t FixedSize(const Value &v) const = 0; //v is unused by MY GOAT varchar_type 
     virtual void     Serialize(const Value &v, uint8_t *buf) const = 0;
     virtual Value    Deserialize(const uint8_t *buf, uint8_t width) const = 0;
+
 
     // Registry
     static Type *GetInstance(TypeId id);
