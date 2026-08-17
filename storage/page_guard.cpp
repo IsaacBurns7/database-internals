@@ -114,12 +114,12 @@ auto ReadPageGuard::IsDirty() const -> bool {
  *
  * TODO(P1): Add implementation.
  */
-void ReadPageGuard::Flush() { 
+void ReadPageGuard::Flush() {
     ENSURE(is_valid_, "tried to flush an invalid page guard");
-    auto promise = disk_scheduler_->CreatePromise();
-    auto future = promise.get_future();
+    std::promise<void> done;
+    auto future = done.get_future();
     std::vector<DiskRequest> requests;
-    requests.push_back({/*is_write=*/true, frame_->GetDataMut(), page_id_, std::move(promise)});
+    requests.push_back(WriteRequest{page_id_, frame_->GetDataMut(), std::move(done)});
     disk_scheduler_->Schedule(requests);
     future.get(); //block until the background thread finishes the write
     frame_->is_dirty_ = false;
@@ -281,13 +281,13 @@ auto WritePageGuard::IsDirty() const -> bool {
  * TODO(P1): Add implementation.
  */
 void WritePageGuard::Flush() {
-    // Same as ReadPageGuard::Flush — no DIFFERENCE. DiskRequest::data_ needs a mutable
+    // Same as ReadPageGuard::Flush — no DIFFERENCE. WriteRequest::data needs a mutable
     // char* regardless of guard type, so this is identical logic either way.
     ENSURE(is_valid_, "tried to flush an invalid page guard");
-    auto promise = disk_scheduler_->CreatePromise();
-    auto future = promise.get_future();
+    std::promise<void> done;
+    auto future = done.get_future();
     std::vector<DiskRequest> requests;
-    requests.push_back({/*is_write=*/true, frame_->GetDataMut(), page_id_, std::move(promise)});
+    requests.push_back(WriteRequest{page_id_, frame_->GetDataMut(), std::move(done)});
     disk_scheduler_->Schedule(requests);
     future.get(); //block until the background thread finishes the write
     frame_->is_dirty_ = false;

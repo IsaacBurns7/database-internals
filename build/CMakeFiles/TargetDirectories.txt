@@ -2,7 +2,6 @@
 /Users/kingisaac/Github/database-internals/build/CMakeFiles/type_logic.dir
 /Users/kingisaac/Github/database-internals/build/CMakeFiles/index_logic.dir
 /Users/kingisaac/Github/database-internals/build/CMakeFiles/buffer_logic.dir
-/Users/kingisaac/Github/database-internals/build/CMakeFiles/storage_viz.dir
 /Users/kingisaac/Github/database-internals/build/CMakeFiles/storage_tests.dir
 /Users/kingisaac/Github/database-internals/build/CMakeFiles/type_tests.dir
 /Users/kingisaac/Github/database-internals/build/CMakeFiles/index_tests.dir

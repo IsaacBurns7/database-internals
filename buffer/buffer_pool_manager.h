@@ -5,6 +5,7 @@
 #include <shared_mutex>
 #include <unordered_map>
 #include <vector>
+#include <map>
 
 #include "buffer/arc_replacer.h"
 #include "common/config.h"
@@ -56,7 +57,7 @@ class FrameHeader {
   void Reset();
 
   /** @brief The frame ID / index of the frame this header represents. */
-  const frame_id_t frame_id_;
+  const frame_id_t frame_id_; //do I need this?? 
 
   /** @brief The readers / writer latch for this frame. */
   std::shared_mutex rwlatch_;
@@ -141,7 +142,7 @@ class BufferPoolManager {
   // independent sources of truth for "what page id is next." Once NewPage()
   // routes through disk_scheduler_'s Allocate path, this member should be
   // deleted rather than kept in sync with DiskManager's copy.
-  std::atomic<page_id_t> next_page_id_;
+//   std::atomic<page_id_t> next_page_id_;
 
   /**
    * @brief The latch protecting the buffer pool's inner data structures.
@@ -151,19 +152,10 @@ class BufferPoolManager {
   std::shared_ptr<std::mutex> bpm_latch_;
 
   /** @brief The frame headers of the frames that this buffer pool manages. */
-  std::vector<std::shared_ptr<FrameHeader>> frames_;
-
+//   std::vector<std::shared_ptr<FrameHeader>> frames_;
+    std::map<frame_id_t, std::shared_ptr<FrameHeader>> frames_; //why not map this??? 
   /** @brief The page table that keeps track of the mapping between pages and buffer pool frames. */
-  // PENDING (VPID/PPID directory, see storage/disk_manager.h design notes):
-  // this class needs NO changes for that design. page_id_t here already only
-  // ever gets handed to disk_manager_ (as the whole thing this file has to
-  // pass through anyway) — once DiskManager treats page_id as a VPID and
-  // translates to a PPID internally, page_table_'s keys just become VPIDs
-  // too, transparently. The dependency between these two classes is
-  // one-directional (BufferPoolManager calls into DiskManager for I/O;
-  // DiskManager never calls into BufferPoolManager, and does its own raw
-  // pread/pwrite directly against the fd — see disk_manager.cpp), so there's
-  // no "read a page by PPID through BPM" path to add, and no reason for one.
+  
   std::unordered_map<page_id_t, frame_id_t> page_table_;
 
   /** @brief A list of free frames that do not hold any page's data. */
@@ -190,5 +182,5 @@ class BufferPoolManager {
    * We would recommend implementing a helper function that returns the ID of a frame that is free and has nothing
    * stored inside of it. Additionally, you may also want to implement a helper function that returns either a shared
    * pointer to a `FrameHeader` that already has a page's data stored inside of it, or an index to said `FrameHeader`.
-   *
+   */
 };

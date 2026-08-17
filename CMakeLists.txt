@@ -53,8 +53,8 @@ target_include_directories(type_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(index_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/storage)
 target_include_directories(buffer_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 # --- 3. Main Executable ---
-add_executable(storage_viz tests/storage_viz.cpp)
-target_link_libraries(storage_viz PRIVATE storage_logic)
+# add_executable(storage_viz tests/storage_viz.cpp)
+# target_link_libraries(storage_viz PRIVATE storage_logic)
 
 # --- 4. Testing Setup ---
 enable_testing()

@@ -224,19 +224,6 @@ buffer_logic/fast:
 .PHONY : buffer_logic/fast
 
 #=============================================================================
-# Target rules for targets named storage_viz
-
-# Build rule for target.
-storage_viz: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 storage_viz
-.PHONY : storage_viz
-
-# fast build rule for target.
-storage_viz/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_viz.dir/build.make CMakeFiles/storage_viz.dir/build
-.PHONY : storage_viz/fast
-
-#=============================================================================
 # Target rules for targets named storage_tests
 
 # Build rule for target.
@@ -772,30 +759,6 @@ tests/storage_test.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_tests.dir/build.make CMakeFiles/storage_tests.dir/tests/storage_test.cpp.s
 .PHONY : tests/storage_test.cpp.s
 
-tests/storage_viz.o: tests/storage_viz.cpp.o
-.PHONY : tests/storage_viz.o
-
-# target to build an object file
-tests/storage_viz.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_viz.dir/build.make CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.o
-.PHONY : tests/storage_viz.cpp.o
-
-tests/storage_viz.i: tests/storage_viz.cpp.i
-.PHONY : tests/storage_viz.i
-
-# target to preprocess a source file
-tests/storage_viz.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_viz.dir/build.make CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.i
-.PHONY : tests/storage_viz.cpp.i
-
-tests/storage_viz.s: tests/storage_viz.cpp.s
-.PHONY : tests/storage_viz.s
-
-# target to generate assembly for a file
-tests/storage_viz.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/storage_viz.dir/build.make CMakeFiles/storage_viz.dir/tests/storage_viz.cpp.s
-.PHONY : tests/storage_viz.cpp.s
-
 tests/type/boolean_type.o: tests/type/boolean_type.cpp.o
 .PHONY : tests/type/boolean_type.o
 
@@ -1083,7 +1046,6 @@ help:
 	@echo "... index_tests"
 	@echo "... storage_logic"
 	@echo "... storage_tests"
-	@echo "... storage_viz"
 	@echo "... type_logic"
 	@echo "... type_tests"
 	@echo "... buffer/arc_replacer.o"
@@ -1140,9 +1102,6 @@ help:
 	@echo "... tests/storage_test.o"
 	@echo "... tests/storage_test.i"
 	@echo "... tests/storage_test.s"
-	@echo "... tests/storage_viz.o"
-	@echo "... tests/storage_viz.i"
-	@echo "... tests/storage_viz.s"
 	@echo "... tests/type/boolean_type.o"
 	@echo "... tests/type/boolean_type.i"
 	@echo "... tests/type/boolean_type.s"

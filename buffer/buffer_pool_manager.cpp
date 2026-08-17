@@ -57,16 +57,12 @@ void FrameHeader::Reset() {
  */
 BufferPoolManager::BufferPoolManager(size_t num_frames, DiskManager *disk_manager) //LogManager *log_manager)
     : num_frames_(num_frames),
-      next_page_id_(0),
       bpm_latch_(std::make_shared<std::mutex>()),
       replacer_(std::make_shared<ArcReplacer>(num_frames)),
       disk_scheduler_(std::make_shared<DiskScheduler>(disk_manager)) {
     //   log_manager_(log_manager) {
   // Not strictly necessary...
   std::scoped_lock latch(*bpm_latch_);
-
-  // Initialize the monotonically increasing counter at 0.
-  next_page_id_.store(0);
 
   // Allocate all of the in-memory frames up front.
   frames_.reserve(num_frames_);
@@ -194,8 +190,72 @@ auto BufferPoolManager::CheckedWritePage(page_id_t page_id, AccessType access_ty
         //page is in cache
         //page is not in cache, don't need to evict (plenty of memory)
         //page is not in cache, need to evict (need more memory)
-            //how to bring data into the frame... after eviction
-  UNIMPLEMENTED("TODO(P1): Add implementation.");
+            //how to bring data into the frame... after eviction    
+    //for now ignore access_type, and im going to latch crab so... 
+    if(page_table_.find(page_id) != page_table_.end()){
+    //case 1    
+        frame_id_t frame_id;
+        std::shared_ptr<FrameHeader> frame;
+        {
+            std::scoped_lock latch(*bpm_latch_);
+            frame_id = page_table_[page_id];
+            frame = frames_[frame_id];
+        }
+        replacer_->RecordAccess(frame_id, page_id, access_type);
+        if(frame->pin_count_.fetch_add(1) == 0){
+            std::scoped_lock sl(*bpm_latch_);
+            replacer_->SetEvictable(frame_id, false); //was evictable, now its not 
+        }
+        return WritePageGuard(page_id, frame, replacer_, bpm_latch_, disk_scheduler_);
+            //will fetch_sub(1) w/ frame
+    }else if(num_frames_ ==  page_table_.size()){ //maybe latch on this? 
+    //case 3
+        frame_id_t frame_id; 
+        std::shared_ptr<FrameHeader> frame; 
+        {
+            std::scoped_lock latch(*bpm_latch_);
+            frame_id = free_frames_.front();
+            free_frames_.pop_front();
+            frame = frames_[frame_id];
+        }   
+        ReadRequest read_req{page_id, frame->GetDataMut(), std::promise<void>()};
+        auto future = read_req.done.get_future();
+        DiskRequest req{std::move(read_req)};
+        disk_scheduler_->Schedule_Single(req);
+        future.get();
+        {
+            std::scoped_lock latch(*bpm_latch_);
+            page_table_[page_id] = frame_id; 
+        }
+        replacer_->Evict()
+        replacer_->RecordAccess(frame_id, page_id, access_type);
+        frame->pin_count_.fetch_add(1);
+        
+        return WritePageGuard(page_id, frame, replacer_, bpm_latch_, disk_scheduler_);        
+    }else{
+    //case 2
+        frame_id_t frame_id; 
+        std::shared_ptr<FrameHeader> frame; 
+        {
+            std::scoped_lock latch(*bpm_latch_);
+            frame_id = free_frames_.front();
+            free_frames_.pop_front();
+            frame = frames_[frame_id];
+        }   
+        ReadRequest read_req{page_id, frame->GetDataMut(), std::promise<void>()};
+        auto future = read_req.done.get_future();
+        DiskRequest req{std::move(read_req)};
+        disk_scheduler_->Schedule_Single(req);
+        future.get();
+        {
+            std::scoped_lock latch(*bpm_latch_);
+            page_table_[page_id] = frame_id; 
+        }
+        replacer_->RecordAccess(frame_id, page_id, access_type);
+        frame->pin_count_.fetch_add(1);
+        
+        return WritePageGuard(page_id, frame, replacer_, bpm_latch_, disk_scheduler_);
+    }
 }
 
 /**
