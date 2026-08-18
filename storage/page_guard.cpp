@@ -141,10 +141,12 @@ void ReadPageGuard::Drop() {
     if(frame_->pin_count_.fetch_sub(1) == 1){
         std::scoped_lock sl(*bpm_latch_);
         replacer_->SetEvictable(frame_->frame_id_, true);
-            //replacer can not have threads modifying the same frame at once 
-                //wait but setevictable is idempotent... ?
+        //if frame_->rwlatch_.unlock_shared is not guarded, then the replacer can evict without the latch being dropped... 
+            //undefined under C++ memory model??? 
+        frame_->rwlatch_.unlock_shared();
+    }else{
+        frame_->rwlatch_.unlock_shared();
     }
-    frame_->rwlatch_.unlock_shared();
     frame_.reset();
     replacer_.reset();
     bpm_latch_.reset();
@@ -261,14 +263,20 @@ auto WritePageGuard::GetData() const -> const char * {
 
 /**
  * @brief Gets a mutable pointer to the page of data this guard is protecting.
+ * the intent is the caller of getDataMut() of a WritePageGuard never 
+ * holds char* data_mut = wpg->GetDataMut(), reusing data_mut 
+ * the intent is that the caller always uses GetDataMut() whenever they wish to write, and 
+ *      then perform a thread-safe write, wrt themselves, since they are the ones holding the 1 page guard
  */
 auto WritePageGuard::GetDataMut() -> char * {
   ENSURE(is_valid_, "tried to use an invalid write guard");
+  frame_->is_dirty_ = true; 
   return frame_->GetDataMut();
 }
 
 /**
  * @brief Returns whether the page is dirty (modified but not flushed to the disk).
+ 
  */
 auto WritePageGuard::IsDirty() const -> bool {
   ENSURE(is_valid_, "tried to use an invalid write guard");

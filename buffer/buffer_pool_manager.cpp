@@ -191,33 +191,51 @@ auto BufferPoolManager::CheckedWritePage(page_id_t page_id, AccessType access_ty
         //page is not in cache, don't need to evict (plenty of memory)
         //page is not in cache, need to evict (need more memory)
             //how to bring data into the frame... after eviction    
-    //for now ignore access_type, and im going to latch crab so... 
+    //for now ignore access_type, and im going to latch crab so no need for generation tags
     if(page_table_.find(page_id) != page_table_.end()){
     //case 1    
+        //get frame_id/frame from cache 
         frame_id_t frame_id;
         std::shared_ptr<FrameHeader> frame;
         {
             std::scoped_lock latch(*bpm_latch_);
-            frame_id = page_table_[page_id];
+            auto it = page_table_.find(page_id);
+            frame_id = it->second;
             frame = frames_[frame_id];
         }
+        //update replacer
         replacer_->RecordAccess(frame_id, page_id, access_type);
         if(frame->pin_count_.fetch_add(1) == 0){
             std::scoped_lock sl(*bpm_latch_);
-            replacer_->SetEvictable(frame_id, false); //was evictable, now its not 
+            replacer_->SetEvictable(frame_id, false); //was evictable, now its not
         }
         return WritePageGuard(page_id, frame, replacer_, bpm_latch_, disk_scheduler_);
             //will fetch_sub(1) w/ frame
     }else if(num_frames_ ==  page_table_.size()){ //maybe latch on this? 
     //case 3
-        frame_id_t frame_id; 
+        frame_id_t frame_id;
+        page_id_t stale_page_id;  
         std::shared_ptr<FrameHeader> frame; 
         {
+            //evict frame_id
             std::scoped_lock latch(*bpm_latch_);
-            frame_id = free_frames_.front();
-            free_frames_.pop_front();
+            std::optional<std::pair<page_id_t, frame_id_t>> evicted = replacer_->Evict();
+            if(!evicted.has_value()){ 
+                //fucking log or whatever
+                return std::nullopt; 
+            }
+            stale_page_id = evicted.value().first;
+            frame_id = evicted.value().second;
             frame = frames_[frame_id];
-        }   
+            //flush if dirty
+            if(frame->is_dirty_){
+                FlushPageUnsafe(stale_page_id);
+            } 
+            //erase stale page_id
+            page_table_.erase(stale_page_id);
+        }
+        
+        //read page_id data into frame
         ReadRequest read_req{page_id, frame->GetDataMut(), std::promise<void>()};
         auto future = read_req.done.get_future();
         DiskRequest req{std::move(read_req)};
@@ -225,15 +243,15 @@ auto BufferPoolManager::CheckedWritePage(page_id_t page_id, AccessType access_ty
         future.get();
         {
             std::scoped_lock latch(*bpm_latch_);
-            page_table_[page_id] = frame_id; 
+            page_table_[page_id] = frame_id; //link page_id and frame_id 
         }
-        replacer_->Evict()
+        //update replacer 
         replacer_->RecordAccess(frame_id, page_id, access_type);
-        frame->pin_count_.fetch_add(1);
-        
+        replacer_->SetEvictable(frame_id, false); 
         return WritePageGuard(page_id, frame, replacer_, bpm_latch_, disk_scheduler_);        
     }else{
     //case 2
+        //get frame_id/frame from free_frames_
         frame_id_t frame_id; 
         std::shared_ptr<FrameHeader> frame; 
         {
@@ -242,6 +260,7 @@ auto BufferPoolManager::CheckedWritePage(page_id_t page_id, AccessType access_ty
             free_frames_.pop_front();
             frame = frames_[frame_id];
         }   
+        //read page_id data into frame
         ReadRequest read_req{page_id, frame->GetDataMut(), std::promise<void>()};
         auto future = read_req.done.get_future();
         DiskRequest req{std::move(read_req)};
@@ -249,11 +268,11 @@ auto BufferPoolManager::CheckedWritePage(page_id_t page_id, AccessType access_ty
         future.get();
         {
             std::scoped_lock latch(*bpm_latch_);
-            page_table_[page_id] = frame_id; 
+            page_table_[page_id] = frame_id; //link page_id and frame_id
         }
+        //update replacer
         replacer_->RecordAccess(frame_id, page_id, access_type);
-        frame->pin_count_.fetch_add(1);
-        
+        replacer_->SetEvictable(frame_id, false); 
         return WritePageGuard(page_id, frame, replacer_, bpm_latch_, disk_scheduler_);
     }
 }
@@ -282,8 +301,96 @@ auto BufferPoolManager::CheckedWritePage(page_id_t page_id, AccessType access_ty
  * @return std::optional<ReadPageGuard> An optional latch guard where if there are no more free frames (out of memory)
  * returns `std::nullopt`; otherwise, returns a `ReadPageGuard` ensuring shared and read-only access to a page's data.
  */
+//CheckedReadPage and CheckedWritePage are structurally identical
 auto BufferPoolManager::CheckedReadPage(page_id_t page_id, AccessType access_type) -> std::optional<ReadPageGuard> {
-  UNIMPLEMENTED("TODO(P1): Add implementation.");
+    //3 cases
+        //page is in cache
+        //page is not in cache AND we must evict
+        //page is not in cache AND we don't have to evict
+    //for now ignore access_type, and im going to latch crab so no need for generation tags
+    if(page_table_.find(page_id) != page_table_.end()){
+    //case 1    
+        //get frame_id/frame from cache 
+        frame_id_t frame_id;
+        std::shared_ptr<FrameHeader> frame;
+        {
+            std::scoped_lock latch(*bpm_latch_);
+            auto it = page_table_.find(page_id);
+            frame_id = it->second;
+            frame = frames_[frame_id];
+        }
+        //update replacer
+        replacer_->RecordAccess(frame_id, page_id, access_type);
+        if(frame->pin_count_.fetch_add(1) == 0){
+            std::scoped_lock sl(*bpm_latch_);
+            replacer_->SetEvictable(frame_id, false); //was evictable, now its not
+        }
+        return ReadPageGuard(page_id, frame, replacer_, bpm_latch_, disk_scheduler_);
+            //will fetch_sub(1) w/ frame
+    }else if(num_frames_ ==  page_table_.size()){ //maybe latch on this? 
+    //case 3
+        frame_id_t frame_id;
+        page_id_t stale_page_id;  
+        std::shared_ptr<FrameHeader> frame; 
+        {
+            //evict frame_id
+            std::scoped_lock latch(*bpm_latch_);
+            std::optional<std::pair<page_id_t, frame_id_t>> evicted = replacer_->Evict();
+            if(!evicted.has_value()){ 
+                //fucking log or whatever
+                return std::nullopt; 
+            }
+            stale_page_id = evicted.value().first;
+            frame_id = evicted.value().second;
+            frame = frames_[frame_id];
+            //flush if dirty
+            if(frame->is_dirty_){
+                FlushPageUnsafe(stale_page_id);
+            } 
+            //erase stale page_id
+            page_table_.erase(stale_page_id);
+        }
+        
+        //read page_id data into frame
+        ReadRequest read_req{page_id, frame->GetDataMut(), std::promise<void>()};
+        auto future = read_req.done.get_future();
+        DiskRequest req{std::move(read_req)};
+        disk_scheduler_->Schedule_Single(req);
+        future.get();
+        {
+            std::scoped_lock latch(*bpm_latch_);
+            page_table_[page_id] = frame_id; //link page_id and frame_id 
+        }
+        //update replacer 
+        replacer_->RecordAccess(frame_id, page_id, access_type);
+        replacer_->SetEvictable(frame_id, false); 
+        return ReadPageGuard(page_id, frame, replacer_, bpm_latch_, disk_scheduler_);        
+    }else{
+    //case 2
+        //get frame_id/frame from free_frames_
+        frame_id_t frame_id; 
+        std::shared_ptr<FrameHeader> frame; 
+        {
+            std::scoped_lock latch(*bpm_latch_);
+            frame_id = free_frames_.front();
+            free_frames_.pop_front();
+            frame = frames_[frame_id];
+        }   
+        //read page_id data into frame
+        ReadRequest read_req{page_id, frame->GetDataMut(), std::promise<void>()};
+        auto future = read_req.done.get_future();
+        DiskRequest req{std::move(read_req)};
+        disk_scheduler_->Schedule_Single(req);
+        future.get();
+        {
+            std::scoped_lock latch(*bpm_latch_);
+            page_table_[page_id] = frame_id; //link page_id and frame_id
+        }
+        //update replacer
+        replacer_->RecordAccess(frame_id, page_id, access_type);
+        replacer_->SetEvictable(frame_id, false); 
+        return ReadPageGuard(page_id, frame, replacer_, bpm_latch_, disk_scheduler_);
+    }
 }
 
 /**
@@ -355,8 +462,29 @@ auto BufferPoolManager::ReadPage(page_id_t page_id, AccessType access_type) -> R
  * @param page_id The page ID of the page to be flushed.
  * @return `false` if the page could not be found in the page table; otherwise, `true`.
  */
-auto BufferPoolManager::FlushPageUnsafe(page_id_t page_id) -> bool { 
-    UNIMPLEMENTED("TODO(P1): Add implementation."); 
+auto BufferPoolManager::FlushPageUnsafe(page_id_t page_id) -> bool {
+    auto it = page_table_.find(page_id);
+    if(it == page_table_.end()){
+        return false;
+    }
+    frame_id_t frame_id = it->second;
+    std::shared_ptr<FrameHeader> frame = frames_[frame_id];
+    //check if dirty
+    if(!frame->is_dirty_){
+        return true; 
+    }
+    //update frame header
+    frame->is_dirty_ = false; 
+    //send write request to disk_scheduler 
+    WriteRequest write_req{page_id, frame->GetDataMut(), std::promise<void>()};
+    auto future = write_req.done.get_future();
+    DiskRequest req{std::move(write_req)};
+    disk_scheduler_->Schedule_Single(req);
+    future.get();
+    return true; 
+    //I dont think I have to ...
+        //remove from replacer... 
+        //unlink page_id from frame_id 
 }
 
 /**

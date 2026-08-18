@@ -66,7 +66,7 @@ class FrameHeader {
   std::atomic<size_t> pin_count_;
 
   /** @brief The dirty flag. */
-  bool is_dirty_;
+  std::atomic<bool> is_dirty_;
 
   /**
    * @brief A pointer to the data of the page that this frame holds.
@@ -152,8 +152,8 @@ class BufferPoolManager {
   std::shared_ptr<std::mutex> bpm_latch_;
 
   /** @brief The frame headers of the frames that this buffer pool manages. */
-//   std::vector<std::shared_ptr<FrameHeader>> frames_;
-    std::map<frame_id_t, std::shared_ptr<FrameHeader>> frames_; //why not map this??? 
+    std::vector<std::shared_ptr<FrameHeader>> frames_;
+    // std::map<frame_id_t, std::shared_ptr<FrameHeader>> frames_; //why not map this??? 
   /** @brief The page table that keeps track of the mapping between pages and buffer pool frames. */
   
   std::unordered_map<page_id_t, frame_id_t> page_table_;

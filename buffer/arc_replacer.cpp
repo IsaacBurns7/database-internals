@@ -32,7 +32,7 @@ ArcReplacer::ArcReplacer(size_t num_frames)
  *
  * @return frame id of the evicted frame, or std::nullopt if cannot evict
  */
-auto ArcReplacer::Evict() -> std::optional<frame_id_t> {
+auto ArcReplacer::Evict() -> std::optional<std::pair<page_id_t, frame_id_t>> {
     // scans a list back-to-front for the first evictable frame, removing it from
     // the list (but not from alive_map_) if found.
     auto EvictFrom = [this](std::list<frame_id_t> &lst) -> std::optional<frame_id_t> {
@@ -96,7 +96,7 @@ auto ArcReplacer::Evict() -> std::optional<frame_id_t> {
     frame_status->frame_id_ = INVALID_FRAME_ID;
     ghost_map_[page_id] = frame_status;
 
-    return frame_id;
+    return {page_id, frame_id};
 }
 
 /**
