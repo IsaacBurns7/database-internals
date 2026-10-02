@@ -46,8 +46,8 @@ class DiskScheduler {
   explicit DiskScheduler(DiskManager *disk_manager);
   ~DiskScheduler();
 
-  void Schedule(std::vector<DiskRequest> &requests);
-  void Schedule_Single(DiskRequest &request); 
+  void Schedule(std::vector<DiskRequest> &&requests);
+  void Schedule_Single(DiskRequest &&request); 
 
   void StartWorkerThread();
 

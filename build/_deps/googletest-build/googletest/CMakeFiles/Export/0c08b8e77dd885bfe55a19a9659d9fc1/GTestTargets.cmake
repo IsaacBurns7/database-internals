@@ -62,7 +62,7 @@ set_target_properties(GTest::gtest PROPERTIES
   INTERFACE_COMPILE_FEATURES "cxx_std_17"
   INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
   INTERFACE_LINK_LIBRARIES "Threads::Threads"
-  INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
+  INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "include"
 )
 
 # Create imported target GTest::gtest_main
@@ -72,7 +72,7 @@ set_target_properties(GTest::gtest_main PROPERTIES
   INTERFACE_COMPILE_FEATURES "cxx_std_17"
   INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
   INTERFACE_LINK_LIBRARIES "Threads::Threads;GTest::gtest"
-  INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
+  INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "include"
 )
 
 # Create imported target GTest::gmock
@@ -82,7 +82,7 @@ set_target_properties(GTest::gmock PROPERTIES
   INTERFACE_COMPILE_FEATURES "cxx_std_17"
   INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
   INTERFACE_LINK_LIBRARIES "Threads::Threads;GTest::gtest"
-  INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
+  INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "include"
 )
 
 # Create imported target GTest::gmock_main
@@ -92,7 +92,7 @@ set_target_properties(GTest::gmock_main PROPERTIES
   INTERFACE_COMPILE_FEATURES "cxx_std_17"
   INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
   INTERFACE_LINK_LIBRARIES "Threads::Threads;GTest::gmock"
-  INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
+  INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "include"
 )
 
 # Load information for each installed configuration.

@@ -277,16 +277,47 @@
 #include "gtest/gtest.h"
 #include "gtest/internal/gtest-internal.h"
 
-// MSVC warning C5046 is new as of VS2017 version 15.8.
-#if defined(_MSC_VER) && _MSC_VER >= 1915
-#define GMOCK_MAYBE_5046_ 5046
-#else
-#define GMOCK_MAYBE_5046_
-#endif
+#if GTEST_HAS_RTTI
+namespace proto2 {
+namespace internal {
+
+// A type trait to essentially determine if `DynamicCastMessage` is available,
+// since older versions of protobuf don't have this function.
+template <typename T, typename = void>
+static constexpr bool kHasDynamicCastMessage = false;
+template <typename T>
+static constexpr bool kHasDynamicCastMessage<
+    T, std::void_t<decltype(DynamicCastMessage<T>(
+           std::declval<const proto2::MessageLite*>()))>> = true;
+
+// A helper function to call `DynamicCastMessage` if available, otherwise
+// falling back to `dynamic_cast`. Note that we must declare this function in
+// the `proto2` namespace because we need ADL to find the right
+// `DynamicCastMessage`, and ADL only applies to unqualified function calls.
+template <typename T>
+const T* DynamicCastMessageForGtest(const proto2::MessageLite* msg) {
+  if constexpr (kHasDynamicCastMessage<T>) {
+    return DynamicCastMessage<T>(msg);
+  } else {
+    return dynamic_cast<const T*>(msg);
+  }
+}
+template <typename T>
+T* DynamicCastMessageForGtest(proto2::MessageLite* msg) {
+  if constexpr (kHasDynamicCastMessage<T>) {
+    return DynamicCastMessage<T>(msg);
+  } else {
+    return dynamic_cast<T*>(msg);
+  }
+}
+
+}  // namespace internal
+}  // namespace proto2
+#endif  // GTEST_HAS_RTTI
 
 GTEST_DISABLE_MSC_WARNINGS_PUSH_(
-    4251 GMOCK_MAYBE_5046_ /* class A needs to have dll-interface to be used by
-                              clients of class B */
+    // class A needs to have dll-interface to be used by clients of class B
+    4251 5046
     /* Symbol involving type with internal linkage not defined */)
 
 namespace testing {
@@ -783,7 +814,11 @@ class [[nodiscard]] IsNullMatcher {
   template <typename Pointer>
   bool MatchAndExplain(const Pointer& p,
                        MatchResultListener* /* listener */) const {
-    return p == nullptr;
+    if constexpr (std::is_function_v<Pointer>) {
+      return false;
+    } else {
+      return p == nullptr;
+    }
   }
 
   void DescribeTo(::std::ostream* os) const { *os << "is NULL"; }
@@ -797,7 +832,11 @@ class [[nodiscard]] NotNullMatcher {
   template <typename Pointer>
   bool MatchAndExplain(const Pointer& p,
                        MatchResultListener* /* listener */) const {
-    return p != nullptr;
+    if constexpr (std::is_function_v<Pointer>) {
+      return true;
+    } else {
+      return p != nullptr;
+    }
   }
 
   void DescribeTo(::std::ostream* os) const { *os << "isn't NULL"; }
@@ -917,7 +956,6 @@ class [[nodiscard]] StrEqualityMatcher {
         expect_eq_(expect_eq),
         case_sensitive_(case_sensitive) {}
 
-#if GTEST_INTERNAL_HAS_STRING_VIEW
   bool MatchAndExplain(const internal::StringView& s,
                        MatchResultListener* listener) const {
     // This should fail to compile if StringView is used with wide
@@ -925,7 +963,6 @@ class [[nodiscard]] StrEqualityMatcher {
     const StringType& str = std::string(s);
     return MatchAndExplain(str, listener);
   }
-#endif  // GTEST_INTERNAL_HAS_STRING_VIEW
 
   // Accepts pointer types, particularly:
   //   const char*
@@ -985,7 +1022,6 @@ class [[nodiscard]] HasSubstrMatcher {
   explicit HasSubstrMatcher(const StringType& substring)
       : substring_(substring) {}
 
-#if GTEST_INTERNAL_HAS_STRING_VIEW
   bool MatchAndExplain(const internal::StringView& s,
                        MatchResultListener* listener) const {
     // This should fail to compile if StringView is used with wide
@@ -993,7 +1029,6 @@ class [[nodiscard]] HasSubstrMatcher {
     const StringType& str = std::string(s);
     return MatchAndExplain(str, listener);
   }
-#endif  // GTEST_INTERNAL_HAS_STRING_VIEW
 
   // Accepts pointer types, particularly:
   //   const char*
@@ -1038,7 +1073,6 @@ class [[nodiscard]] StartsWithMatcher {
  public:
   explicit StartsWithMatcher(const StringType& prefix) : prefix_(prefix) {}
 
-#if GTEST_INTERNAL_HAS_STRING_VIEW
   bool MatchAndExplain(const internal::StringView& s,
                        MatchResultListener* listener) const {
     // This should fail to compile if StringView is used with wide
@@ -1046,7 +1080,6 @@ class [[nodiscard]] StartsWithMatcher {
     const StringType& str = std::string(s);
     return MatchAndExplain(str, listener);
   }
-#endif  // GTEST_INTERNAL_HAS_STRING_VIEW
 
   // Accepts pointer types, particularly:
   //   const char*
@@ -1092,7 +1125,6 @@ class [[nodiscard]] EndsWithMatcher {
  public:
   explicit EndsWithMatcher(const StringType& suffix) : suffix_(suffix) {}
 
-#if GTEST_INTERNAL_HAS_STRING_VIEW
   bool MatchAndExplain(const internal::StringView& s,
                        MatchResultListener* listener) const {
     // This should fail to compile if StringView is used with wide
@@ -1100,7 +1132,6 @@ class [[nodiscard]] EndsWithMatcher {
     const StringType& str = std::string(s);
     return MatchAndExplain(str, listener);
   }
-#endif  // GTEST_INTERNAL_HAS_STRING_VIEW
 
   // Accepts pointer types, particularly:
   //   const char*
@@ -2060,15 +2091,6 @@ class [[nodiscard]] PointerMatcher {
 };
 
 #if GTEST_HAS_RTTI
-// A type trait to essentially determine if `DynamicCastMessage` is available,
-// since older versions of protobuf don't have this function.
-template <typename T, typename = void>
-static constexpr bool kHasDynamicCastMessage = false;
-template <typename T>
-static constexpr bool kHasDynamicCastMessage<
-    T, std::void_t<decltype(proto2::DynamicCastMessage<T>(
-           std::declval<const proto2::MessageLite*>()))>> = true;
-
 // Implements the WhenDynamicCastTo<T>(m) matcher that matches a pointer or
 // reference that matches inner_matcher when dynamic_cast<T> is applied.
 // The result of dynamic_cast<To> is forwarded to the inner matcher.
@@ -2101,13 +2123,12 @@ class [[nodiscard]] WhenDynamicCastToMatcherBase {
     using ToType =
         std::remove_const_t<std::remove_reference_t<std::remove_pointer_t<To>>>;
 
-    if constexpr (std::is_base_of_v<proto2::MessageLite, ToType> &&
-                  kHasDynamicCastMessage<ToType>) {
-      if constexpr (std::is_pointer_v<From>) {
-        return proto2::DynamicCastMessage<ToType>(from);
+    if constexpr (std::is_base_of_v<proto2::MessageLite, ToType>) {
+      if constexpr (std::is_pointer_v<To>) {
+        return proto2::internal::DynamicCastMessageForGtest<ToType>(from);
       } else {
         // We don't want an std::bad_cast here, so do the cast with pointers.
-        return proto2::DynamicCastMessage<ToType>(&from);
+        return proto2::internal::DynamicCastMessageForGtest<ToType>(&from);
       }
     } else if constexpr (std::is_pointer_v<To>) {
       return dynamic_cast<To>(from);
@@ -3943,8 +3964,8 @@ class [[nodiscard]] UnorderedElementsAreMatcherImpl
   }
 
  private:
-  template <typename ElementIter>
-  MatchMatrix AnalyzeElements(ElementIter elem_first, ElementIter elem_last,
+  template <typename ElementIter, typename ElementIterEnd>
+  MatchMatrix AnalyzeElements(ElementIter elem_first, ElementIterEnd elem_last,
                               ::std::vector<std::string>* element_printouts,
                               MatchResultListener* listener) const {
     element_printouts->clear();
@@ -4129,7 +4150,8 @@ class [[nodiscard]] UnorderedElementsAreMatcher {
   template <typename Container>
   operator Matcher<Container>() const {
     typedef GTEST_REMOVE_REFERENCE_AND_CONST_(Container) RawContainer;
-    typedef typename internal::RangeTraits<RawContainer>::value_type Element;
+    typedef typename internal::StlContainerView<RawContainer>::type View;
+    typedef typename internal::RangeTraits<View>::value_type Element;
     typedef ::std::vector<Matcher<const Element&>> MatcherVec;
     MatcherVec matchers;
     matchers.reserve(::std::tuple_size<MatcherTuple>::value);
@@ -4510,7 +4532,7 @@ class [[nodiscard]] ArgsMatcherImpl : public MatcherInterface<ArgsTuple> {
 
   bool MatchAndExplain(ArgsTuple args,
                        MatchResultListener* listener) const override {
-    // Workaround spurious C4100 on MSVC<=15.7 when k is empty.
+    // Workaround spurious GCC warning when k is empty.
     (void)args;
     const SelectedArgs& selected_args =
         std::forward_as_tuple(std::get<k>(args)...);
@@ -4543,7 +4565,7 @@ class [[nodiscard]] ArgsMatcherImpl : public MatcherInterface<ArgsTuple> {
   static void PrintIndices(::std::ostream* os) {
     *os << "whose fields (";
     const char* sep = "";
-    // Workaround spurious C4189 on MSVC<=15.7 when k is empty.
+    // Workaround spurious GCC warning when k is empty.
     (void)sep;
     // The static_cast to void is needed to silence Clang's -Wcomma warning.
     // This pattern looks suspiciously like we may have mismatched parentheses
@@ -4946,115 +4968,67 @@ internal::ResultOfMatcher<Callable, InnerMatcher> ResultOf(
 
 // Matches a string equal to str.
 template <typename T = std::string>
-PolymorphicMatcher<internal::StrEqualityMatcher<std::string>> StrEq(
-    const internal::StringLike<T>& str) {
+PolymorphicMatcher<internal::StrEqualityMatcher<internal::StringType<T>>> StrEq(
+    const T& str) {
   return MakePolymorphicMatcher(
-      internal::StrEqualityMatcher<std::string>(std::string(str), true, true));
+      internal::StrEqualityMatcher<internal::StringType<T>>(
+          internal::StringType<T>(str), true, true));
 }
 
 // Matches a string not equal to str.
 template <typename T = std::string>
-PolymorphicMatcher<internal::StrEqualityMatcher<std::string>> StrNe(
-    const internal::StringLike<T>& str) {
+PolymorphicMatcher<internal::StrEqualityMatcher<internal::StringType<T>>> StrNe(
+    const T& str) {
   return MakePolymorphicMatcher(
-      internal::StrEqualityMatcher<std::string>(std::string(str), false, true));
+      internal::StrEqualityMatcher<internal::StringType<T>>(
+          internal::StringType<T>(str), false, true));
 }
 
 // Matches a string equal to str, ignoring case.
 template <typename T = std::string>
-PolymorphicMatcher<internal::StrEqualityMatcher<std::string>> StrCaseEq(
-    const internal::StringLike<T>& str) {
+PolymorphicMatcher<internal::StrEqualityMatcher<internal::StringType<T>>>
+StrCaseEq(const T& str) {
   return MakePolymorphicMatcher(
-      internal::StrEqualityMatcher<std::string>(std::string(str), true, false));
+      internal::StrEqualityMatcher<internal::StringType<T>>(
+          internal::StringType<T>(str), true, false));
 }
 
 // Matches a string not equal to str, ignoring case.
 template <typename T = std::string>
-PolymorphicMatcher<internal::StrEqualityMatcher<std::string>> StrCaseNe(
-    const internal::StringLike<T>& str) {
-  return MakePolymorphicMatcher(internal::StrEqualityMatcher<std::string>(
-      std::string(str), false, false));
+PolymorphicMatcher<internal::StrEqualityMatcher<internal::StringType<T>>>
+StrCaseNe(const T& str) {
+  return MakePolymorphicMatcher(
+      internal::StrEqualityMatcher<internal::StringType<T>>(
+          internal::StringType<T>(str), false, false));
 }
 
 // Creates a matcher that matches any string, std::string, or C string
 // that contains the given substring.
 template <typename T = std::string>
-PolymorphicMatcher<internal::HasSubstrMatcher<std::string>> HasSubstr(
-    const internal::StringLike<T>& substring) {
+PolymorphicMatcher<internal::HasSubstrMatcher<internal::StringType<T>>>
+HasSubstr(const T& substring) {
   return MakePolymorphicMatcher(
-      internal::HasSubstrMatcher<std::string>(std::string(substring)));
+      internal::HasSubstrMatcher<internal::StringType<T>>(
+          internal::StringType<T>(substring)));
 }
 
 // Matches a string that starts with 'prefix' (case-sensitive).
 template <typename T = std::string>
-PolymorphicMatcher<internal::StartsWithMatcher<std::string>> StartsWith(
-    const internal::StringLike<T>& prefix) {
+PolymorphicMatcher<internal::StartsWithMatcher<internal::StringType<T>>>
+StartsWith(const T& prefix) {
   return MakePolymorphicMatcher(
-      internal::StartsWithMatcher<std::string>(std::string(prefix)));
+      internal::StartsWithMatcher<internal::StringType<T>>(
+          internal::StringType<T>(prefix)));
 }
 
 // Matches a string that ends with 'suffix' (case-sensitive).
 template <typename T = std::string>
-PolymorphicMatcher<internal::EndsWithMatcher<std::string>> EndsWith(
-    const internal::StringLike<T>& suffix) {
+PolymorphicMatcher<internal::EndsWithMatcher<internal::StringType<T>>> EndsWith(
+    const T& suffix) {
   return MakePolymorphicMatcher(
-      internal::EndsWithMatcher<std::string>(std::string(suffix)));
+      internal::EndsWithMatcher<internal::StringType<T>>(
+          internal::StringType<T>(suffix)));
 }
-
-#if GTEST_HAS_STD_WSTRING
-// Wide string matchers.
-
-// Matches a string equal to str.
-inline PolymorphicMatcher<internal::StrEqualityMatcher<std::wstring>> StrEq(
-    const std::wstring& str) {
-  return MakePolymorphicMatcher(
-      internal::StrEqualityMatcher<std::wstring>(str, true, true));
-}
-
-// Matches a string not equal to str.
-inline PolymorphicMatcher<internal::StrEqualityMatcher<std::wstring>> StrNe(
-    const std::wstring& str) {
-  return MakePolymorphicMatcher(
-      internal::StrEqualityMatcher<std::wstring>(str, false, true));
-}
-
-// Matches a string equal to str, ignoring case.
-inline PolymorphicMatcher<internal::StrEqualityMatcher<std::wstring>> StrCaseEq(
-    const std::wstring& str) {
-  return MakePolymorphicMatcher(
-      internal::StrEqualityMatcher<std::wstring>(str, true, false));
-}
-
-// Matches a string not equal to str, ignoring case.
-inline PolymorphicMatcher<internal::StrEqualityMatcher<std::wstring>> StrCaseNe(
-    const std::wstring& str) {
-  return MakePolymorphicMatcher(
-      internal::StrEqualityMatcher<std::wstring>(str, false, false));
-}
-
-// Creates a matcher that matches any ::wstring, std::wstring, or C wide string
-// that contains the given substring.
-inline PolymorphicMatcher<internal::HasSubstrMatcher<std::wstring>> HasSubstr(
-    const std::wstring& substring) {
-  return MakePolymorphicMatcher(
-      internal::HasSubstrMatcher<std::wstring>(substring));
-}
-
-// Matches a string that starts with 'prefix' (case-sensitive).
-inline PolymorphicMatcher<internal::StartsWithMatcher<std::wstring>> StartsWith(
-    const std::wstring& prefix) {
-  return MakePolymorphicMatcher(
-      internal::StartsWithMatcher<std::wstring>(prefix));
-}
-
-// Matches a string that ends with 'suffix' (case-sensitive).
-inline PolymorphicMatcher<internal::EndsWithMatcher<std::wstring>> EndsWith(
-    const std::wstring& suffix) {
-  return MakePolymorphicMatcher(
-      internal::EndsWithMatcher<std::wstring>(suffix));
-}
-
-#endif  // GTEST_HAS_STD_WSTRING
 
 // Creates a polymorphic matcher that matches a 2-tuple where the
 // first field == the second field.

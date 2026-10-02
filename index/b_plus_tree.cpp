@@ -1,5 +1,5 @@
-#include "b_plus_tree.h"
-#include "slotted_page.h"
+#include "index/b_plus_tree.h"
+#include "storage/slotted_page.h"
 #include "type/schema.h"
 
 #include <cstring>

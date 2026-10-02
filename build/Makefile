@@ -172,6 +172,19 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named common_logic
+
+# Build rule for target.
+common_logic: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 common_logic
+.PHONY : common_logic
+
+# fast build rule for target.
+common_logic/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/common_logic.dir/build.make CMakeFiles/common_logic.dir/build
+.PHONY : common_logic/fast
+
+#=============================================================================
 # Target rules for targets named storage_logic
 
 # Build rule for target.
@@ -1038,6 +1051,7 @@ help:
 	@echo "... test"
 	@echo "... buffer_logic"
 	@echo "... buffer_tests"
+	@echo "... common_logic"
 	@echo "... gmock"
 	@echo "... gmock_main"
 	@echo "... gtest"

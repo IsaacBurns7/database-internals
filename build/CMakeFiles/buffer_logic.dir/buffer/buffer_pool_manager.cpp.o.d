@@ -930,6 +930,8 @@ CMakeFiles/buffer_logic.dir/buffer/buffer_pool_manager.cpp.o: \
   /Library/Developer/CommandLineTools/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/__functional/pointer_to_unary_function.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/__functional/unary_negate.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/shared_mutex \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/map \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX15.2.sdk/usr/include/c++/v1/__tree \
   /Users/kingisaac/Github/database-internals/buffer/arc_replacer.h \
   /Users/kingisaac/Github/database-internals/common/config.h \
   /Users/kingisaac/Github/database-internals/common/types.h \

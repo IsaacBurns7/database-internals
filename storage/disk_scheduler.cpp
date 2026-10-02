@@ -21,14 +21,16 @@ DiskScheduler::~DiskScheduler() {
  *
  * @param requests The requests to be scheduled.
  */
-void DiskScheduler::Schedule(std::vector<DiskRequest> &requests) {
+void DiskScheduler::Schedule(std::vector<DiskRequest> &&requests) {
     for(size_t i = 0;i < requests.size(); ++i){
-        request_queue_.Put(std::optional<DiskRequest>(std::move(requests[i])));
+        request_queue_.Put(std::move(requests[i]));
+        //request_queue_.Put(std::optional<DiskRequest>(std::move(requests[i])));
     }
 }
 
-void DiskScheduler::Schedule_Single(DiskRequest &request){
-    request_queue_.Put(std::optional<DiskRequest>(std::move(request)));
+void DiskScheduler::Schedule_Single(DiskRequest &&request){
+    request_queue_.Put(std::move(request));
+    //request_queue_.Put(std::optional<DiskRequest>(std::move(request)));
 }
 
 /**
@@ -80,6 +82,6 @@ void DiskScheduler::DeallocatePage(page_id_t page_id) {
     auto future = done.get_future();
     std::vector<DiskRequest> requests;
     requests.push_back(DeallocateRequest{page_id, std::move(done)});
-    Schedule(requests);
+    Schedule(std::move(requests));
     future.get();
 }

@@ -125,7 +125,7 @@ cc_test(
     name = "googletest-listener-test",
     size = "small",
     srcs = ["googletest-listener-test.cc"],
-    deps = ["//:gtest_main"],
+    deps = ["//:gtest"],
 )
 
 cc_test(
@@ -358,7 +358,7 @@ cc_test(
     name = "gtest_skip_in_environment_setup_test",
     size = "small",
     srcs = ["gtest_skip_in_environment_setup_test.cc"],
-    deps = ["//:gtest_main"],
+    deps = ["//:gtest"],
 )
 
 py_test(
@@ -417,7 +417,7 @@ cc_binary(
     name = "googletest-catch-exceptions-no-ex-test_",
     testonly = 1,
     srcs = ["googletest-catch-exceptions-test_.cc"],
-    deps = ["//:gtest_main"],
+    deps = ["//:gtest"],
 )
 
 cc_binary(
@@ -425,7 +425,7 @@ cc_binary(
     testonly = 1,
     srcs = ["googletest-catch-exceptions-test_.cc"],
     copts = ["-fexceptions"],
-    deps = ["//:gtest_main"],
+    deps = ["//:gtest"],
 )
 
 py_test(
@@ -611,8 +611,7 @@ py_test(
     srcs = ["googletest-param-test-invalid-name1-test.py"],
     data = [":googletest-param-test-invalid-name1-test_"],
     tags = [
-        "no_test_msvc2015",
-        "no_test_msvc2017",
+        "no_test_msvc2022",
     ],
     deps = [":gtest_test_utils"],
 )
@@ -623,8 +622,7 @@ py_test(
     srcs = ["googletest-param-test-invalid-name2-test.py"],
     data = [":googletest-param-test-invalid-name2-test_"],
     tags = [
-        "no_test_msvc2015",
-        "no_test_msvc2017",
+        "no_test_msvc2022",
     ],
     deps = [":gtest_test_utils"],
 )

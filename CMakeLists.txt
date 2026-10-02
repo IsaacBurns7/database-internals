@@ -3,7 +3,7 @@ project(MyProject VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # --- 1. Fetch GoogleTest ---
 include(FetchContent)
 if(POLICY CMP0135)
@@ -21,6 +21,13 @@ FetchContent_MakeAvailable(googletest)
 # --- 2. Create the Storage Library (Now with Common!) ---
 # Add your common source files here if they have .cpp files, 
 # otherwise, they just need the include path below.
+add_library(common_logic INTERFACE 
+	common/channel.h 
+	common/types.h 
+	common/config.h 
+	common/macros.h
+)
+
 add_library(storage_logic
     storage/page.cpp
     storage/disk_manager.cpp
@@ -48,10 +55,11 @@ add_library(buffer_logic
 
 # This is the "Magic Fix": It tells CMake that the project root 
 # is where searches for "common/..." or "storage/..." should start.
+target_include_directories(common_logic INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(storage_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(type_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_include_directories(index_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/storage)
-target_include_directories(buffer_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(index_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} storage_logic)
+target_include_directories(buffer_logic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} storage_logic)
 # --- 3. Main Executable ---
 # add_executable(storage_viz tests/storage_viz.cpp)
 # target_link_libraries(storage_viz PRIVATE storage_logic)

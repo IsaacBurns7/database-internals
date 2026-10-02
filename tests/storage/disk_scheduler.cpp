@@ -41,7 +41,7 @@ TEST_F(DiskSchedulerTest, ScheduleWritesThenReadsBackSamePage) {
         auto future = promise.get_future();
         std::vector<DiskRequest> requests;
         requests.push_back(WriteRequest{page_id, write_buf, std::move(promise)});
-        scheduler.Schedule(requests);
+        scheduler.Schedule(std::move(requests));
         EXPECT_NO_THROW(future.get());
     }
 
@@ -51,7 +51,7 @@ TEST_F(DiskSchedulerTest, ScheduleWritesThenReadsBackSamePage) {
         auto future = promise.get_future();
         std::vector<DiskRequest> requests;
         requests.push_back(ReadRequest{page_id, read_buf, std::move(promise)});
-        scheduler.Schedule(requests);
+        scheduler.Schedule(std::move(requests));
         EXPECT_NO_THROW(future.get());
     }
 
@@ -78,7 +78,7 @@ TEST_F(DiskSchedulerTest, ScheduleBatchOfRequestsInOneCall) {
     std::vector<DiskRequest> requests;
     requests.push_back(WriteRequest{p1, buf1, std::move(promise1)});
     requests.push_back(WriteRequest{p2, buf2, std::move(promise2)});
-    scheduler.Schedule(requests);
+    scheduler.Schedule(std::move(requests));
 
     EXPECT_NO_THROW(future1.get());
     EXPECT_NO_THROW(future2.get());
@@ -104,7 +104,7 @@ TEST_F(DiskSchedulerTest, ReadOfUnallocatedPagePropagatesExceptionThroughFuture)
     // that and forward it through the promise/future instead of dying.
     std::vector<DiskRequest> requests;
     requests.push_back(ReadRequest{5, read_buf, std::move(promise)});
-    scheduler.Schedule(requests);
+    scheduler.Schedule(std::move(requests));
 
     EXPECT_THROW(future.get(), std::runtime_error);
 }

@@ -96,7 +96,7 @@ auto ArcReplacer::Evict() -> std::optional<std::pair<page_id_t, frame_id_t>> {
     frame_status->frame_id_ = INVALID_FRAME_ID;
     ghost_map_[page_id] = frame_status;
 
-    return {page_id, frame_id};
+    return std::make_pair(page_id, frame_id);
 }
 
 /**

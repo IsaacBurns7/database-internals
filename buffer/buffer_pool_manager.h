@@ -106,6 +106,8 @@ class BufferPoolManager {
       -> std::optional<WritePageGuard>;
   auto CheckedReadPage(page_id_t page_id, AccessType access_type = AccessType::Unknown) -> std::optional<ReadPageGuard>;
   auto WritePage(page_id_t page_id, AccessType access_type = AccessType::Unknown) -> WritePageGuard;
+  	//wait so does this give you access to a page_id you can write to through WPG 
+	//and then when WPG goes out of memory, it can be evicted...? 
   auto ReadPage(page_id_t page_id, AccessType access_type = AccessType::Unknown) -> ReadPageGuard;
   auto FlushPageUnsafe(page_id_t page_id) -> bool;
   auto FlushPage(page_id_t page_id) -> bool;

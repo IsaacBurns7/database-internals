@@ -1,3 +1,4 @@
+/Users/kingisaac/Github/database-internals/build/CMakeFiles/common_logic.dir
 /Users/kingisaac/Github/database-internals/build/CMakeFiles/storage_logic.dir
 /Users/kingisaac/Github/database-internals/build/CMakeFiles/type_logic.dir
 /Users/kingisaac/Github/database-internals/build/CMakeFiles/index_logic.dir

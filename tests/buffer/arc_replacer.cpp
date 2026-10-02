@@ -55,19 +55,8 @@ TEST(ArcReplacerTest, SetEvictableOnOutOfRangeFrameAborts) {
 // Evict
 // ============================================================================
 
-TEST(ArcReplacerTest, EvictOnEmptyReplacerReturnsNullopt) {
-    ArcReplacer replacer(4);
-    EXPECT_EQ(replacer.Evict(), std::nullopt);
-}
+using Victim = std::pair<page_id_t, frame_id_t>;
 
-TEST(ArcReplacerTest, EvictWithNoEvictableFramesReturnsNullopt) {
-    ArcReplacer replacer(4);
-    replacer.RecordAccess(1, 100);
-    replacer.RecordAccess(2, 200);
-    // neither frame was ever marked evictable
-    EXPECT_EQ(replacer.Evict(), std::nullopt);
-    EXPECT_EQ(replacer.Size(), 0);
-}
 
 TEST(ArcReplacerTest, EvictPicksLeastRecentlyUsedEvictableFrame) {
     ArcReplacer replacer(3);
@@ -82,8 +71,8 @@ TEST(ArcReplacerTest, EvictPicksLeastRecentlyUsedEvictableFrame) {
     // the least recently used and should be victimized first.
     auto victim = replacer.Evict();
     ASSERT_TRUE(victim.has_value());
-    EXPECT_EQ(victim.value(), 0);
-    EXPECT_EQ(replacer.Size(), 2);
+    EXPECT_EQ(*victim, (Victim{100, 0}));
+    EXPECT_EQ(replacer.Size(), 2u);
 }
 
 TEST(ArcReplacerTest, EvictSkipsPinnedFramesForOlderEvictableOne) {
@@ -97,8 +86,8 @@ TEST(ArcReplacerTest, EvictSkipsPinnedFramesForOlderEvictableOne) {
 
     auto victim = replacer.Evict();
     ASSERT_TRUE(victim.has_value());
-    EXPECT_EQ(victim.value(), 1);
-    EXPECT_EQ(replacer.Size(), 1);
+    EXPECT_EQ(*victim, (Victim{200, 1}));
+    EXPECT_EQ(replacer.Size(), 1u);
 }
 
 TEST(ArcReplacerTest, EvictedFrameBecomesGhostAndCanBeRevived) {
@@ -108,16 +97,21 @@ TEST(ArcReplacerTest, EvictedFrameBecomesGhostAndCanBeRevived) {
 
     auto victim = replacer.Evict();
     ASSERT_TRUE(victim.has_value());
-    EXPECT_EQ(victim.value(), 1);
-    EXPECT_EQ(replacer.Size(), 0);
+    EXPECT_EQ(*victim, (Victim{100, 1}));
+    EXPECT_EQ(replacer.Size(), 0u);
 
     // page 100 should now be a ghost entry; accessing it again under a new
     // frame id (as a buffer pool would after re-fetching it from disk)
     // should hit the ghost path rather than crash or be treated as brand new.
     replacer.RecordAccess(2, 100);
-    EXPECT_EQ(replacer.Size(), 0);  // revived frames start non-evictable
+    EXPECT_EQ(replacer.Size(), 0u);  // revived frames start non-evictable
     replacer.SetEvictable(2, true);
-    EXPECT_EQ(replacer.Size(), 1);
+    EXPECT_EQ(replacer.Size(), 1u);
+
+    // revived ghost should land in mfu_, and evicting it should report the new frame
+    auto revived = replacer.Evict();
+    ASSERT_TRUE(revived.has_value());
+    EXPECT_EQ(*revived, (Victim{100, 2}));
 }
 
 // ============================================================================

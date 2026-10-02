@@ -118,11 +118,9 @@ void ReadPageGuard::Flush() {
     ENSURE(is_valid_, "tried to flush an invalid page guard");
     std::promise<void> done;
     auto future = done.get_future();
-    std::vector<DiskRequest> requests;
-    requests.push_back(WriteRequest{page_id_, frame_->GetDataMut(), std::move(done)});
-    disk_scheduler_->Schedule(requests);
-    future.get(); //block until the background thread finishes the write
     frame_->is_dirty_ = false;
+	disk_scheduler_->Schedule_Single(WriteRequest{page_id_, frame_->GetDataMut(), std::move(done)});
+    future.get(); //block until the background thread finishes the write
 }
 
 /**
@@ -294,11 +292,9 @@ void WritePageGuard::Flush() {
     ENSURE(is_valid_, "tried to flush an invalid page guard");
     std::promise<void> done;
     auto future = done.get_future();
-    std::vector<DiskRequest> requests;
-    requests.push_back(WriteRequest{page_id_, frame_->GetDataMut(), std::move(done)});
-    disk_scheduler_->Schedule(requests);
-    future.get(); //block until the background thread finishes the write
     frame_->is_dirty_ = false;
+	disk_scheduler_->Schedule_Single(WriteRequest{page_id_, frame_->GetDataMut(), std::move(done)});
+    future.get(); //block until the background thread finishes the write
 }
 
 /**

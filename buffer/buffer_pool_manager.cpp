@@ -1,8 +1,11 @@
 #include "buffer/buffer_pool_manager.h"
+#include <future>
 #include <iostream>
+#include <mutex>
 #include "buffer/arc_replacer.h"
 #include "common/config.h"
 #include "common/macros.h"
+#include "storage/disk_scheduler.h"
 
 /**
  * @brief The constructor for a `FrameHeader` that initializes all fields to default values.
@@ -112,8 +115,9 @@ auto BufferPoolManager::Size() const -> size_t { return num_frames_; }
 // this local next_page_id_ counter should go away entirely rather than
 // existing alongside DiskManager's next_page_id.
 auto BufferPoolManager::NewPage() -> page_id_t {
-    page_id_t page = next_page_id_.fetch_add(1);
+    //page_id_t page = next_page_id_.fetch_add(1);
     //schedule allocatePage?
+	return -1; 
 }
 
 /**
@@ -238,8 +242,8 @@ auto BufferPoolManager::CheckedWritePage(page_id_t page_id, AccessType access_ty
         //read page_id data into frame
         ReadRequest read_req{page_id, frame->GetDataMut(), std::promise<void>()};
         auto future = read_req.done.get_future();
-        DiskRequest req{std::move(read_req)};
-        disk_scheduler_->Schedule_Single(req);
+        //DiskRequest req{std::move(read_req)};
+        disk_scheduler_->Schedule_Single(std::move(read_req));
         future.get();
         {
             std::scoped_lock latch(*bpm_latch_);
@@ -263,8 +267,9 @@ auto BufferPoolManager::CheckedWritePage(page_id_t page_id, AccessType access_ty
         //read page_id data into frame
         ReadRequest read_req{page_id, frame->GetDataMut(), std::promise<void>()};
         auto future = read_req.done.get_future();
-        DiskRequest req{std::move(read_req)};
-        disk_scheduler_->Schedule_Single(req);
+        //DiskRequest req{std::move(read_req)};
+
+        disk_scheduler_->Schedule_Single(std::move(read_req));
         future.get();
         {
             std::scoped_lock latch(*bpm_latch_);
@@ -354,8 +359,8 @@ auto BufferPoolManager::CheckedReadPage(page_id_t page_id, AccessType access_typ
         //read page_id data into frame
         ReadRequest read_req{page_id, frame->GetDataMut(), std::promise<void>()};
         auto future = read_req.done.get_future();
-        DiskRequest req{std::move(read_req)};
-        disk_scheduler_->Schedule_Single(req);
+        //DiskRequest req{std::move(read_req)};
+        disk_scheduler_->Schedule_Single(std::move(read_req));
         future.get();
         {
             std::scoped_lock latch(*bpm_latch_);
@@ -379,8 +384,8 @@ auto BufferPoolManager::CheckedReadPage(page_id_t page_id, AccessType access_typ
         //read page_id data into frame
         ReadRequest read_req{page_id, frame->GetDataMut(), std::promise<void>()};
         auto future = read_req.done.get_future();
-        DiskRequest req{std::move(read_req)};
-        disk_scheduler_->Schedule_Single(req);
+        //DiskRequest req{std::move(read_req)};
+        disk_scheduler_->Schedule_Single(std::move(read_req));
         future.get();
         {
             std::scoped_lock latch(*bpm_latch_);
@@ -462,6 +467,7 @@ auto BufferPoolManager::ReadPage(page_id_t page_id, AccessType access_type) -> R
  * @param page_id The page ID of the page to be flushed.
  * @return `false` if the page could not be found in the page table; otherwise, `true`.
  */
+
 auto BufferPoolManager::FlushPageUnsafe(page_id_t page_id) -> bool {
     auto it = page_table_.find(page_id);
     if(it == page_table_.end()){
@@ -469,22 +475,22 @@ auto BufferPoolManager::FlushPageUnsafe(page_id_t page_id) -> bool {
     }
     frame_id_t frame_id = it->second;
     std::shared_ptr<FrameHeader> frame = frames_[frame_id];
-    //check if dirty
-    if(!frame->is_dirty_){
-        return true; 
-    }
-    //update frame header
+	//if its not dirty, return true here? 
     frame->is_dirty_ = false; 
+	frame->pin_count_++; 
+	replacer_->SetEvictable(frame_id, false);
+		//can't evict until frame buffer is written by disk scheduler 
+		//b/c otherwise page X maps to frame X, frame X, page X is evicted and frame X is sent to free_frames_
+		//then, frame X is remapped to page Y, and page Y's data is written to frame X's buffer 
+		//then, the disk scheduler writes frame->GetDataMut(), which is page Y's data
     //send write request to disk_scheduler 
     WriteRequest write_req{page_id, frame->GetDataMut(), std::promise<void>()};
     auto future = write_req.done.get_future();
-    DiskRequest req{std::move(write_req)};
-    disk_scheduler_->Schedule_Single(req);
+    disk_scheduler_->Schedule_Single(std::move(write_req));
     future.get();
+	if(--frame->pin_count_ == 0)
+		replacer_->SetEvictable(frame_id, true);
     return true; 
-    //I dont think I have to ...
-        //remove from replacer... 
-        //unlink page_id from frame_id 
 }
 
 /**
@@ -505,7 +511,12 @@ auto BufferPoolManager::FlushPageUnsafe(page_id_t page_id) -> bool {
  * @param page_id The page ID of the page to be flushed.
  * @return `false` if the page could not be found in the page table; otherwise, `true`.
  */
-auto BufferPoolManager::FlushPage(page_id_t page_id) -> bool { UNIMPLEMENTED("TODO(P1): Add implementation."); }
+auto BufferPoolManager::FlushPage(page_id_t page_id) -> bool { 
+	std::optional<WritePageGuard> wpg = CheckedWritePage(page_id);
+	if(wpg == std::nullopt) return false; 
+	wpg.value().Flush();
+	return true; 
+}
 
 /**
  * @brief Flushes all page data that is in memory to disk unsafely.
@@ -520,7 +531,38 @@ auto BufferPoolManager::FlushPage(page_id_t page_id) -> bool { UNIMPLEMENTED("TO
  *
  * TODO(P1): Add implementation
  */
-void BufferPoolManager::FlushAllPagesUnsafe() { UNIMPLEMENTED("TODO(P1): Add implementation."); }
+void BufferPoolManager::FlushAllPagesUnsafe() { 
+	std::vector<DiskRequest> requests; //writerequest is a std variant 
+	std::vector<std::future<void>> futures; 
+	std::vector<frame_id_t> pinned;
+	requests.reserve(frames_.size()); 
+	futures.reserve(frames_.size()); 
+	pinned.reserve(frames_.size()); 
+	{
+		std::scoped_lock latch(*bpm_latch_);
+		for(auto& [page_id, frame_id]: page_table_){
+			std::shared_ptr<FrameHeader> frame = frames_[frame_id]; 
+			if(!frame->is_dirty_) continue; 
+			frame->is_dirty_ = false; 
+			frame->pin_count_++;
+			replacer_->SetEvictable(frame_id, false);
+			pinned.push_back(frame_id);
+			WriteRequest write_req{page_id, frame->GetDataMut(), std::promise<void>()};
+			futures.push_back(write_req.done.get_future()); 
+			requests.push_back(std::move(write_req));
+		}
+	}
+	disk_scheduler_->Schedule(std::move(requests));
+	for(auto& future: futures){
+		future.get(); 
+	}
+	{
+		std::scoped_lock latch(*bpm_latch_);
+		for(auto fid: pinned) 
+			if(--frames_[fid]->pin_count_ == 0)
+				replacer_->SetEvictable(fid, true);
+	}
+}
 
 /**
  * @brief Flushes all page data that is in memory to disk safely.
