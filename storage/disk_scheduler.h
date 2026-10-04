@@ -18,7 +18,7 @@
 struct ReadRequest{
     page_id_t page_id;
     char *data;
-    std::promise<void> done; //wtf is a std::promise<void>
+    std::promise<void> done; 
 };
 struct WriteRequest{
     page_id_t page_id;

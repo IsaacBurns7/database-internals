@@ -1,4 +1,5 @@
 #include "buffer/buffer_pool_manager.h"
+#include <condition_variable>
 #include <future>
 #include <iostream>
 #include <mutex>
@@ -95,29 +96,18 @@ auto BufferPoolManager::Size() const -> size_t { return num_frames_; }
  * @brief Allocates a new page on disk.
  *
  * ### Implementation
+ * Sends an allocation request to the disk scheduler 
  *
- * You will maintain a thread-safe, monotonically increasing counter in the form of a `std::atomic<page_id_t>`.
- * See the documentation on [atomics](https://en.cppreference.com/w/cpp/atomic/atomic) for more information.
- *
- * TODO(P1): Add implementation.
- *
- * @return The page ID of the newly allocated page.
- */
-// PENDING (thread-safety, see disk_scheduler.h/.cpp notes): this is the bug
-// those notes point back to. next_page_id_ here is BufferPoolManager's OWN
-// counter (see the member's note in buffer_pool_manager.h) — it never calls
-// disk_manager_->allocatePage(), so it never consults or reuses the freelist,
-// and drifts out of sync with DiskManager's own accounting of what's
-// allocated (DiskManager thinks page N was never handed out; BPM just handed
-// it out anyway from its own counter). The "//schedule allocatePage?" below
-// was the right instinct: this should go through disk_scheduler_ once
-// DiskRequest supports an Allocate kind, block on the returned page_id, and
-// this local next_page_id_ counter should go away entirely rather than
-// existing alongside DiskManager's next_page_id.
+ * @return The page ID of the newly allocated page, or INVALID_PAGE_ID in case of allocation failure. 
+*/
 auto BufferPoolManager::NewPage() -> page_id_t {
-    //page_id_t page = next_page_id_.fetch_add(1);
-    //schedule allocatePage?
-	return -1; 
+	//std::promise<page_id_t> 
+	AllocateRequest alloc_req{std::promise<page_id_t>{}};
+	auto future_page_id = alloc_req.done.get_future();
+	disk_scheduler_->Schedule_Single(std::move(alloc_req));
+	future_page_id.get();
+	if(!future_page_id.valid()) return INVALID_PAGE_ID; 
+	return future_page_id.get(); 
 }
 
 /**
@@ -128,27 +118,33 @@ auto BufferPoolManager::NewPage() -> page_id_t {
  *
  * ### Implementation
  *
- * Think about all of the places that a page or a page's metadata could be, and use that to guide you on implementing
- * this function. You will probably want to implement this function _after_ you have implemented `CheckedReadPage` and
- * `CheckedWritePage`.
- *
- * You should call `DeallocatePage` in the disk scheduler to make the space available for new pages.
- *
- * TODO(P1): Add implementation.
+ * Deallocates the page through disk scheduler.
  *
  * @param page_id The page ID of the page we want to delete.
  * @return `false` if the page exists but could not be deleted, `true` if the page didn't exist or deletion succeeded.
  */
-// PENDING: this is the correct home for the pin-count gate discussed for the
-// findRecord() staleness race (see b_plus_tree.cpp's findRecord() note) —
-// check the frame's pin_count_ (FrameHeader, buffer_pool_manager.h) and
-// return false without deallocating anything if it's nonzero, per this
-// function's own doc comment above ("If the page is pinned... does nothing
-// and returns false"). Only call disk_scheduler_->DeallocatePage() /
-// eventually the queued Deallocate request (see disk_scheduler.h's note)
-// once that check has passed — DiskScheduler and DiskManager never need to
-// know pins exist at all; this function is where that knowledge lives.
-auto BufferPoolManager::DeletePage(page_id_t page_id) -> bool { UNIMPLEMENTED("TODO(P1): Add implementation."); }
+auto BufferPoolManager::DeletePage(page_id_t page_id) -> bool { 
+	std::unique_lock<std::mutex> lock(*bpm_latch_);
+	
+	auto it = page_table_.find(page_id);
+	if(it == page_table_.end()) return true; 
+	frame_id_t fid = it->second;
+	std::shared_ptr<FrameHeader> fh = frames_[fid]; 
+	if(fh->pin_count_.load() > 0) return false;
+
+	page_table_.erase(it); 
+	replacer_->Remove(fid); 
+		//SetEvictable(false) + Remove? no forsure just this... 
+	fh->Reset(); 
+	free_frames_.push_back(fid); 
+
+	DeallocateRequest dealloc_req{page_id, {}}; 
+	auto future = dealloc_req.done.get_future();
+	disk_scheduler_->Schedule_Single(std::move(dealloc_req));
+	lock.unlock();
+	future.get(); 
+	return true; 
+}
 
 /**
  * @brief Acquires an optional write-locked guard over a page of data. The user can specify an `AccessType` if needed.
