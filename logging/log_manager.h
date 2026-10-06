@@ -4,7 +4,7 @@
 #include "common/types.h"
 #include <span>
 
-enum LogType : uint8_t{
+enum class LogType : uint8_t{
 	INVALID = 0,
 	UPDATE, 
 	CLR,
@@ -16,7 +16,7 @@ enum LogType : uint8_t{
 	CHECKPT_END
 };
 
-enum LogOp : uint8_t{
+enum class LogOp : uint8_t{
 	NONE = 0, //for non-update/non-clr records
 //key lives in tuple 
 	INSERT_SLOT, 	//empty => full tuple
@@ -33,26 +33,42 @@ enum LogOp : uint8_t{
 						//LEFTMOST sentinel for extra pointer before key 0 
 	FULL_PAGE 		//after-image = entire page, simplest SMO logging
 };
+
 struct LogRecordHeader {
-    uint32_t   size;        //  0
-    uint32_t   crc;         //  4
-    lsn_t      lsn;         //  8
-    lsn_t      prev_lsn;    // 16
-    txid_t     tx_id;       // 24
-    page_id_t  page_id;     // 32  uint32_t
-    table_id_t table_id;    // 36  uint16_t
-    index_id_t index_id;    // 38  uint16_t
-    uint16_t   slot;        // 40
-    uint16_t   flags;       // 42
-    uint16_t   before_len;  // 44
-    uint16_t   after_len;   // 46
-    LogType    type;        // 48
-    LogOp      op;          // 49
-    uint8_t    reserved[6]; // 50
-}; 							// 56
-static_assert(sizeof(LogRecordHeader) == 56);
-static_assert(offsetof(LogRecordHeader, page_id) == 32);
+    uint32_t   size;           //  0  total record bytes: header + before + after
+    uint32_t   crc;            //  4  CRC32C over whole record, computed with this field = 0
+    lsn_t      lsn;            //  8
+    lsn_t      prev_lsn;       // 16  txn backchain; INVALID_LSN for first record
+    lsn_t      undo_next_lsn;  // 24  CLR only; INVALID_LSN otherwise
+    txid_t     tx_id;          // 32
+    page_id_t  page_id;        // 40
+    table_id_t table_id;       // 44
+    index_id_t index_id;       // 46
+    uint16_t   slot;           // 48
+    uint16_t   flags;          // 50
+    uint16_t   before_len;     // 52
+    uint16_t   after_len;      // 54
+    LogType    type;           // 56
+    LogOp      op;             // 57
+    uint8_t    reserved[6];    // 58
+};                             // 64
+
+static_assert(sizeof(lsn_t) == 8 && sizeof(txid_t) == 8);
+static_assert(sizeof(page_id_t) == 4);
+static_assert(sizeof(table_id_t) == 2 && sizeof(index_id_t) == 2);
+static_assert(sizeof(LogType) == 1 && sizeof(LogOp) == 1);
+
+static_assert(std::is_trivially_copyable_v<LogRecordHeader>);
+static_assert(std::is_standard_layout_v<LogRecordHeader>);
+static_assert(std::has_unique_object_representations_v<LogRecordHeader>); // no padding → deterministic CRC
+
+static_assert(sizeof(LogRecordHeader)  == 64);
 static_assert(alignof(LogRecordHeader) == 8);
+static_assert(offsetof(LogRecordHeader, undo_next_lsn) == 24);
+static_assert(offsetof(LogRecordHeader, tx_id)         == 32);
+static_assert(offsetof(LogRecordHeader, page_id)       == 40);
+static_assert(offsetof(LogRecordHeader, type)          == 56);
+static_assert(offsetof(LogRecordHeader, reserved)      == 58);;
 static_assert(offsetof(LogRecordHeader, lsn) == 8);
 static_assert(std::is_trivially_copyable_v<LogRecordHeader>);
 static_assert(std::is_standard_layout_v<LogRecordHeader>);
@@ -81,14 +97,17 @@ public:
 	lsn_t inline get_flushed_LSN(){ return flushedLSN; }
 	lsn_t inline get_current_LSN(){ return currentLSN; }
 	//append records to in-memory log buffer, assign monotonically increasing LSNs
-	void log_update(txid_t tx_id, LogOp op, page_id_t page_id, 
-			uint16_t len, uint16_t offset, std::byte* before_img, std::byte* after_img);
+	//void log_update(txid_t tx_id, LogOp op, page_id_t page_id, uint16_t len, uint16_t offset, std::byte* before_img, std::byte* after_img);
+	lsn_t log_update(txid_t tx_id, LogOp op, page_id_t page_id, 
+		table_id_t table_id, uint16_t before_len, uint16_t after_len, lsn_t prev_lsn,
+		std::byte* before_img, std::byte* after_img, index_id_t index_id = 0, slot_id_t slot_id = 0);
 		//Update can be any LogOp
-	void log_txn_begin(txid_t tx_id);
-	void log_txn_commit(txid_t tx_id); 
+	lsn_t log_txn_begin(txid_t tx_id);
+	lsn_t log_txn_commit(txid_t tx_id); 
 		//txn end is omitted when commit(all updates) or abort(all CLRs) is persisted to secondary storage
 	void log_txn_abort(txid_t tx_id, BufferPoolManager &bpm); 
 		//how to abort... 
+//LATER: CheckpointManager owns Checkpointing (and must know where master record lives)
 	void log_checkpoint_begin(); 
 	void log_checkpoint_end(std::unordered_map<txid_t, lsn_t> &ATT, 
 			std::unordered_map<page_id_t, lsn_t> &DPT);
@@ -112,7 +131,6 @@ private:
 	//TransactionManager owns ATT
 	//BufferPoolManager owns DPT 
 	//RecoveryManager runs ARIES (and must know where master record lives)
-	//CheckpointManager owns Checkpointing (and must know where master record lives)
 	uint64_t append_buffer_base_offset; //where we start writing to the file 
 	std::atomic<uint64_t> append_buffer_fill_offset; //=> current_len 
 	std::atomic<uint64_t> durable_end_offset; //if not flushing, equal to append_buffer_base_offset 
