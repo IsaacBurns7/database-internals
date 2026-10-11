@@ -3,6 +3,31 @@
 #include "buffer/buffer_pool_manager.h"
 #include "common/types.h"
 #include <span>
+#include <type_traits>
+
+//CHECKPT_END payload entries (format documented above log_checkpoint_end in log_manager.cpp)
+struct AttEntry {
+    txid_t  tx_id;        //  0
+    lsn_t   last_lsn;     //  8  where undo starts
+    uint8_t status;       // 16  RUNNING / COMMITTING / ABORTING
+    uint8_t reserved[7];  // 17
+};                        // 24
+
+struct DptEntry {
+    page_id_t page_id;    //  0
+    uint32_t  reserved;   //  4
+    lsn_t     rec_lsn;    //  8  first LSN that dirtied the page, where redo starts
+};                        // 16
+
+static_assert(sizeof(AttEntry) == 24 && alignof(AttEntry) == 8);
+static_assert(offsetof(AttEntry, last_lsn) == 8 && offsetof(AttEntry, status) == 16);
+static_assert(std::is_trivially_copyable_v<AttEntry>);
+static_assert(std::has_unique_object_representations_v<AttEntry>); // no padding → deterministic CRC
+
+static_assert(sizeof(DptEntry) == 16 && alignof(DptEntry) == 8);
+static_assert(offsetof(DptEntry, rec_lsn) == 8);
+static_assert(std::is_trivially_copyable_v<DptEntry>);
+static_assert(std::has_unique_object_representations_v<DptEntry>); // no padding → deterministic CRC
 
 enum class LogType : uint8_t{
 	INVALID = 0,
@@ -46,11 +71,11 @@ struct LogRecordHeader {
     index_id_t index_id;       // 46
     uint16_t   slot;           // 48
     uint16_t   flags;          // 50
-    uint16_t   before_len;     // 52
-    uint16_t   after_len;      // 54
-    LogType    type;           // 56
-    LogOp      op;             // 57
-    uint8_t    reserved[6];    // 58
+    uint32_t   before_len;     // 52
+    uint32_t   after_len;      // 56
+    LogType    type;           // 60
+    LogOp      op;             // 61
+    uint8_t    reserved[2];    // 62
 };                             // 64
 
 static_assert(sizeof(lsn_t) == 8 && sizeof(txid_t) == 8);
@@ -67,8 +92,8 @@ static_assert(alignof(LogRecordHeader) == 8);
 static_assert(offsetof(LogRecordHeader, undo_next_lsn) == 24);
 static_assert(offsetof(LogRecordHeader, tx_id)         == 32);
 static_assert(offsetof(LogRecordHeader, page_id)       == 40);
-static_assert(offsetof(LogRecordHeader, type)          == 56);
-static_assert(offsetof(LogRecordHeader, reserved)      == 58);;
+static_assert(offsetof(LogRecordHeader, type)          == 60);
+static_assert(offsetof(LogRecordHeader, reserved)      == 62);;
 static_assert(offsetof(LogRecordHeader, lsn) == 8);
 static_assert(std::is_trivially_copyable_v<LogRecordHeader>);
 static_assert(std::is_standard_layout_v<LogRecordHeader>);
@@ -108,9 +133,9 @@ public:
 	lsn_t log_txn_abort(txid_t tx_id, lsn_t prev_lsn); 
 	lsn_t log_txn_end(txid_t tx_id, lsn_t prev_lsn); 
 //LATER: CheckpointManager owns Checkpointing (and must know where master record lives)
-	void log_checkpoint_begin(); 
-	void log_checkpoint_end(std::unordered_map<txid_t, lsn_t> &ATT, 
-			std::unordered_map<page_id_t, lsn_t> &DPT);
+	lsn_t log_checkpoint_begin(); 
+	lsn_t log_checkpoint_end(std::unordered_map<txid_t, lsn_t> ATT, 
+			std::unordered_map<page_id_t, lsn_t> DPT);
 	//make log durable up to requested LSN, signal completion after fsync returns;
 	//batches concurrent requests 
 		//committers waiting at the same time can share an fsync 

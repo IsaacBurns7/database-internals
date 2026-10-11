@@ -86,12 +86,56 @@ lsn_t LogManager::log_txn_end(txid_t tx_id, lsn_t prev_lsn){
 	return log_txn_record(tx_id, LogType::TXN_END, prev_lsn); 
 }
 
-void LogManager::log_checkpoint_begin() {
-
+lsn_t LogManager::log_checkpoint_begin() {
+	//init lrh header 
+	LogRecordHeader lrh{};
+	lrh.tx_id = NULL; 
+	lrh.type = LogType::CHECKPT_BEGIN; 
+	lrh.crc = 0; //must be 0 while computing so the reader can reproduce it
+	std::memset(lrh.reserved, 0, sizeof(lrh.reserved));
+	
+	return append(lrh, {}, {}); 
 }
 
-void LogManager::log_checkpoint_end(std::unordered_map<txid_t, lsn_t> &ATT,
-	std::unordered_map<page_id_t, lsn_t> &DPT) {
+/* CHECKPT_END payload (follows LogRecordHeader; before_len = after_len = 0, length lives in lrh.size)
+ *
+ * ┌───────────────┬───────────────┬──────────────────────────┬──────────────────────────┐
+ * │ att_count u32 │ dpt_count u32 │ AttEntry[att_count] (24B)│ DptEntry[dpt_count] (16B)│
+ * └───────────────┴───────────────┴──────────────────────────┴──────────────────────────┘
+ *
+ * AttEntry: tx_id u64 | last_lsn u64 | status u8 | reserved[7] (zeroed)
+ * DptEntry: page_id u32 | reserved u32 (zeroed) | rec_lsn u64
+ *
+ * lrh.size == sizeof(LogRecordHeader) + 8 + 24*att_count + 16*dpt_count  (reader validates this)
+ * Entries may be misaligned in the read buffer => read with memcpy, not reinterpret_cast.
+ * Entries are sorted by key (tx_id / page_id) so output is reproducible.
+ */
+//CHECKPT_END payload entries (format documented above log_checkpoint_end in log_manager.cpp)
+lsn_t LogManager::log_checkpoint_end(std::unordered_map<txid_t, lsn_t> ATT,
+	std::unordered_map<page_id_t, lsn_t> DPT) {
+	//init lrh header 
+	LogRecordHeader lrh{};
+	lrh.tx_id = NULL; 
+	lrh.type = LogType::CHECKPT_END; 
+	lrh.crc = 0; //must be 0 while computing so the reader can reproduce it
+	std::memset(lrh.reserved, 0, sizeof(lrh.reserved));
+ 	
+	std::vector<std::byte> before_img_ATT(sizeof(AttEntry) * ATT.size());
+	std::vector<std::byte> after_img_DPT(sizeof(DptEntry) * DPT.size());
+	for(const auto& [txid, lastLSN] : ATT){ 
+		uint8_t status = 0; //default runnning => where to get this from...? maybe I have to modify ATT 
+		AttEntry entry{txid, lastLSN, status, }; 
+		std::memset(entry.reserved, 0, sizeof(entry.reserved));
+		std::span<const std::byte> bytes = std::as_bytes(std::span{&entry, 1}); 
+		before_img_ATT.insert(before_img_ATT.end(), bytes.begin(), bytes.end());
+	}
+	for(const auto& [pageid, recLSN] :  DPT){ 
+		DptEntry entry{pageid, 0, recLSN}; 
+		std::span<const std::byte> bytes = std::as_bytes(std::span{&entry, 1}); 
+		after_img_DPT.insert(after_img_DPT.end(), bytes.begin(), bytes.end()); 
+	}
+	//before is ATT, after is DPT 
+	return append(lrh, before_img_ATT, after_img_DPT); 
 }
 
 //make log durable up to requested LSN, signal completion after fsync returns;
