@@ -103,10 +103,10 @@ public:
 		std::byte* before_img, std::byte* after_img, index_id_t index_id = 0, slot_id_t slot_id = 0);
 		//Update can be any LogOp
 	lsn_t log_txn_begin(txid_t tx_id);
-	lsn_t log_txn_commit(txid_t tx_id); 
-		//txn end is omitted when commit(all updates) or abort(all CLRs) is persisted to secondary storage
-	void log_txn_abort(txid_t tx_id, BufferPoolManager &bpm); 
-		//how to abort... 
+//after abort or commit persists to secondary storage, then txn_end is logged 
+	lsn_t log_txn_commit(txid_t tx_id, lsn_t prev_lsn); 
+	lsn_t log_txn_abort(txid_t tx_id, lsn_t prev_lsn); 
+	lsn_t log_txn_end(txid_t tx_id, lsn_t prev_lsn); 
 //LATER: CheckpointManager owns Checkpointing (and must know where master record lives)
 	void log_checkpoint_begin(); 
 	void log_checkpoint_end(std::unordered_map<txid_t, lsn_t> &ATT, 
@@ -122,6 +122,12 @@ public:
 	
 	//REMEMBER fsync is failure => ABORT! 
 private: 
+	//shared append path for every record type: reserves space, assigns LSN, copies header + images, CRCs
+	//fills in lrh.size, before_len, after_len, lsn, crc; caller sets everything else
+	lsn_t append(LogRecordHeader &lrh, std::span<const std::byte> before = {},
+			std::span<const std::byte> after = {});
+	//header-only txn records (BEGIN / COMMIT / ABORT / END), differ only by type + prev_lsn
+	lsn_t log_txn_record(txid_t tx_id, LogType type, lsn_t prev_lsn);
 	std::string absolute_log_file_path; 
 		//preallocate the log file in large chunks, fdatasync doesn't also have to persist file-size metadata on every flush, which "roughly doubles the cost" - i don't believe that, but claude does... 
 		//rewriting partially filled tail block on the next flush is safe, as the previously durable bytes should be identical 
