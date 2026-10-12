@@ -112,8 +112,8 @@ struct LogRecordView{
  * otherwise the tree must be traversed from root and undo the page where it lives... 
  */
 
-#define APPEND_BUFFER_SIZE (64 << 3) << 20 //(64 MiB) 
-#define FILL_BUFFER_SIZE (64 << 3) << 20 //(64 MiB)
+#define APPEND_BUFFER_SIZE (64 << 1) << 20 //(64 MiB) 
+#define FILL_BUFFER_SIZE (64 << 1) << 20 //(64 MiB)
 
 class LogManager{
 public:
@@ -153,7 +153,7 @@ private:
 			std::span<const std::byte> after = {});
 	//header-only txn records (BEGIN / COMMIT / ABORT / END), differ only by type + prev_lsn
 	lsn_t log_txn_record(txid_t tx_id, LogType type, lsn_t prev_lsn);
-	std::string absolute_log_file_path; 
+	std::string absolute_log_file_path; //INVARIANT: exists prior
 		//preallocate the log file in large chunks, fdatasync doesn't also have to persist file-size metadata on every flush, which "roughly doubles the cost" - i don't believe that, but claude does... 
 		//rewriting partially filled tail block on the next flush is safe, as the previously durable bytes should be identical 
 	lsn_t currentLSN; //only read / written to under mtx 

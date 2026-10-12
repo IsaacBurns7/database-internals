@@ -4,6 +4,14 @@
 #include <mutex>
 #include <span>
 
+#include <fcntl.h>
+#include <unistd.h>
+
+#include <cerrno>
+#include <cstddef>
+#include <filesystem>
+#include <system_error>
+
 //at startup, find end of valid log by scanning until a record fails its checksum, truncating torn tail 
 LogManager::LogManager(std::string absolute_log_file_path){
 }
@@ -144,5 +152,108 @@ lsn_t LogManager::log_checkpoint_end(std::unordered_map<txid_t, lsn_t> ATT,
 		//first waiter is leader, write everything in buffer so far
 		//all other waiters have a condition variable for their requested target (get_flushed_LSN)
 		//when leader is done, notify_all() => if target achieved, return, otherwise try to become leader / fall asleep if u fail
+
+//helpers for durable append 
+namespace {
+
+struct Fd {
+    int fd = -1;
+    explicit Fd(int f) : fd(f) {}
+    ~Fd() { if (fd >= 0) ::close(fd); }
+    Fd(const Fd&) = delete;
+    Fd& operator=(const Fd&) = delete;
+};
+
+//this later can be a std::abort() if we end up catching errors... 
+[[noreturn]] void fail(const char* what) {
+    throw std::system_error(errno, std::generic_category(), what);
+}
+
+// meta: true = also flush metadata (used for directories).
+int sync_fd(int fd, bool meta) {
+#ifdef MAC
+    (void)meta;
+    // F_FULLFSYNC flushes the drive's write cache. Some filesystems
+    // (network, FAT) don't support it, so fall back to fsync.
+    if (::fcntl(fd, F_FULLFSYNC) == 0) return 0;
+    if (errno == ENOTSUP || errno == EINVAL) return ::fsync(fd);
+    return -1;
+#else
+    //return meta ? ::fsync(fd) : ::fdatasync(fd);
+	return ::fsync(fd); 
+#endif
+}
+
+} // namespace
+
+constexpr uint32_t INVALID_LOG_OFFSET = UINT32_MAX; 
 void LogManager::flush_to(lsn_t target) {
+	if(target > currentLSN){
+		printf("Requested a flush to %llu, currentLSN = %llu", target, currentLSN);  
+	}
+//for each thread, wait on condition_variable cv (get_flushed_LSN > target) 
+//become leader? 
+//acquire mutex 
+	//find offset in append buffer of target lsn, copy to fill buffer 
+	//give up mutex
+	//fsync fill buffer 
+		//if it fails, panic 
+	//notify_all(cv)
+	auto find_offset = [&]() -> uint32_t{
+		std::scoped_lock<std::mutex> lck(mtx); 
+		lsn_t lsn_found = 0; 
+		uint32_t offset = 0; 
+		while(lsn_found != target && 
+				offset < sizeof(append_buffer) + sizeof(LogRecordHeader)){
+			LogRecordHeader *lrh = (LogRecordHeader*)(append_buffer + offset); 
+#ifdef DEBUG 
+			printf("At offset %d, found lsn %llu\n", offset, lsn_found); 
+#endif 
+			lsn_found = lrh->lsn; 
+			offset += lrh->size; 
+		}
+		if(offset >= sizeof(append_buffer) + sizeof(LogRecordHeader)){
+			printf("Offset at end of append buffer, could not find target lsn: %llu\n", target);  
+			return INVALID_LOG_OFFSET; 
+		}
+		LogRecordHeader *target_lrh = (LogRecordHeader*)(append_buffer + offset); 
+		offset += target_lrh->size; //offset now includes log w/ target lsn 
+		std::memcpy(fill_buffer, append_buffer, offset); 
+		return offset; 
+	};
+
+
+	auto append_durable = [](const std::filesystem::path& path,
+                    std::span<const std::byte> buf, uint32_t offset) -> void {
+		int raw = ::open(path.c_str(), O_WRONLY | O_APPEND | O_CREAT | O_EXCL | O_CLOEXEC, 0644); 
+		bool created = raw >= 0; 
+		if(!created){
+			if(errno != EEXIST) fail("open"); 
+			raw = ::open(path.c_str(), O_WRONLY | O_APPEND | O_CLOEXEC); 
+			if(raw < 0) fail("open"); 
+		}
+		Fd fd(raw);
+		const std::byte* p = buf.data(); 
+		size_t left = offset; 
+		while(left > 0){
+			ssize_t n = ::write(fd.fd, p, left); 
+			if(n < 0){
+				if(errno == EINTR) continue; 
+				fail("write"); 
+			}
+			p += n; 
+			left -= static_cast<std::size_t>(n);
+		}
+
+		//DO NOT RETRY ON FAILURE! FAILURE IS FATAL! 
+		if(sync_fd(fd.fd, false) != 0) fail("fsync"); 
+
+		if(created){
+			auto parent = path.parent_path(); 
+			if(parent.empty()) parent = "."; 
+			Fd dir(::open(parent.c_str(), O_RDONLY | O_DIRECTORY | O_CLOEXEC)); 
+			if(dir.fd < 0) fail("open dir"); 
+			if(sync_fd(dir.fd, true != 0)) fail("fsync dir"); 
+		}
+	};
 }
