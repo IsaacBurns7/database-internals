@@ -2,6 +2,7 @@
 
 #include "buffer/buffer_pool_manager.h"
 #include "common/types.h"
+#include <condition_variable>
 #include <span>
 #include <type_traits>
 
@@ -156,23 +157,24 @@ private:
 	std::string absolute_log_file_path; //INVARIANT: exists prior
 		//preallocate the log file in large chunks, fdatasync doesn't also have to persist file-size metadata on every flush, which "roughly doubles the cost" - i don't believe that, but claude does... 
 		//rewriting partially filled tail block on the next flush is safe, as the previously durable bytes should be identical 
+	std::mutex mtx; //guards currentLSN, append_buffer, fill_buffer, append_buffer_fill_offset, NOT durable_end_offset, 
 	lsn_t currentLSN; //only read / written to under mtx 
-	std::atomic<lsn_t> flushedLSN; //isnt this also the master record...? or does the master record lag behind this, and is only brought up to speed during checkpoints? 
-								   //is read outside the mtx 
 	//TransactionManager owns ATT
 	//BufferPoolManager owns DPT 
 	//RecoveryManager runs ARIES (and must know where master record lives)
 	uint64_t append_buffer_base_offset; //where we start writing to the file 
 	std::atomic<uint64_t> append_buffer_fill_offset; //=> current_len 
 	std::atomic<uint64_t> durable_end_offset; //if not flushing, equal to append_buffer_base_offset 
-											  //atomic b/c it must be accessed by BPM's eviction check 
-	bool currently_flushing; 
-	std::mutex mtx; 
+											  //atomic b/c it must be accessed by BPM's eviction check (wait does it? why... this might become clear later...) 
 		//for both reserving space and copying bytes into the append_buffer 
 		//+ held by flush_to when copying append_buffer to fill_buffer
 	std::byte append_buffer[APPEND_BUFFER_SIZE]; 
 	std::byte fill_buffer[FILL_BUFFER_SIZE];
 
+	std::condition_variable flush_cv_; 
+	std::mutex flush_mtx_; 
+	lsn_t flushedLSN; 
+	bool flushing_; 
 	//later concurrency addition
 		//each writer gets a range to copy into, and copies it's log records into that range 
 		//once it's done copying, there may be other writers in its prefix. 

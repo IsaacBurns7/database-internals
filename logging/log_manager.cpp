@@ -199,11 +199,12 @@ void LogManager::flush_to(lsn_t target) {
 	//fsync fill buffer 
 		//if it fails, panic 
 	//notify_all(cv)
-	auto find_offset = [&]() -> uint32_t{
+	
+	auto find_offset = [&](lsn_t target_LSN) -> uint32_t{
 		std::scoped_lock<std::mutex> lck(mtx); 
 		lsn_t lsn_found = 0; 
 		uint32_t offset = 0; 
-		while(lsn_found != target && 
+		while(lsn_found != target_LSN && 
 				offset < sizeof(append_buffer) + sizeof(LogRecordHeader)){
 			LogRecordHeader *lrh = (LogRecordHeader*)(append_buffer + offset); 
 #ifdef DEBUG 
@@ -222,9 +223,18 @@ void LogManager::flush_to(lsn_t target) {
 		return offset; 
 	};
 
+	auto copy_to_fill_buffer = [&]() -> std::pair<lsn_t, uint32_t> { //instead of &, could have them pass in a span + offset 
+		std::scoped_lock<std::mutex> lck(mtx); 
+		std::memcpy(fill_buffer, append_buffer, append_buffer_fill_offset);
+		std::memset(append_buffer, 0, append_buffer_fill_offset); 
+		uint32_t fill_buffer_offset = append_buffer_fill_offset; 
+		append_buffer_fill_offset = 0; 
+		return {currentLSN, fill_buffer_offset}; 
+	};
+
 
 	auto append_durable = [](const std::filesystem::path& path,
-                    std::span<const std::byte> buf, uint32_t offset) -> void {
+                    std::span<const std::byte> buf) {
 		int raw = ::open(path.c_str(), O_WRONLY | O_APPEND | O_CREAT | O_EXCL | O_CLOEXEC, 0644); 
 		bool created = raw >= 0; 
 		if(!created){
@@ -234,7 +244,7 @@ void LogManager::flush_to(lsn_t target) {
 		}
 		Fd fd(raw);
 		const std::byte* p = buf.data(); 
-		size_t left = offset; 
+		size_t left = buf.size();; 
 		while(left > 0){
 			ssize_t n = ::write(fd.fd, p, left); 
 			if(n < 0){
@@ -256,4 +266,30 @@ void LogManager::flush_to(lsn_t target) {
 			if(sync_fd(dir.fd, true != 0)) fail("fsync dir"); 
 		}
 	};
+
+	//leader, waiter system 
+	auto wait_durable = [&](){
+		std::unique_lock lck(flush_mtx_); 
+		while(flushedLSN < target){
+			if(!flushing_){
+				flushing_ = true; 
+				lck.unlock(); //don't hold flush state... ? 
+				auto [batch_end_LSN, fill_buffer_offset] = copy_to_fill_buffer(); //
+				std::filesystem::path path{absolute_log_file_path}; 
+				std::span<const std::byte> buf(fill_buffer, fill_buffer_offset); 
+				append_durable(path, buf);
+				lck.lock(); 
+				flushedLSN = batch_end_LSN; 
+				flushing_ = false; 
+				flush_cv_.notify_all();
+			}else{
+				flush_cv_.wait(lck, [&]{
+						return flushedLSN >= target || !flushing_; 
+					});
+			}
+		}
+	};
+	//wow this is ugly and dishonest... 
+
+	wait_durable(); 
 }
