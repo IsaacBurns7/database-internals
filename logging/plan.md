@@ -1,7 +1,7 @@
 # Classes to add
 ## First 
 
-### LogRecord (and record-type definitions)
+### LogRecord (and record-type definitions) DONE 
 The unit of the log.
 Behavior
 Common header: LSN, prevLSN (per-transaction chain), transaction id, record type, length, and a checksum so a torn tail can be detected at restart.
@@ -12,7 +12,7 @@ Needs from other classes
 Serialization utilities.
 Nothing from the buffer pool or access methods.
 
-### LogManager
+### LogManager DONE 
 Storage-level infrastructure for the log file. Knows record headers, never record semantics.
 Behavior
 Appends records to an in-memory log buffer and assigns monotonically increasing LSNs (byte offsets work well).
@@ -26,6 +26,8 @@ DiskScheduler (or a dedicated log I/O thread) for sequential writes and fsync.
 LogRecord serialization.
 Used by
 BufferPoolManager (flushedLSN, flush-until), TransactionManager (commit force), MiniTxn (append), RecoveryManager and Checkpointer (iteration, append).
+
+
 
 ## AFTER TransactionManager, IN ORDER
 
